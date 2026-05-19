@@ -453,7 +453,7 @@ export class VideoService {
     return result;
   }
 
-  async deleteRoom(roomId) {
+  async deleteRoom(roomId, options = {}) {
     this.sdk.validateParams(
       { roomId },
       {
@@ -461,6 +461,9 @@ export class VideoService {
       },
     );
     const params = {};
+    if (options && options.deleteCalendarEvent === true) {
+      params.body = { deleteCalendarEvent: true };
+    }
     const result = await this.sdk._fetch(`/video/${roomId}`, 'DELETE', params);
     return result;
   }
@@ -610,6 +613,26 @@ export class VideoService {
       params,
     );
     return result;
+  }
+
+  // Persist a rolled-up quality summary to MySQL (one row per participant
+  // per meeting). Internal endpoint, called by app1-video-server on
+  // participant.leave. Long-term home for billing (bytes) and "was this
+  // meeting good?" support lookups, surviving ClickHouse TTL expiry.
+  async submitParticipantSummary(roomId, participantId, summary) {
+    this.sdk.validateParams(
+      { roomId, participantId, summary },
+      {
+        roomId: { type: 'string', required: true },
+        participantId: { type: 'string', required: true },
+        summary: { type: 'object', required: true },
+      },
+    );
+    return this.sdk._fetch(
+      `/internal/video/${roomId}/participants/${participantId}/summary`,
+      'POST',
+      { body: summary },
+    );
   }
 
   async submitSurvey({
