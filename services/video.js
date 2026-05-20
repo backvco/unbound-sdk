@@ -221,6 +221,13 @@ export class VideoService {
     startMicrophoneMutedAfter,
     enableChat,
     engagementSessionId,
+    startRecordingOn,
+    startTranscribingOn,
+    syncToCalendar,
+    source,
+    calendarId,
+    eventId,
+    calendarProvider,
   }) {
     this.sdk.validateParams(
       {
@@ -241,6 +248,13 @@ export class VideoService {
         startMicrophoneMutedAfter,
         enableChat,
         engagementSessionId,
+        startRecordingOn,
+        startTranscribingOn,
+        syncToCalendar,
+        source,
+        calendarId,
+        eventId,
+        calendarProvider,
       },
       {
         name: { type: 'string', required: false },
@@ -260,6 +274,13 @@ export class VideoService {
         startMicrophoneMutedAfter: { type: 'number', required: false },
         enableChat: { type: 'boolean', required: false },
         engagementSessionId: { type: 'string', required: false },
+        startRecordingOn: { type: 'boolean', required: false },
+        startTranscribingOn: { type: 'boolean', required: false },
+        syncToCalendar: { type: 'boolean', required: false },
+        source: { type: 'string', required: false },
+        calendarId: { type: 'string', required: false },
+        eventId: { type: 'string', required: false },
+        calendarProvider: { type: 'string', required: false },
       },
     );
     const params = {
@@ -281,6 +302,13 @@ export class VideoService {
         startMicrophoneMutedAfter,
         enableChat,
         engagementSessionId,
+        startRecordingOn,
+        startTranscribingOn,
+        syncToCalendar,
+        source,
+        calendarId,
+        eventId,
+        calendarProvider,
       },
     };
     const result = await this.sdk._fetch(`/video`, 'POST', params);
