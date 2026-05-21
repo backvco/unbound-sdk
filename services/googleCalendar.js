@@ -3,19 +3,38 @@ export class GoogleCalendarService {
     this.sdk = sdk;
   }
 
-  async setupWebhook({ calendarId, eventTypes, webhookUrl, expirationTime }) {
+  async setupWebhook({
+    calendarId,
+    eventTypes,
+    webhookUrl,
+    expirationTime,
+    recordTypeId,
+  } = {}) {
+    // Only calendarId is required. The server derives the webhook URL itself
+    // (per-environment: https://login.<API_BASE_URL>/webhooks/google/...) and
+    // watches all event types, so eventTypes/webhookUrl are optional. They
+    // were previously marked required, which broke the common
+    // setupWebhook({ calendarId }) call site (createRoom) with
+    // "Missing required parameter eventTypes".
+    // recordTypeId is optional: callers (e.g. createRoom) pass the meeting's
+    // already-resolved recordTypeId so the webhook row inherits it; if omitted
+    // the server resolves a fallback via findRecordTypeId.
     this.sdk.validateParams(
-      { calendarId, eventTypes, webhookUrl },
+      { calendarId, eventTypes, webhookUrl, recordTypeId },
       {
         calendarId: { type: 'string', required: true },
-        eventTypes: { type: 'array', required: true },
-        webhookUrl: { type: 'string', required: true },
+        eventTypes: { type: 'array', required: false },
+        webhookUrl: { type: 'string', required: false },
         expirationTime: { type: 'number', required: false },
+        recordTypeId: { type: 'string', required: false },
       },
     );
 
-    const webhookData = { calendarId, eventTypes, webhookUrl };
+    const webhookData = { calendarId };
+    if (eventTypes) webhookData.eventTypes = eventTypes;
+    if (webhookUrl) webhookData.webhookUrl = webhookUrl;
     if (expirationTime) webhookData.expirationTime = expirationTime;
+    if (recordTypeId) webhookData.recordTypeId = recordTypeId;
 
     const params = {
       body: webhookData,
