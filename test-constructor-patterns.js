@@ -109,6 +109,7 @@ const services = [
   'subscriptions',
   'workflows',
   'notes',
+  'developerApis',
   'storage',
   'verification',
   'portals',

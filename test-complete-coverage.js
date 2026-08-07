@@ -29,6 +29,7 @@ async function testPublicSDKCompleteness() {
     'subscriptions',
     'workflows',
     'notes',
+    'developerApis',
     'storage',
     'verification',
     'portals',

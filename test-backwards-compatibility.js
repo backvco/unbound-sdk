@@ -33,6 +33,7 @@ async function testBasicSDKFunctionality() {
     'subscriptions',
     'workflows',
     'notes',
+    'developerApis',
     'storage',
     'verification',
     'portals',
