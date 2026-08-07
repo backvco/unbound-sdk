@@ -428,6 +428,19 @@ export class VideoService {
     return await this.sdk._fetch(`/video/${roomId}`, 'GET', params);
   }
 
+  // Live roster for a meeting card: { counts, inMeeting: [...], inWaiting: [...] }.
+  async getLivePresence(roomId) {
+    this.sdk.validateParams(
+      { roomId },
+      { roomId: { type: 'string', required: true } },
+    );
+    const result = await this.sdk._fetch(
+      `/video/${roomId}/livePresence`,
+      'GET',
+    );
+    return result;
+  }
+
   async listMeetings(options = {}) {
     // Validate optional parameters
     const validationSchema = {};
