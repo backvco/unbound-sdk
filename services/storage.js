@@ -87,6 +87,69 @@ export class StorageService {
     return commonTypes[ext] || 'application/octet-stream';
   }
 
+  // Private helper to detect if a value is a Node Readable or Web ReadableStream
+  _isStreamLike(value) {
+    if (!value || typeof value !== 'object') return false;
+    if (typeof value.pipe === 'function') return true; // Node Readable
+    if (typeof value.getReader === 'function') return true; // Web ReadableStream
+    if (typeof value[Symbol.asyncIterator] === 'function') return true;
+    return false;
+  }
+
+  // Private helper to create a streaming multipart body for Node.js.
+  // Returns { body: ReadableStream, headers } for fetch() with duplex: 'half'.
+  // Byte-identical framing to _createNodeFormData — emitted in chunks so the full
+  // file never has to sit in memory.
+  _createNodeFormDataStream(fileStream, fileName, formFields) {
+    const boundary = `----formdata-${Date.now()}-${Math.random()
+      .toString(36)
+      .slice(2)}`;
+    const CRLF = '\r\n';
+    const contentType = this._getContentType(fileName);
+
+    const header =
+      `--${boundary}${CRLF}` +
+      `Content-Disposition: form-data; name="files"; filename="${
+        fileName || 'file'
+      }"${CRLF}` +
+      `Content-Type: ${contentType}${CRLF}${CRLF}`;
+
+    let tail = '';
+    for (const [name, value] of formFields) {
+      tail += `${CRLF}--${boundary}${CRLF}Content-Disposition: form-data; name="${name}"${CRLF}${CRLF}${value}`;
+    }
+    tail += `${CRLF}--${boundary}--${CRLF}`;
+
+    const body = new ReadableStream({
+      async start(controller) {
+        try {
+          controller.enqueue(Buffer.from(header, 'utf8'));
+          for await (const chunk of fileStream) {
+            controller.enqueue(
+              Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk),
+            );
+          }
+          controller.enqueue(Buffer.from(tail, 'utf8'));
+          controller.close();
+        } catch (err) {
+          controller.error(err);
+        }
+      },
+      cancel(reason) {
+        if (fileStream && typeof fileStream.destroy === 'function') {
+          fileStream.destroy(reason);
+        }
+      },
+    });
+
+    return {
+      body,
+      headers: {
+        'content-type': `multipart/form-data; boundary=${boundary}`,
+      },
+    };
+  }
+
   // Private helper to create FormData for Node.js environment
   _createNodeFormData(file, fileName, formFields) {
     const boundary = `----formdata-${Date.now()}-${Math.random().toString(36)}`;
@@ -234,7 +297,13 @@ export class StorageService {
     // Default behavior: Use fetch via sdk._fetch
     let formData, headers;
 
-    if (isNode) {
+    if (isNode && this._isStreamLike(file)) {
+      // Streaming path — file is piped chunk-by-chunk, no full-buffer copy.
+      // Caller is responsible for creating a fresh stream per retry.
+      const result = this._createNodeFormDataStream(file, fileName, formFields);
+      formData = result.body;
+      headers = result.headers;
+    } else if (isNode) {
       const result = this._createNodeFormData(file, fileName, formFields);
       formData = result.formData;
       headers = result.headers;
@@ -381,7 +450,7 @@ Response:
   /**
    * Upload a file to storage with optional format conversion
    * @param {Object} config - Configuration object
-   * @param {Object} config.file - File content (Buffer or File) - REQUIRED
+   * @param {Object} config.file - File content: Buffer, File, Node Readable stream, or Web ReadableStream. Streams upload chunk-by-chunk (no full-buffer copy) — recommended for files > ~100 MB. For retries, create a fresh stream per attempt. REQUIRED
    * @param {string} [config.classification='generic'] - File classification (e.g., 'fax', 'files', 'generic')
    * @param {string} [config.folder] - Folder path for organizing files
    * @param {string} [config.fileName] - Original file name
