@@ -297,6 +297,17 @@ export class BaseSDK {
       return true;
     }
 
+    // Streaming bodies (Node Readable or Web ReadableStream) — caller is
+    // expected to set an explicit content-type header alongside.
+    if (
+      typeof body === 'object' &&
+      body !== null &&
+      (typeof body.pipe === 'function' ||
+        typeof body.getReader === 'function')
+    ) {
+      return true;
+    }
+
     return false;
   }
 
@@ -353,9 +364,20 @@ export class BaseSDK {
         typeof Buffer !== 'undefined' &&
         Buffer.isBuffer &&
         Buffer.isBuffer(body);
+      const isStream =
+        body &&
+        typeof body === 'object' &&
+        (typeof body.pipe === 'function' ||
+          typeof body.getReader === 'function');
 
       if (isFormData || isBuffer) {
         options.body = body;
+      } else if (isStream) {
+        // Node 18+ native fetch (undici) requires duplex: 'half' for
+        // streaming request bodies. Without this the fetch throws
+        // synchronously before the first byte is sent.
+        options.body = body;
+        options.duplex = 'half';
       } else {
         options.body = JSON.stringify(body);
       }
