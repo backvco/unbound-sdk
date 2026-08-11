@@ -714,7 +714,7 @@ Response:
     );
 
     const result = await this.sdk._fetch(
-      `/storage/file/${storageId}`,
+      `/storage/${storageId}`,
       'DELETE',
     );
     return result;
