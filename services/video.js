@@ -336,18 +336,24 @@ export class VideoService {
     return result;
   }
 
-  async updateRoomBot(roomId, { isRecording, isTranscribing }) {
+  async updateRoomBot(
+    roomId,
+    { isRecording, isTranscribing, recordingAssetStatus },
+  ) {
     this.sdk.validateParams(
-      { roomId, isRecording, isTranscribing },
+      { roomId, isRecording, isTranscribing, recordingAssetStatus },
       {
         roomId: { type: 'string', required: true },
         isRecording: { type: 'boolean', required: false },
         isTranscribing: { type: 'boolean', required: false },
+        // none|processing|ready_webm|ready_mp4|failed
+        recordingAssetStatus: { type: 'string', required: false },
       },
     );
     const update = {
       isRecording,
       isTranscribing,
+      recordingAssetStatus,
     };
     const params = {
       body: {
