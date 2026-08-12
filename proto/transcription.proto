@@ -108,6 +108,10 @@ message AudioRequest {
   // SilenceDetector), instead of relying on client-sent vad_event fields.
   // Defaults to false/unset: existing (non-Meet) callers are unaffected.
   bool server_vad = 26;
+
+  // Optional custom vocabulary terms to bias transcription toward
+  // (e.g. product names, jargon). Merged account + room terms, capped.
+  repeated string vocabulary = 27;
 }
 
 // Audio configuration

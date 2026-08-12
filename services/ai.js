@@ -1,4 +1,10 @@
 import { PlaybooksService } from './ai/playbooks.js';
+import { VocabularyService } from './ai/vocabulary.js';
+import { translate as translateItems } from './ai/translate.js';
+import {
+  getSettings as getAiSettings,
+  updateSettings as updateAiSettings,
+} from './ai/settings.js';
 
 export class AIService {
   constructor(sdk) {
@@ -8,6 +14,33 @@ export class AIService {
     this.stt = new SpeechToTextService(sdk);
     this.extract = new ExtractService(sdk);
     this.playbooks = new PlaybooksService(sdk);
+    this.vocabulary = new VocabularyService(sdk);
+  }
+
+  /**
+   * Translate a batch of text items
+   * @param {Object} params - { items, targetLanguage, sourceLanguage?, domain?, context? }
+   * @returns {Promise<Object>} { items: [{id, text}] }
+   */
+  async translate(params) {
+    return translateItems(this.sdk, params);
+  }
+
+  /**
+   * Get account AI settings
+   * @returns {Promise<Object>} { settings: { shareOcrEnabled } }
+   */
+  async getSettings() {
+    return getAiSettings(this.sdk);
+  }
+
+  /**
+   * Update account AI settings
+   * @param {Object} options - { shareOcrEnabled }
+   * @returns {Promise<Object>} { settings }
+   */
+  async updateSettings(options) {
+    return updateAiSettings(this.sdk, options);
   }
 }
 
