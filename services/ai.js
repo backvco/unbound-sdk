@@ -611,6 +611,11 @@ export class SpeechToTextService {
    * @param {string} [options.playbookId] - Playbook ID
    * @param {string} [options.name] - Session name
    * @param {Object} [options.metadata] - Additional metadata
+   * @param {string} [options.videoRoomId] - Video (Meet) room ID this stream belongs to
+   * @param {string} [options.videoParticipantId] - Video (Meet) room participant ID
+   * @param {string} [options.displayName] - Participant display name (Meet sessions)
+   * @param {string} [options.role] - Speaker role (e.g. 'participant', 'host')
+   * @param {boolean} [options.serverVad] - Opt-in server-side VAD (Meet sessions; defaults false)
    * @returns {Promise<SttStream>} Stream object with write() method and transcript events
    *
    * @example
@@ -658,6 +663,11 @@ export class SpeechToTextService {
       metadata,
       sipCallId,
       cdrId,
+      videoRoomId,
+      videoParticipantId,
+      displayName,
+      role,
+      serverVad,
     } = options;
 
     // Validate parameters
@@ -689,6 +699,11 @@ export class SpeechToTextService {
         metadata,
         sipCallId,
         cdrId,
+        videoRoomId,
+        videoParticipantId,
+        displayName,
+        role,
+        serverVad,
       },
       {
         engine: { type: 'string', required: false },
@@ -717,6 +732,11 @@ export class SpeechToTextService {
         metadata: { type: 'object', required: false },
         sipCallId: { type: 'string', required: false },
         cdrId: { type: 'string', required: false },
+        videoRoomId: { type: 'string', required: false },
+        videoParticipantId: { type: 'string', required: false },
+        displayName: { type: 'string', required: false },
+        role: { type: 'string', required: false },
+        serverVad: { type: 'boolean', required: false },
       },
     );
 
@@ -736,6 +756,10 @@ export class SpeechToTextService {
         sipCallId,
         cdrId,
         name,
+        videoRoomId,
+        videoParticipantId,
+        displayName,
+        role,
         metadata: {
           ...metadata,
           languageCode,
@@ -773,6 +797,12 @@ export class SpeechToTextService {
       vadEnabled,
       minSilenceDuration,
       speechPadMs,
+      // SttStream reads these as videoRoomId/participantId/displayName/serverVad
+      // for the gRPC first-chunk session config.
+      videoRoomId,
+      participantId: videoParticipantId,
+      displayName,
+      serverVad,
     };
 
     return new SttStream(this.sdk, session, streamOptions);
@@ -883,6 +913,8 @@ export class SpeechToTextService {
       side,
       bridgeId,
       sentiment,
+      videoRoomId,
+      videoParticipantId,
     },
   ) {
     this.sdk.validateParams(
@@ -902,6 +934,8 @@ export class SpeechToTextService {
         side: { type: 'string', required: false },
         bridgeId: { type: 'string', required: false },
         sentiment: { type: 'object', required: false },
+        videoRoomId: { type: 'string', required: false },
+        videoParticipantId: { type: 'string', required: false },
       },
     );
 
@@ -920,6 +954,8 @@ export class SpeechToTextService {
         side,
         bridgeId,
         sentiment,
+        videoRoomId,
+        videoParticipantId,
       },
     };
 

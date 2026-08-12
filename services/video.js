@@ -795,6 +795,42 @@ export class VideoService {
   }
 
   /**
+   * Get the live transcription transcript for a video room, paged.
+   * @param {string} roomId - The video room ID
+   * @param {Object} [options] - Paging options
+   * @param {number} [options.limit] - Max rows to return
+   * @param {number} [options.offset] - Row offset
+   * @returns {Promise} Paged transcript rows, ordered by timestamp/createdAt ascending
+   */
+  async getTranscript(roomId, options = {}) {
+    this.sdk.validateParams(
+      { roomId },
+      {
+        roomId: { type: 'string', required: true },
+      },
+    );
+
+    const validationSchema = {};
+    if ('limit' in options) validationSchema.limit = { type: 'number' };
+    if ('offset' in options) validationSchema.offset = { type: 'number' };
+
+    if (Object.keys(validationSchema).length > 0) {
+      this.sdk.validateParams(options, validationSchema);
+    }
+
+    const params = {
+      query: options,
+    };
+
+    const result = await this.sdk._fetch(
+      `/video/${roomId}/transcript`,
+      'GET',
+      params,
+    );
+    return result;
+  }
+
+  /**
    * Edit a chat message in a video room
    * Only the participant who created the message can edit it
    * @param {string} roomId - The video room ID
