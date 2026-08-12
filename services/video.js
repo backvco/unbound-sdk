@@ -1070,6 +1070,35 @@ export class VideoService {
   }
 
   /**
+   * Ask the room-scoped AI assistant a question, grounded in the meeting
+   * transcript so far
+   * @param {string} roomId - The video room ID
+   * @param {Object} params
+   * @param {string} params.question - The question to ask
+   * @param {Array<{role: 'user'|'assistant', content: string}>} [params.history] - Prior turns
+   * @returns {Promise} Assistant answer
+   */
+  async assistantChat(roomId, { question, history } = {}) {
+    this.sdk.validateParams(
+      { roomId, question },
+      {
+        roomId: { type: 'string', required: true },
+        question: { type: 'string', required: true },
+      },
+    );
+
+    const body = { question };
+    if (history !== undefined) {
+      body.history = history;
+    }
+
+    const result = await this.sdk._fetch(`/video/${roomId}/assistant`, 'POST', {
+      body,
+    });
+    return result;
+  }
+
+  /**
    * Update the text of a transcript message
    * @param {string} roomId - The video room ID
    * @param {string} messageId - The transcript message ID
