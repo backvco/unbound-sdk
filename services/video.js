@@ -1030,4 +1030,182 @@ export class VideoService {
     const result = await this.sdk._fetch('/video/settings/user', 'GET', params);
     return result;
   }
+
+  /**
+   * Get the AI-generated summary for a video room's transcript
+   * @param {string} roomId - The video room ID
+   * @returns {Promise} Meeting summary
+   */
+  async getSummary(roomId) {
+    this.sdk.validateParams(
+      { roomId },
+      {
+        roomId: { type: 'string', required: true },
+      },
+    );
+
+    const result = await this.sdk._fetch(`/video/${roomId}/summary`, 'GET');
+    return result;
+  }
+
+  /**
+   * Host-only edit of a video room's post-meeting AI summary
+   * @param {string} roomId - The video room ID
+   * @param {Object} update
+   * @param {Object} update.summaryJson - {title, summary, actionItems, chapters}
+   * @returns {Promise} Update result
+   */
+  async updateSummary(roomId, { summaryJson }) {
+    this.sdk.validateParams(
+      { roomId, summaryJson },
+      {
+        roomId: { type: 'string', required: true },
+        summaryJson: { type: 'object', required: true },
+      },
+    );
+
+    const params = {
+      body: { summaryJson },
+    };
+
+    const result = await this.sdk._fetch(
+      `/video/${roomId}/summary`,
+      'PATCH',
+      params,
+    );
+    return result;
+  }
+
+  /**
+   * Generate a "catch me up" recap of a video room's transcript so far
+   * @param {string} roomId - The video room ID
+   * @returns {Promise} Catch-up summary
+   */
+  async catchMeUp(roomId) {
+    this.sdk.validateParams(
+      { roomId },
+      {
+        roomId: { type: 'string', required: true },
+      },
+    );
+
+    const result = await this.sdk._fetch(
+      `/video/${roomId}/catch-me-up`,
+      'POST',
+      {},
+    );
+    return result;
+  }
+
+  /**
+   * Ask the room-scoped AI assistant a question, grounded in the meeting
+   * transcript so far
+   * @param {string} roomId - The video room ID
+   * @param {Object} params
+   * @param {string} params.question - The question to ask
+   * @param {Array<{role: 'user'|'assistant', content: string}>} [params.history] - Prior turns
+   * @returns {Promise} Assistant answer
+   */
+  async assistantChat(roomId, { question, history } = {}) {
+    this.sdk.validateParams(
+      { roomId, question },
+      {
+        roomId: { type: 'string', required: true },
+        question: { type: 'string', required: true },
+      },
+    );
+
+    const body = { question };
+    if (history !== undefined) {
+      body.history = history;
+    }
+
+    const result = await this.sdk._fetch(`/video/${roomId}/assistant`, 'POST', {
+      body,
+    });
+    return result;
+  }
+
+  /**
+   * Update the text of a transcript message
+   * @param {string} roomId - The video room ID
+   * @param {string} messageId - The transcript message ID
+   * @param {Object} update
+   * @param {string} update.text - New transcript text
+   * @returns {Promise} Updated transcript message
+   */
+  async updateTranscriptMessage(roomId, messageId, { text }) {
+    this.sdk.validateParams(
+      { roomId, messageId, text },
+      {
+        roomId: { type: 'string', required: true },
+        messageId: { type: 'string', required: true },
+        text: { type: 'string', required: true },
+      },
+    );
+
+    const params = {
+      body: { text },
+    };
+
+    const result = await this.sdk._fetch(
+      `/video/${roomId}/transcript/${messageId}`,
+      'PATCH',
+      params,
+    );
+    return result;
+  }
+
+  /**
+   * Redact a transcript message
+   * @param {string} roomId - The video room ID
+   * @param {string} messageId - The transcript message ID
+   * @returns {Promise} Redaction result
+   */
+  async redactTranscriptMessage(roomId, messageId) {
+    this.sdk.validateParams(
+      { roomId, messageId },
+      {
+        roomId: { type: 'string', required: true },
+        messageId: { type: 'string', required: true },
+      },
+    );
+
+    const result = await this.sdk._fetch(
+      `/video/${roomId}/transcript/${messageId}/redact`,
+      'POST',
+      {},
+    );
+    return result;
+  }
+
+  /**
+   * Rename a speaker in the transcript for a video room
+   * @param {string} roomId - The video room ID
+   * @param {Object} update
+   * @param {string} update.participantId - Participant ID whose transcript speaker name to update
+   * @param {string} update.displayName - New display name
+   * @returns {Promise} Update result
+   */
+  async renameTranscriptSpeaker(roomId, { participantId, displayName }) {
+    this.sdk.validateParams(
+      { roomId, participantId, displayName },
+      {
+        roomId: { type: 'string', required: true },
+        participantId: { type: 'string', required: true },
+        displayName: { type: 'string', required: true },
+      },
+    );
+
+    const params = {
+      body: { participantId, displayName },
+    };
+
+    const result = await this.sdk._fetch(
+      `/video/${roomId}/transcript-speakers`,
+      'PATCH',
+      params,
+    );
+    return result;
+  }
 }

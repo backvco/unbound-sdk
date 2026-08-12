@@ -225,6 +225,27 @@ export class GenerativeService {
   }
 
   /**
+   * Summarize chat/transcript content (running summary, chapters, title)
+   * @param {Object} payload
+   * @param {string} [payload.domain] - Summary domain (e.g. 'meeting')
+   * @param {string} [payload.mode] - Summary mode
+   * @param {Array} [payload.lines] - Transcript/chat lines to summarize
+   * @param {Array} [payload.chatMessages] - Chat messages to summarize
+   * @param {string} [payload.runningSummary] - Existing running summary to extend
+   * @param {boolean} [payload.includeChapters] - Include chapter breakdown
+   * @param {boolean} [payload.includeTitle] - Include a generated title
+   * @returns {Promise<Object>} Summary result
+   */
+  async summarize(payload = {}) {
+    const params = {
+      body: payload,
+    };
+
+    const result = await this.sdk._fetch('/ai/summarize', 'POST', params);
+    return result;
+  }
+
+  /**
    * List available chat tools and their metadata
    * @returns {Promise<Object>} { tools: Array<{ name, label, description, configRequirements }>, count: number }
    */
