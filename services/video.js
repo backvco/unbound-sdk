@@ -1030,4 +1030,125 @@ export class VideoService {
     const result = await this.sdk._fetch('/video/settings/user', 'GET', params);
     return result;
   }
+
+  /**
+   * Get the AI-generated summary for a video room's transcript
+   * @param {string} roomId - The video room ID
+   * @returns {Promise} Meeting summary
+   */
+  async getSummary(roomId) {
+    this.sdk.validateParams(
+      { roomId },
+      {
+        roomId: { type: 'string', required: true },
+      },
+    );
+
+    const result = await this.sdk._fetch(`/video/${roomId}/summary`, 'GET');
+    return result;
+  }
+
+  /**
+   * Generate a "catch me up" recap of a video room's transcript so far
+   * @param {string} roomId - The video room ID
+   * @returns {Promise} Catch-up summary
+   */
+  async catchMeUp(roomId) {
+    this.sdk.validateParams(
+      { roomId },
+      {
+        roomId: { type: 'string', required: true },
+      },
+    );
+
+    const result = await this.sdk._fetch(
+      `/video/${roomId}/catch-me-up`,
+      'POST',
+      {},
+    );
+    return result;
+  }
+
+  /**
+   * Update the text of a transcript message
+   * @param {string} roomId - The video room ID
+   * @param {string} messageId - The transcript message ID
+   * @param {Object} update
+   * @param {string} update.text - New transcript text
+   * @returns {Promise} Updated transcript message
+   */
+  async updateTranscriptMessage(roomId, messageId, { text }) {
+    this.sdk.validateParams(
+      { roomId, messageId, text },
+      {
+        roomId: { type: 'string', required: true },
+        messageId: { type: 'string', required: true },
+        text: { type: 'string', required: true },
+      },
+    );
+
+    const params = {
+      body: { text },
+    };
+
+    const result = await this.sdk._fetch(
+      `/video/${roomId}/transcript/${messageId}`,
+      'PATCH',
+      params,
+    );
+    return result;
+  }
+
+  /**
+   * Redact a transcript message
+   * @param {string} roomId - The video room ID
+   * @param {string} messageId - The transcript message ID
+   * @returns {Promise} Redaction result
+   */
+  async redactTranscriptMessage(roomId, messageId) {
+    this.sdk.validateParams(
+      { roomId, messageId },
+      {
+        roomId: { type: 'string', required: true },
+        messageId: { type: 'string', required: true },
+      },
+    );
+
+    const result = await this.sdk._fetch(
+      `/video/${roomId}/transcript/${messageId}/redact`,
+      'POST',
+      {},
+    );
+    return result;
+  }
+
+  /**
+   * Rename a speaker in the transcript for a video room
+   * @param {string} roomId - The video room ID
+   * @param {Object} update
+   * @param {string} update.participantId - Participant ID whose transcript speaker name to update
+   * @param {string} update.displayName - New display name
+   * @returns {Promise} Update result
+   */
+  async renameTranscriptSpeaker(roomId, { participantId, displayName }) {
+    this.sdk.validateParams(
+      { roomId, participantId, displayName },
+      {
+        roomId: { type: 'string', required: true },
+        participantId: { type: 'string', required: true },
+        displayName: { type: 'string', required: true },
+      },
+    );
+
+    const params = {
+      body: { participantId, displayName },
+    };
+
+    const result = await this.sdk._fetch(
+      `/video/${roomId}/transcript-speakers`,
+      'PATCH',
+      params,
+    );
+    return result;
+  }
 }
