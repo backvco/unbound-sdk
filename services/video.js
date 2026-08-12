@@ -1049,6 +1049,34 @@ export class VideoService {
   }
 
   /**
+   * Host-only edit of a video room's post-meeting AI summary
+   * @param {string} roomId - The video room ID
+   * @param {Object} update
+   * @param {Object} update.summaryJson - {title, summary, actionItems, chapters}
+   * @returns {Promise} Update result
+   */
+  async updateSummary(roomId, { summaryJson }) {
+    this.sdk.validateParams(
+      { roomId, summaryJson },
+      {
+        roomId: { type: 'string', required: true },
+        summaryJson: { type: 'object', required: true },
+      },
+    );
+
+    const params = {
+      body: { summaryJson },
+    };
+
+    const result = await this.sdk._fetch(
+      `/video/${roomId}/summary`,
+      'PATCH',
+      params,
+    );
+    return result;
+  }
+
+  /**
    * Generate a "catch me up" recap of a video room's transcript so far
    * @param {string} roomId - The video room ID
    * @returns {Promise} Catch-up summary
