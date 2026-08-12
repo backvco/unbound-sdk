@@ -364,18 +364,24 @@ export class VideoService {
     return result;
   }
 
-  async updateRoomBot(roomId, { isRecording, isTranscribing }) {
+  async updateRoomBot(
+    roomId,
+    { isRecording, isTranscribing, recordingAssetStatus },
+  ) {
     this.sdk.validateParams(
-      { roomId, isRecording, isTranscribing },
+      { roomId, isRecording, isTranscribing, recordingAssetStatus },
       {
         roomId: { type: 'string', required: true },
         isRecording: { type: 'boolean', required: false },
         isTranscribing: { type: 'boolean', required: false },
+        // none|processing|ready_webm|ready_mp4|failed
+        recordingAssetStatus: { type: 'string', required: false },
       },
     );
     const update = {
       isRecording,
       isTranscribing,
+      recordingAssetStatus,
     };
     const params = {
       body: {
@@ -788,6 +794,42 @@ export class VideoService {
 
     const result = await this.sdk._fetch(
       `/video/${roomId}/chat`,
+      'GET',
+      params,
+    );
+    return result;
+  }
+
+  /**
+   * Get the live transcription transcript for a video room, paged.
+   * @param {string} roomId - The video room ID
+   * @param {Object} [options] - Paging options
+   * @param {number} [options.limit] - Max rows to return
+   * @param {number} [options.offset] - Row offset
+   * @returns {Promise} Paged transcript rows, ordered by timestamp/createdAt ascending
+   */
+  async getTranscript(roomId, options = {}) {
+    this.sdk.validateParams(
+      { roomId },
+      {
+        roomId: { type: 'string', required: true },
+      },
+    );
+
+    const validationSchema = {};
+    if ('limit' in options) validationSchema.limit = { type: 'number' };
+    if ('offset' in options) validationSchema.offset = { type: 'number' };
+
+    if (Object.keys(validationSchema).length > 0) {
+      this.sdk.validateParams(options, validationSchema);
+    }
+
+    const params = {
+      query: options,
+    };
+
+    const result = await this.sdk._fetch(
+      `/video/${roomId}/transcript`,
       'GET',
       params,
     );

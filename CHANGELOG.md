@@ -1,3 +1,7 @@
+## 4.0.7
+
+- feat: `updateRoomBot` accepts `recordingAssetStatus` (none|processing|ready_webm|ready_mp4|failed)
+
 # SDK Changelog
 
 ## v2.6.0 (LOA Generation & Enhanced Document Management)
