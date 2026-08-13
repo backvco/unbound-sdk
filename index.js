@@ -27,6 +27,7 @@ import { EngagementMetricsService } from './services/engagementMetrics.js';
 import { TaskRouterService } from './services/taskRouter.js';
 import { KnowledgeBaseService } from './services/knowledgeBase.js';
 import { FaxService } from './services/fax.js';
+import { PermissionsService } from './services/permissions.js';
 
 class UnboundSDK extends BaseSDK {
   constructor(options = {}) {
@@ -95,6 +96,7 @@ class UnboundSDK extends BaseSDK {
     this.taskRouter = new TaskRouterService(this);
     this.knowledgeBase = new KnowledgeBaseService(this);
     this.fax = new FaxService(this);
+    this.permissions = new PermissionsService(this);
 
     // Add additional services that might be missing
     this._initializeAdditionalServices();
@@ -274,4 +276,5 @@ export { TaskRouterService } from './services/taskRouter.js';
 export { WorkerService } from './services/taskRouter/WorkerService.js';
 export { KnowledgeBaseService } from './services/knowledgeBase.js';
 export { FaxService } from './services/fax.js';
+export { PermissionsService } from './services/permissions.js';
 export { BaseSDK } from './base.js';
