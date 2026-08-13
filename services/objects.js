@@ -17,9 +17,23 @@
  * // Legacy (deprecated) usage still supported:
  * const result = await sdk.objects.query('users', { status: 'active' });
  */
+import { liveQuery } from './liveQuery.js';
+
 export class ObjectsService {
   constructor(sdk) {
     this.sdk = sdk;
+  }
+
+  /**
+   * Subscribe to real-time changes on an object (see services/liveQuery.js
+   * for the full contract: heartbeat, seq-gap resync, reconnect
+   * re-subscribe, revoked teardown).
+   *
+   * sdk.objects.liveQuery({ socket, object, filter, fields, recordTypeId, onEvent, onStateChange })
+   * -> Promise<{ subscriptionId, mode, unsubscribe() }>
+   */
+  liveQuery(args) {
+    return liveQuery(this.sdk, args);
   }
 
   /**
