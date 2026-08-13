@@ -228,6 +228,8 @@ export class VideoService {
     calendarId,
     eventId,
     calendarProvider,
+    vocabularyTerms,
+    shareOcrEnabled,
   }) {
     this.sdk.validateParams(
       {
@@ -255,6 +257,8 @@ export class VideoService {
         calendarId,
         eventId,
         calendarProvider,
+        vocabularyTerms,
+        shareOcrEnabled,
       },
       {
         name: { type: 'string', required: false },
@@ -281,6 +285,8 @@ export class VideoService {
         calendarId: { type: 'string', required: false },
         eventId: { type: 'string', required: false },
         calendarProvider: { type: 'string', required: false },
+        vocabularyTerms: { type: 'array', required: false },
+        shareOcrEnabled: { type: 'boolean', required: false },
       },
     );
     const params = {
@@ -309,6 +315,8 @@ export class VideoService {
         calendarId,
         eventId,
         calendarProvider,
+        vocabularyTerms,
+        shareOcrEnabled,
       },
     };
     const result = await this.sdk._fetch(`/video`, 'POST', params);
@@ -350,6 +358,10 @@ export class VideoService {
       validationSchema.startTranscribingOn = { type: 'boolean' };
     if ('enableChat' in update)
       validationSchema.enableChat = { type: 'boolean' };
+    if ('vocabularyTerms' in update)
+      validationSchema.vocabularyTerms = { type: 'array' };
+    if ('shareOcrEnabled' in update)
+      validationSchema.shareOcrEnabled = { type: 'boolean' };
 
     if (Object.keys(validationSchema).length > 0) {
       this.sdk.validateParams(update, validationSchema);
@@ -1205,6 +1217,179 @@ export class VideoService {
       `/video/${roomId}/transcript-speakers`,
       'PATCH',
       params,
+    );
+    return result;
+  }
+
+  /**
+   * Host-only manual retry for a stuck/failed webm->mp4 recording conversion
+   * @param {string} roomId - The video room ID
+   * @returns {Promise} { launched: true } on success
+   */
+  async retryRecordingConvert(roomId) {
+    this.sdk.validateParams(
+      { roomId },
+      {
+        roomId: { type: 'string', required: true },
+      },
+    );
+
+    const result = await this.sdk._fetch(
+      `/video/${roomId}/recording-convert-retry`,
+      'POST',
+      {},
+    );
+    return result;
+  }
+
+  /**
+   * Host-triggered "generate meeting name from transcript" action. Always
+   * force-regenerates the room name.
+   * @param {string} roomId - The video room ID
+   * @returns {Promise} { ok: true, name: string } on success
+   */
+  async autoNameMeeting(roomId) {
+    this.sdk.validateParams(
+      { roomId },
+      {
+        roomId: { type: 'string', required: true },
+      },
+    );
+
+    const result = await this.sdk._fetch(`/video/${roomId}/auto-name`, 'POST', {});
+    return result;
+  }
+
+  /**
+   * Host-authorized live-transcription toggle, mirrors the recording control
+   * @param {string} roomId - The video room ID
+   * @param {'start'|'stop'} action - Whether to start or stop transcription
+   * @returns {Promise} { action, ok: true } on success
+   */
+  async controlTranscription(roomId, action) {
+    this.sdk.validateParams(
+      { roomId, action },
+      {
+        roomId: { type: 'string', required: true },
+        action: { type: 'string', required: true },
+      },
+    );
+
+    const params = {
+      body: { action },
+    };
+
+    const result = await this.sdk._fetch(
+      `/video/${roomId}/transcription`,
+      'POST',
+      params,
+    );
+    return result;
+  }
+
+  /**
+   * Set the caption language for the calling participant in a video room
+   * @param {string} roomId - The video room ID
+   * @param {Object} options
+   * @param {string} options.language - Language code, or 'original' for no translation
+   * @returns {Promise} { ok: true } on success
+   */
+  async setCaptionLanguage(roomId, { language }) {
+    this.sdk.validateParams(
+      { roomId, language },
+      {
+        roomId: { type: 'string', required: true },
+        language: { type: 'string', required: true },
+      },
+    );
+
+    const params = {
+      body: { language },
+    };
+
+    const result = await this.sdk._fetch(
+      `/video/${roomId}/caption-language`,
+      'POST',
+      params,
+    );
+    return result;
+  }
+
+  /**
+   * Translate a video room's full transcript into a target language (account users).
+   * Batches the full transcript and caches translations server-side.
+   * @param {string} roomId - The video room ID
+   * @param {Object} options
+   * @param {string} options.targetLanguage - Target language code
+   * @returns {Promise} { items: [{messageId, text}] }
+   */
+  async translateTranscript(roomId, { targetLanguage }) {
+    this.sdk.validateParams(
+      { roomId, targetLanguage },
+      {
+        roomId: { type: 'string', required: true },
+        targetLanguage: { type: 'string', required: true },
+      },
+    );
+
+    const params = {
+      body: { targetLanguage },
+    };
+
+    const result = await this.sdk._fetch(
+      `/video/${roomId}/transcript/translate`,
+      'POST',
+      params,
+    );
+    return result;
+  }
+
+  /**
+   * Submit a captured content-share keyframe for OCR/indexing
+   * @param {string} roomId - The video room ID
+   * @param {Object} options
+   * @param {string} options.image - Base64 jpeg image data (no data: prefix)
+   * @param {string} [options.title] - Optional title for the content frame
+   * @returns {Promise} { event }
+   */
+  async submitContentFrame(roomId, { image, title }) {
+    this.sdk.validateParams(
+      { roomId, image, title },
+      {
+        roomId: { type: 'string', required: true },
+        image: { type: 'string', required: true },
+        title: { type: 'string', required: false },
+      },
+    );
+
+    const params = {
+      body: { image, title },
+    };
+
+    const result = await this.sdk._fetch(
+      `/video/${roomId}/content-frame`,
+      'POST',
+      params,
+    );
+    return result;
+  }
+
+  /**
+   * Get captured content-share events for a video room
+   * @param {string} roomId - The video room ID
+   * @returns {Promise} { events: [{id, participantId, displayName, timestamp, title, text, fileId}] }
+   */
+  async getContentEvents(roomId) {
+    this.sdk.validateParams(
+      { roomId },
+      {
+        roomId: { type: 'string', required: true },
+      },
+    );
+
+    const result = await this.sdk._fetch(
+      `/video/${roomId}/content-events`,
+      'GET',
     );
     return result;
   }

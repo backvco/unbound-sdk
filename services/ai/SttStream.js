@@ -167,6 +167,8 @@ export class SttStream extends EventEmitter {
    * Meet (video-room) session metadata is not per-chunk — it is sent once in the
    * first-chunk session config, read from stream options: options.videoRoomId,
    * options.participantId, options.displayName, options.serverVad. See constructor.
+   * @param {string[]} [options.vocabulary] - Custom vocabulary terms to bias
+   * transcription toward (sent once in the first-chunk session config).
    */
   write(audioChunk, streamMetadata = {}) {
     if (this.isClosed) {
@@ -223,6 +225,7 @@ export class SttStream extends EventEmitter {
           participant_id: this.options.participantId || '',
           display_name: this.options.displayName || '',
           server_vad: this.options.serverVad || false,
+          vocabulary: this.options.vocabulary || [],
         };
 
         this.grpcCall.write(request);
