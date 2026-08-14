@@ -55,6 +55,7 @@ export class PermissionsService {
    * await sdk.permissions.updateGroup('group-123', { description: 'Updated' });
    */
   async updateGroup(groupId, data) {
+    groupId = String(groupId);
     this.sdk.validateParams(
       { groupId },
       {
@@ -82,6 +83,7 @@ export class PermissionsService {
    * await sdk.permissions.deleteGroup('group-123');
    */
   async deleteGroup(groupId) {
+    groupId = String(groupId);
     this.sdk.validateParams(
       { groupId },
       {
@@ -105,6 +107,8 @@ export class PermissionsService {
    * await sdk.permissions.addGroupMember('group-123', 'user-456');
    */
   async addGroupMember(groupId, userId) {
+    groupId = String(groupId);
+    userId = String(userId);
     this.sdk.validateParams(
       { groupId, userId },
       {
@@ -134,6 +138,8 @@ export class PermissionsService {
    * await sdk.permissions.removeGroupMember('group-123', 'user-456');
    */
   async removeGroupMember(groupId, userId) {
+    groupId = String(groupId);
+    userId = String(userId);
     this.sdk.validateParams(
       { groupId, userId },
       {
@@ -198,6 +204,7 @@ export class PermissionsService {
    * await sdk.permissions.updatePermissionSet('set-123', { scopes: ['voice:calls:read'] });
    */
   async updatePermissionSet(setId, data) {
+    setId = String(setId);
     this.sdk.validateParams(
       { setId },
       {
@@ -225,6 +232,7 @@ export class PermissionsService {
    * await sdk.permissions.deletePermissionSet('set-123');
    */
   async deletePermissionSet(setId) {
+    setId = String(setId);
     this.sdk.validateParams(
       { setId },
       {
@@ -261,6 +269,8 @@ export class PermissionsService {
     principalId,
     grantType,
   }) {
+    permissionSetId = String(permissionSetId);
+    principalId = String(principalId);
     this.sdk.validateParams(
       { permissionSetId, principalType, principalId, grantType },
       {
@@ -293,6 +303,8 @@ export class PermissionsService {
    * await sdk.permissions.unassignPermissionSet('set-123', 'user', 'user-456');
    */
   async unassignPermissionSet(permissionSetId, principalType, principalId) {
+    permissionSetId = String(permissionSetId);
+    principalId = String(principalId);
     this.sdk.validateParams(
       { permissionSetId, principalType, principalId },
       {
@@ -317,6 +329,7 @@ export class PermissionsService {
    * const { scopes, breakdown, deniedScopes } = await sdk.permissions.getEffectiveScopes('user-456');
    */
   async getEffectiveScopes(userId) {
+    userId = String(userId);
     this.sdk.validateParams(
       { userId },
       {
