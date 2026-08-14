@@ -176,6 +176,36 @@ await api.objects.describe('contacts'); // Get schema
 await api.objects.list(); // List all object types
 ```
 
+#### Live Queries (`api.objects.liveQuery`)
+
+Real-time, server-evaluated subscriptions over App1 Database objects. The
+server matches every mutation against your filter and pushes only relevant
+events — no client-side polling or firehose filtering.
+
+```javascript
+const handle = await api.objects.liveQuery({
+  socket, // an authed socket.io-client instance (required until the SDK ships its own transport)
+  object: 'contacts',
+  filter: { companyId: 'company-123' }, // bare value = equals; 'op::term' strings for other operators
+  onEvent: (frame) => {
+    // frame.type: 'enter' | 'change' | 'leave' | 'refresh' | 'resync' | 'revoked'
+    // 'enter'  -> frame.record (full row now matches your filter)
+    // 'change' -> frame.changedFields ONLY (patch, never the full row)
+    // 'leave'  -> frame.recordId no longer matches (or was deleted)
+    // 'refresh'/'resync' -> re-run your query (coarse mode or gap recovery)
+  },
+  onStateChange: (state) => {}, // 'active' | 'resubscribing' | 'revoked'
+});
+
+handle.unsubscribe(); // always tear down when done
+```
+
+Notes: the resolved `handle.mode` is `'fine'` (row-level events) or
+`'coarse'` (debounced refresh hints — used when the filter isn't
+row-evaluable). Heartbeats, reconnect-resubscribe, and sequence-gap resync
+are handled internally. Server caps: 25 subscriptions per socket, 500 per
+account.
+
 #### Messaging (`api.messaging`)
 
 ```javascript
