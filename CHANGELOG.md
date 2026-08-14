@@ -1,3 +1,19 @@
+## 4.3.0
+
+- feat: `sdk.layouts.resolve({object, kind, recordId?, recordTypeId?, asUser?})` —
+  hot-path read against the new `GET /layouts/resolve` resolution endpoint,
+  returns `{ layoutId, schemaVersion, layout, resolution }`
+- feat: `sdk.layouts.getVersions(layoutId)`, `sdk.layouts.getForEdit(layoutId)`,
+  `sdk.layouts.publish(layoutId, {changeNote?})`,
+  `sdk.layouts.rollback(layoutId, version)` — draft/publish/rollback version
+  history API
+- feat: `sdk.layouts.assignments.{list,create,update,delete}` — new
+  `LayoutAssignmentsService`, exposed as `sdk.layouts.assignments.*`, for the
+  `layoutAssignments` resolution-matrix CRUD (`objectName`/`kind` wire keys,
+  per Phase 2 spec)
+- `sdk.layouts.get/create/update/delete/dynamicSelectSearch` unchanged — same
+  routes, response shape only additively gains `resolution` server-side
+
 ## 4.2.0
 
 - feat: `sdk.layouts.schema.*` — canonical Zod schema package for the layout

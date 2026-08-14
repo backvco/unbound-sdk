@@ -4,6 +4,7 @@ export class LayoutsService {
   constructor(sdk) {
     this.sdk = sdk;
     this.schema = layoutSchemas;   // sdk.layouts.schema.{LayoutDoc, validateLayoutDoc, migrateLayoutSchema, ...}
+    this.assignments = new LayoutAssignmentsService(sdk);   // sdk.layouts.assignments.{list,create,update,delete}
   }
 
   async get(objectName, id, query = {}) {
@@ -93,6 +94,143 @@ export class LayoutsService {
       'GET',
       params,
     );
+    return result;
+  }
+
+  async resolve({ object, kind, recordId, recordTypeId, asUser } = {}) {
+    this.sdk.validateParams(
+      { object, kind },
+      {
+        object: { type: 'string', required: true },
+        kind: { type: 'string', required: true },
+        recordId: { type: 'string', required: false },
+        recordTypeId: { type: 'string', required: false },
+        asUser: { type: 'string', required: false },
+      },
+    );
+
+    const params = {
+      query: { object, kind, recordId, recordTypeId, asUser },
+    };
+
+    const result = await this.sdk._fetch('/layouts/resolve', 'GET', params);
+    return result;
+  }
+
+  async getVersions(layoutId) {
+    this.sdk.validateParams(
+      { layoutId },
+      { layoutId: { type: 'string', required: true } },
+    );
+
+    const result = await this.sdk._fetch(`/layouts/${layoutId}/versions`, 'GET', {});
+    return result;
+  }
+
+  async getForEdit(layoutId) {
+    this.sdk.validateParams(
+      { layoutId },
+      { layoutId: { type: 'string', required: true } },
+    );
+
+    const result = await this.sdk._fetch(`/layouts/${layoutId}/edit`, 'GET', {});
+    return result;
+  }
+
+  async publish(layoutId, { changeNote } = {}) {
+    this.sdk.validateParams(
+      { layoutId },
+      { layoutId: { type: 'string', required: true } },
+    );
+
+    const params = {
+      body: { changeNote },
+    };
+
+    const result = await this.sdk._fetch(`/layouts/${layoutId}/publish`, 'POST', params);
+    return result;
+  }
+
+  async rollback(layoutId, version) {
+    this.sdk.validateParams(
+      { layoutId, version },
+      {
+        layoutId: { type: 'string', required: true },
+        version: { type: 'number', required: true },
+      },
+    );
+
+    const result = await this.sdk._fetch(
+      `/layouts/${layoutId}/versions/${version}/rollback`,
+      'POST',
+      {},
+    );
+    return result;
+  }
+}
+
+export class LayoutAssignmentsService {
+  constructor(sdk) {
+    this.sdk = sdk;
+  }
+
+  async list({ objectName, kind } = {}) {
+    this.sdk.validateParams(
+      { objectName, kind },
+      {
+        objectName: { type: 'string', required: true },
+        kind: { type: 'string', required: true },
+      },
+    );
+
+    const params = {
+      query: { objectName, kind },
+    };
+
+    const result = await this.sdk._fetch('/layouts/assignments', 'GET', params);
+    return result;
+  }
+
+  async create({ objectName, kind, recordTypeId, audienceType, audienceId, layoutId, priority } = {}) {
+    this.sdk.validateParams(
+      { objectName, kind, audienceType, layoutId },
+      {
+        objectName: { type: 'string', required: true },
+        kind: { type: 'string', required: true },
+        audienceType: { type: 'string', required: true },
+        layoutId: { type: 'string', required: true },
+      },
+    );
+
+    const params = {
+      body: { objectName, kind, recordTypeId, audienceType, audienceId, layoutId, priority },
+    };
+
+    const result = await this.sdk._fetch('/layouts/assignments', 'POST', params);
+    return result;
+  }
+
+  async update(id, updates) {
+    this.sdk.validateParams(
+      { id },
+      { id: { type: 'string', required: true } },
+    );
+
+    const params = {
+      body: updates,
+    };
+
+    const result = await this.sdk._fetch(`/layouts/assignments/${id}`, 'PUT', params);
+    return result;
+  }
+
+  async delete(id) {
+    this.sdk.validateParams(
+      { id },
+      { id: { type: 'string', required: true } },
+    );
+
+    const result = await this.sdk._fetch(`/layouts/assignments/${id}`, 'DELETE', {});
     return result;
   }
 }
