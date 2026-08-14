@@ -154,6 +154,14 @@ class LiveQueryHandle {
     this.subscriptionId = ack.subscriptionId;
     this.mode = ack.mode;
     this.seq = 0;
+    // Re-resolve the manager at registration time: if a concurrent
+    // unsubscribe drained the manager while this subscribe was in flight,
+    // destroy() stripped its socket listeners and dropped it from
+    // socketManagers - registering onto that dead instance would leave this
+    // handle deaf (server sub alive, frames arriving at the socket, nothing
+    // listening). getSocketManager() returns a fresh, listening manager in
+    // that case.
+    this.manager = getSocketManager(this.socket);
     this.manager.register(this);
     this._setState('active');
     return ack;
