@@ -1044,6 +1044,24 @@ export class VideoService {
   }
 
   /**
+   * Get live presence for a video room (current participants, grouped by
+   * waiting-room state)
+   * @param {string} roomId - The video room ID
+   * @returns {Promise} Live presence info
+   */
+  async getLivePresence(roomId) {
+    this.sdk.validateParams(
+      { roomId },
+      {
+        roomId: { type: 'string', required: true },
+      },
+    );
+
+    const result = await this.sdk._fetch(`/video/${roomId}/livePresence`, 'GET');
+    return result;
+  }
+
+  /**
    * Get the AI-generated summary for a video room's transcript
    * @param {string} roomId - The video room ID
    * @returns {Promise} Meeting summary
