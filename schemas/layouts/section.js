@@ -4,6 +4,7 @@ import { FieldSpec } from './field.js';
 import { JoinSpec } from './join.js';
 import { FormatType } from './format.js';
 import { KanbanConfigSpec } from './kanban.js';
+import { RelatedListSpec } from './relatedList.js';
 
 const TableFieldSpec = z.object({
   field: z.string().min(1),
@@ -60,10 +61,18 @@ const ContentSection = BaseSection.extend({
   rows: z.array(RowSpec).default([]),
 });
 
+// `relatedLists` (Phase 5 addition, SPEC-PHASE-5.md §2.1 step 5): resolves
+// relatedList.js's "Open Decision #5" as ADDITIVE, not a fold — `tables[]`
+// stays the full, unmodified source of truth (old renderer + Phase 4's
+// plain-table view both read it); `relatedLists[]` is a parallel,
+// promoted-subset view for Phase 4's dedicated related-list component,
+// populated by migrations/promoteRelatedLists.js for qualifying entries
+// only. Never required, defaults empty.
 const TableSection = BaseSection.extend({
   type: z.literal('table'),
   tableLayout: z.enum(['full-width', 'two-columns']).default('full-width'),
   tables: z.array(TableSpec).min(1),
+  relatedLists: z.array(RelatedListSpec).default([]),
 });
 
 const KanbanSection = BaseSection.extend({
@@ -77,6 +86,7 @@ const TableKanbanSection = BaseSection.extend({
   tableLayout: z.enum(['full-width', 'two-columns']).default('full-width'),
   tables: z.array(TableSpec).min(1),
   kanban: KanbanConfigSpec,
+  relatedLists: z.array(RelatedListSpec).default([]),
 });
 
 // Note: this schema has no branch for legacy single-table

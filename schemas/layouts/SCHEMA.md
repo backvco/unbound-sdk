@@ -846,6 +846,176 @@ Root document for type:list|detail layouts.
                       "additionalProperties": false
                     },
                     "minItems": 1
+                  },
+                  "relatedLists": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "object": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "relationship": {
+                          "$ref": "#/definitions/LayoutDoc/properties/sections/items/anyOf/0/properties/rows/items/properties/columns/items/properties/join"
+                        },
+                        "columns": {
+                          "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "compactLayoutRef": {
+                                  "type": "string",
+                                  "minLength": 1
+                                }
+                              },
+                              "required": [
+                                "compactLayoutRef"
+                              ],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "inline": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "object",
+                                    "properties": {
+                                      "field": {
+                                        "type": "string",
+                                        "minLength": 1
+                                      },
+                                      "display": {
+                                        "type": "string"
+                                      },
+                                      "formatType": {
+                                        "$ref": "#/definitions/LayoutDoc/properties/sections/items/anyOf/0/properties/rows/items/properties/columns/items/properties/display/properties/formatType"
+                                      },
+                                      "format": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "required": [
+                                      "field"
+                                    ],
+                                    "additionalProperties": false
+                                  },
+                                  "minItems": 1
+                                }
+                              },
+                              "required": [
+                                "inline"
+                              ],
+                              "additionalProperties": false
+                            }
+                          ]
+                        },
+                        "rowActions": {
+                          "type": "object",
+                          "properties": {
+                            "open": {
+                              "type": "string",
+                              "enum": [
+                                "tab",
+                                "modal",
+                                "peek"
+                              ],
+                              "default": "modal"
+                            },
+                            "quickEdit": {
+                              "type": "string",
+                              "enum": [
+                                "inline",
+                                "modal"
+                              ]
+                            },
+                            "delete": {
+                              "type": "boolean",
+                              "default": false
+                            },
+                            "custom": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "label": {
+                                    "type": "string",
+                                    "minLength": 1
+                                  },
+                                  "icon": {
+                                    "type": "string"
+                                  },
+                                  "action": {
+                                    "type": "string",
+                                    "enum": [
+                                      "open",
+                                      "edit",
+                                      "delete",
+                                      "custom"
+                                    ]
+                                  },
+                                  "target": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "label",
+                                  "action"
+                                ],
+                                "additionalProperties": false
+                              },
+                              "default": []
+                            }
+                          },
+                          "additionalProperties": false,
+                          "default": {
+                            "open": "modal",
+                            "delete": false,
+                            "custom": []
+                          }
+                        },
+                        "emptyState": {
+                          "type": "object",
+                          "properties": {
+                            "message": {
+                              "type": "string"
+                            },
+                            "icon": {
+                              "type": "string"
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        "defaultSort": {
+                          "$ref": "#/definitions/LayoutDoc/properties/sections/items/anyOf/1/properties/tables/items/properties/orderBy"
+                        },
+                        "filters": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "string"
+                          }
+                        },
+                        "pageSize": {
+                          "type": "integer",
+                          "exclusiveMinimum": 0,
+                          "maximum": 200,
+                          "default": 25
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "object",
+                        "relationship",
+                        "columns"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "default": []
                   }
                 },
                 "required": [
@@ -1297,6 +1467,13 @@ Root document for type:list|detail layouts.
                   },
                   "kanban": {
                     "$ref": "#/definitions/LayoutDoc/properties/sections/items/anyOf/2/properties/kanban"
+                  },
+                  "relatedLists": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/definitions/LayoutDoc/properties/sections/items/anyOf/1/properties/relatedLists/items"
+                    },
+                    "default": []
                   }
                 },
                 "required": [
@@ -2759,6 +2936,176 @@ One section: content | table | kanban | table-kanban.
                 "additionalProperties": false
               },
               "minItems": 1
+            },
+            "relatedLists": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "object": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "relationship": {
+                    "$ref": "#/definitions/SectionSpec/anyOf/0/properties/rows/items/properties/columns/items/properties/join"
+                  },
+                  "columns": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "compactLayoutRef": {
+                            "type": "string",
+                            "minLength": 1
+                          }
+                        },
+                        "required": [
+                          "compactLayoutRef"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "inline": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "field": {
+                                  "type": "string",
+                                  "minLength": 1
+                                },
+                                "display": {
+                                  "type": "string"
+                                },
+                                "formatType": {
+                                  "$ref": "#/definitions/SectionSpec/anyOf/0/properties/rows/items/properties/columns/items/properties/display/properties/formatType"
+                                },
+                                "format": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "field"
+                              ],
+                              "additionalProperties": false
+                            },
+                            "minItems": 1
+                          }
+                        },
+                        "required": [
+                          "inline"
+                        ],
+                        "additionalProperties": false
+                      }
+                    ]
+                  },
+                  "rowActions": {
+                    "type": "object",
+                    "properties": {
+                      "open": {
+                        "type": "string",
+                        "enum": [
+                          "tab",
+                          "modal",
+                          "peek"
+                        ],
+                        "default": "modal"
+                      },
+                      "quickEdit": {
+                        "type": "string",
+                        "enum": [
+                          "inline",
+                          "modal"
+                        ]
+                      },
+                      "delete": {
+                        "type": "boolean",
+                        "default": false
+                      },
+                      "custom": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "label": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "icon": {
+                              "type": "string"
+                            },
+                            "action": {
+                              "type": "string",
+                              "enum": [
+                                "open",
+                                "edit",
+                                "delete",
+                                "custom"
+                              ]
+                            },
+                            "target": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "label",
+                            "action"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "default": []
+                      }
+                    },
+                    "additionalProperties": false,
+                    "default": {
+                      "open": "modal",
+                      "delete": false,
+                      "custom": []
+                    }
+                  },
+                  "emptyState": {
+                    "type": "object",
+                    "properties": {
+                      "message": {
+                        "type": "string"
+                      },
+                      "icon": {
+                        "type": "string"
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+                  "defaultSort": {
+                    "$ref": "#/definitions/SectionSpec/anyOf/1/properties/tables/items/properties/orderBy"
+                  },
+                  "filters": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  },
+                  "pageSize": {
+                    "type": "integer",
+                    "exclusiveMinimum": 0,
+                    "maximum": 200,
+                    "default": 25
+                  }
+                },
+                "required": [
+                  "id",
+                  "object",
+                  "relationship",
+                  "columns"
+                ],
+                "additionalProperties": false
+              },
+              "default": []
             }
           },
           "required": [
@@ -3210,6 +3557,13 @@ One section: content | table | kanban | table-kanban.
             },
             "kanban": {
               "$ref": "#/definitions/SectionSpec/anyOf/2/properties/kanban"
+            },
+            "relatedLists": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/SectionSpec/anyOf/1/properties/relatedLists/items"
+              },
+              "default": []
             }
           },
           "required": [

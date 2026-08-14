@@ -3,14 +3,14 @@ import { JoinSpec } from './join.js';
 import { OrderBySpec } from './primitives.js';
 import { FormatType } from './format.js';
 
-// New primitive, per V2-PLAN's exact definition. Not yet wired to any
-// section (SectionSpec.tables[] stays on the legacy-derived TableSpec/JoinSpec
-// shape for this phase) — RelatedListSpec is defined and validated in
-// isolation so Phase 4's "one RelatedList engine component" has a frozen
-// contract to build against, and so channels/engagementSessions component
-// config can be re-expressed against it later without another schema
-// rewrite. Folding SectionSpec.tables[] into RelatedListSpec is Open
-// Decision #5, explicitly deferred to Phase 5.
+// New primitive, per V2-PLAN's exact definition. Wired into
+// TableSection/TableKanbanSection as `relatedLists[]` (section.js) —
+// additive alongside `tables[]`, not a replacement (SectionSpec.tables[]
+// stays on the legacy-derived TableSpec/JoinSpec shape; RelatedListSpec is a
+// parallel, promoted-subset view). Resolves Open Decision #5 (Phase 5,
+// SPEC-PHASE-5.md §2.1 step 5, migrations/promoteRelatedLists.js) as
+// additive: folding tables[] away entirely would break the old renderer's
+// byte-identical read contract during the v1/v2 soak window.
 const RelatedListInlineColumn = z.object({
   field: z.string().min(1),
   display: z.string().optional(),

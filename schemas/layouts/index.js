@@ -10,4 +10,7 @@ export * from './section.js';
 export * from './compact.js';
 export * from './layoutDoc.js';
 export { validateLayoutDoc } from './validate.js';
-export { migrateLayoutSchema, migrations } from './migrations/index.js';
+export {
+  migrateLayoutSchema, migrateToLatest, MIGRATIONS, CURRENT_SCHEMA_VERSION,
+} from './migrations/index.js';
+export { migrateV1toV2 } from './migrations/migrateV1toV2.js';

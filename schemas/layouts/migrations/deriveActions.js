@@ -4,13 +4,21 @@
 // into the v2-canonical ActionSpec[] shape (schemas/layouts/action.js).
 // Additive only: if `doc.actions` is already an array (already v2-shaped),
 // it's passed through unchanged rather than re-derived.
-export function deriveActions(doc) {
+//
+// `skipTableIds` (optional Set, Phase 5 addition): table ids already
+// promoted to RelatedListSpec by promoteRelatedLists.js. A promoted table's
+// create/delete already surface via the promoted section-placed ActionSpec
+// (create) and RelatedListSpec.rowActions.delete (delete) — deriving a
+// second, row-placed ActionSpec here for the same table would double the
+// affordance. See migrateV1toV2.js for how the two derivations are composed.
+export function deriveActions(doc, { skipTableIds } = {}) {
   if (Array.isArray(doc.actions)) {
     return doc.actions;
   }
 
   const legacy = doc.actions || {};
   const objectName = doc.objectName || doc.object;
+  const skip = skipTableIds || new Set();
   const derived = [];
 
   if (legacy.create) {
@@ -42,6 +50,7 @@ export function deriveActions(doc) {
     for (const table of tables) {
       if (!table.actions) continue;
       const tableId = table.id || section.id;
+      if (skip.has(tableId)) continue;
       if (table.actions.create) {
         derived.push({
           id: `${tableId}-create`, type: 'create', target: table.object,

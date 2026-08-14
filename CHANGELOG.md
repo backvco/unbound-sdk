@@ -1,3 +1,37 @@
+## 4.4.0
+
+- feat: `sdk.layouts.schema.migrateV1toV2(layoutJson, ctx?)` — the real
+  v1→v2 document migration (Phase 1 shipped the registry scaffold and a
+  join/kanban/actions-derivation first pass; this completes it per
+  SPEC-PHASE-5.md §2.1): canonicalizes `object`/`objectName` (drops
+  `object`, flags drift); wraps legacy flat single-table sections into
+  `tables[]` field-for-field; normalizes table/component joins to canonical
+  `JoinSpec` `{childField, parentField}`, leaving non-trivial templates or
+  missing/empty FK columns untouched (tagged in `changes[]`, not silently
+  guessed); retags `type:"table"` sections that actually hold a kanban
+  block to `"table-kanban"` so the kanban config isn't silently dropped by
+  validation; promotes qualifying `tables[]` entries (child object, clean
+  join, non-empty fields) to `RelatedListSpec`, additive alongside
+  `tables[]` — never a replacement — with their `create` action promoted to
+  a section-placed `ActionSpec` on the layout's `actions[]`
+- feat: `sdk.layouts.schema.migrateToLatest(json, fromVersion, ctx?)`,
+  `MIGRATIONS`, `CURRENT_SCHEMA_VERSION` — the versioned migration-runner
+  contract from SPEC-PHASE-5.md §2.1 (`migrateLayoutSchema(doc)` stays as
+  the documented one-liner, now implemented on top of `migrateToLatest`)
+- feat: `RelatedListSpec` is now wired into `SectionSpec` — new
+  `relatedLists: RelatedListSpec[]` field on `TableSection`/
+  `TableKanbanSection` (additive, defaults `[]`), resolving Phase 1's
+  "Open Decision #5" (`relatedList.js`) as additive rather than folding
+  `tables[]` away
+- fix: every `migrateV1toV2`/`migrateToLatest` step now returns
+  `{json, schemaVersion, changes}` (was: the raw migrated doc) — `changes[]`
+  is the human-readable log the backfill sweep and migration-preview tool
+  (Phase 5 API work) need; this is a breaking change to the previous
+  in-progress (unreleased-behavior) return shape, not to any documented 4.3.0
+  API
+- docs: regenerated `schemas/layouts/SCHEMA.md` for the `relatedLists`
+  field addition (`npm run docs:layouts`)
+
 ## 4.3.0
 
 - feat: `sdk.layouts.resolve({object, kind, recordId?, recordTypeId?, asUser?})` —
