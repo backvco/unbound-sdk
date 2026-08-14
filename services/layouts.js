@@ -86,7 +86,7 @@ export class LayoutsService {
     };
 
     const result = await this.sdk._fetch(
-      '/layouts/dynamic-select-search',
+      '/layouts/selectDynamic/search',
       'GET',
       params,
     );
