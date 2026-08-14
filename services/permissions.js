@@ -328,6 +328,26 @@ export class PermissionsService {
    * @example
    * const { scopes, breakdown, deniedScopes } = await sdk.permissions.getEffectiveScopes('user-456');
    */
+  /**
+   * Effective scopes contributed by membership in a group.
+   * @param {string|number} groupId - Group ID (required)
+   * @returns {Promise<Object>} { groupId, scopes, breakdown, deniedScopes }
+   */
+  async getGroupEffectiveScopes(groupId) {
+    groupId = String(groupId);
+    this.sdk.validateParams(
+      { groupId },
+      {
+        groupId: { type: 'string', required: true },
+      },
+    );
+    const result = await this.sdk._fetch(
+      `/permissions/groups/${groupId}/effective-scopes`,
+      'GET',
+    );
+    return result;
+  }
+
   async getEffectiveScopes(userId) {
     userId = String(userId);
     this.sdk.validateParams(
