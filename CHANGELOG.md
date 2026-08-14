@@ -1,3 +1,19 @@
+## 4.2.0
+
+- feat: `sdk.layouts.schema.*` — canonical Zod schema package for the layout
+  JSON contract (`LayoutDoc`, `CompactLayoutDoc`, `SectionSpec`, `FieldSpec`,
+  `FormatSpec`, `JoinSpec`, `SelectDynamicSpec`, `KanbanConfigSpec`, plus two
+  new first-class primitives: `RelatedListSpec`, `ActionSpec`)
+- feat: `sdk.layouts.schema.validateLayoutDoc(doc, { type? })` and
+  `sdk.layouts.schema.migrateLayoutSchema(doc)` — pure, additive
+  `schemaVersion:1 → 2` migration registry
+- feat: also importable without an SDK instance —
+  `import * as layoutSchemas from '@unboundcx/sdk/schemas/layouts'`
+- chore: adds `zod` as the package's first real runtime dependency
+  (`zod-to-json-schema` is a docs-only devDependency, not published)
+- docs: generated schema reference at `schemas/layouts/SCHEMA.md`
+  (`npm run docs:layouts` to regenerate)
+
 ## 4.0.7
 
 - feat: `updateRoomBot` accepts `recordingAssetStatus` (none|processing|ready_webm|ready_mp4|failed)

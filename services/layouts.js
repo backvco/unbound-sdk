@@ -1,6 +1,9 @@
+import * as layoutSchemas from '../schemas/layouts/index.js';
+
 export class LayoutsService {
   constructor(sdk) {
     this.sdk = sdk;
+    this.schema = layoutSchemas;   // sdk.layouts.schema.{LayoutDoc, validateLayoutDoc, migrateLayoutSchema, ...}
   }
 
   async get(objectName, id, query = {}) {
