@@ -22,9 +22,9 @@ export class VoiceService {
     return result;
   }
 
-  async call({ to, from, destination, app, timeout, customHeaders }) {
+  async call({ to, from, destination, app, timeout, customHeaders, statusWebhook }) {
     this.sdk.validateParams(
-      { to, from, destination, app, timeout, customHeaders },
+      { to, from, destination, app, timeout, customHeaders, statusWebhook },
       {
         to: { type: 'string', required: true },
         from: { type: 'string', required: true },
@@ -32,6 +32,10 @@ export class VoiceService {
         app: { type: 'object', required: false },
         timeout: { type: 'number', required: false },
         customHeaders: { type: 'object', required: false },
+        // { url, static } — internal endpoint that receives call progress
+        // events (trying/ringing/answered/failed) with `static` fields
+        // merged into each POST body
+        statusWebhook: { type: 'object', required: false },
       },
     );
 
@@ -43,6 +47,7 @@ export class VoiceService {
         app,
         timeout,
         customHeaders,
+        statusWebhook,
       },
     };
 
