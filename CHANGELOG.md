@@ -1,3 +1,41 @@
+## 4.6.0
+
+- feat: `schemas/workflows/` — new Zod schema package, sibling of
+  `schemas/layouts/`, for the Workflow Builder v2 `ModuleSpec` contract
+  (`WORKFLOW-V2-PLAN.md` Phase 2): identity (`type`/`category`/
+  `moduleSchemaVersion`), presentation colors, `PortSpec` (`ports[]`,
+  `isHidden`/`isMultiple`/`isLocked`/`isConnectionDeletable`), `editWidth`,
+  `CapabilitiesSpec` (`deletable`, `hiddenFromPicker`, `dynamicPorts`,
+  `spawnsChildItems`, `outputVariables`, `excludedFromVariableExtraction`,
+  `dataProducer`, `simulatable`, `customEditor` — replaces the ad hoc
+  type-string branches and the separate `DATA_PRODUCER_TYPES` registry),
+  `SettingsSchemaSpec` (`namespace`/`defaults`), and a `layout` shape
+  (`ModuleSection`/`ModuleRow`/`ModuleColumn`/`EditEntrySpec`) modeled
+  against the 29 real files in
+  `app1-api/.../constants/workflows/*.js` — not the idealized sketch — since
+  the real layout/defaults tree nests under `settings.layout`/
+  `settings.<namespace>`, not as top-level siblings
+- feat: `Conditional` (`{field, operator?, value}`, `operator` default
+  `'equals'`) — accepts the legacy `{field, value}` shorthand used by ~28 of
+  29 modules via preprocessing; the one explicit-operator occurrence
+  (`sendEmail.js`'s `operator: 'not_empty'`) validates unchanged
+- feat: `validateModuleSpec(spec)` → `{valid, errors[]}` — structural
+  validity; `capabilities`/`settingsSchema`/`moduleSchemaVersion` are fully
+  additive, so every currently-shipping module constant validates
+  unmodified with none of them present
+- feat: `lintModuleSpec(spec)` → `{valid, errors[]}` — extra authoring
+  rules: `category-required`; `boolean-widget-checkbox` (rejects
+  `fieldType: 'switch'`, which has no renderer — the confirmed
+  `peopleCompanyLink.js` gap); `settings-namespace-match` (every
+  `edit[].field`'s `settings.<ns>` root must match the module's declared
+  `settingsSchema.namespace` — mechanically catches the live
+  `aBRouting.js` field/default mismatch and `update.js`'s
+  copy-pasted-and-never-renamed defaults bug class, only once a module has
+  opted into `settingsSchema`)
+- No execution-side change: module `type`/`category`/`edit[].field` path
+  strings are unmodified by this package — see design-schema-first.md §5 /
+  design-incremental-risk.md §5 for the preserved execution contract
+
 ## 4.5.0
 
 - schemas/layouts: `orderBy` accepts multi-column ordering — a single `{field, direction}` or an ordered array (`OrderByListSpec`). Existing single-object layouts remain valid.
