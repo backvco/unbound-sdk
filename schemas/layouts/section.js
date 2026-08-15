@@ -1,5 +1,9 @@
 import { z } from 'zod';
-import { HeaderSpec, ConditionSpec, OrderBySpec } from './primitives.js';
+import {
+  HeaderSpec,
+  ConditionSpec,
+  OrderByListSpec,
+} from './primitives.js';
 import { FieldSpec } from './field.js';
 import { JoinSpec } from './join.js';
 import { FormatType } from './format.js';
@@ -36,7 +40,7 @@ const TableSpec = z.object({
     hideOnCreate: z.boolean().default(false),
     cardClick: z.enum(['tab', 'modal']).default('tab'),
   }).default({}),
-  orderBy: OrderBySpec.optional(),
+  orderBy: OrderByListSpec.optional(),
   additionalWhere: z.record(z.string()).optional(),
   hideOnCreate: z.boolean().default(false),
 });

@@ -1,3 +1,7 @@
+## 4.5.0
+
+- schemas/layouts: `orderBy` accepts multi-column ordering — a single `{field, direction}` or an ordered array (`OrderByListSpec`). Existing single-object layouts remain valid.
+
 ## 4.4.0
 
 - feat: `sdk.layouts.schema.migrateV1toV2(layoutJson, ctx?)` — the real

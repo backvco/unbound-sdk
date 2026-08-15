@@ -26,6 +26,12 @@ export const OrderBySpec = z.object({
   direction: z.enum(['asc', 'desc']).default('asc'),
 });
 
+// Multi-column ordering (2026-08-15): a single {field, direction} object
+// (every stored layout to date) OR an ordered array of them. Consumers
+// normalize via a "wrap in array if not one" step; the builder writes the
+// array shape going forward.
+export const OrderByListSpec = z.union([OrderBySpec, z.array(OrderBySpec)]);
+
 export const HeaderSpec = z.object({
   value: z.string().default(''),
   collapsedValue: z.string().optional(),
