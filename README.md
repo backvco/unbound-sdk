@@ -206,6 +206,42 @@ row-evaluable). Heartbeats, reconnect-resubscribe, and sequence-gap resync
 are handled internally. Server caps: 25 subscriptions per socket, 500 per
 account.
 
+**UOQL form** — pass a `uoql` string instead of `object`/`filter`/`fields`/
+`recordTypeId` (mutually exclusive; the SDK throws synchronously if both, or
+neither, are given). The server parses and classifies the query for you:
+
+```javascript
+// Simple single-object query with a flat WHERE -> classifies FINE, same
+// row-level 'enter'/'change'/'leave' events as the object/filter form above.
+const handle = await api.objects.liveQuery({
+  socket,
+  uoql: "SELECT id, name, status FROM contacts WHERE companyId = 'company-123'",
+  onEvent: (frame) => {},
+});
+
+// Joins / relationship paths / aggregates -> classifies COARSE: you only get
+// debounced 'refresh' hints (no row-level frames), so re-run the query
+// yourself via api.objects.query(...) or api.objects.queryV2({ query: uoql })
+// each time onEvent fires with frame.type === 'refresh'.
+const joinUoql =
+  'SELECT c.name, a.status FROM contacts c JOIN accounts a ON a.id = c.accountId';
+const joinHandle = await api.objects.liveQuery({
+  socket,
+  uoql: joinUoql,
+  onEvent: async (frame) => {
+    if (frame.type === 'refresh' || frame.type === 'resync') {
+      const results = await api.objects.queryV2({ query: joinUoql });
+    }
+  },
+});
+
+joinHandle.unsubscribe();
+```
+
+Resubscribe-on-reconnect re-sends the same `uoql` string verbatim, so the
+server re-classifies it fresh each time (mode can't drift out from under a
+long-lived handle).
+
 #### Messaging (`api.messaging`)
 
 ```javascript

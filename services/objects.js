@@ -30,6 +30,8 @@ export class ObjectsService {
    * re-subscribe, revoked teardown).
    *
    * sdk.objects.liveQuery({ socket, object, filter, fields, recordTypeId, onEvent, onStateChange })
+   * sdk.objects.liveQuery({ socket, uoql, onEvent, onStateChange }) // uoql is mutually
+   *   exclusive with object/filter/fields/recordTypeId
    * -> Promise<{ subscriptionId, mode, unsubscribe() }>
    */
   liveQuery(args) {

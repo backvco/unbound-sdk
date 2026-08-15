@@ -117,15 +117,20 @@ class LiveQueryHandle {
     filter,
     fields,
     recordTypeId,
+    uoql,
     onEvent,
     onStateChange,
   }) {
     this.manager = manager;
     this.socket = socket;
-    this.object = object;
+    // Internal bookkeeping/log labels need an object-name-shaped string even
+    // in uoql mode - use the literal 'uoql' there (no single object name
+    // exists yet, that's resolved server-side by analyze()).
+    this.object = uoql !== undefined ? 'uoql' : object;
     this.filter = filter;
     this.fields = fields;
     this.recordTypeId = recordTypeId;
+    this.uoql = uoql;
     this.onEvent = onEvent;
     this.onStateChange = onStateChange;
 
@@ -136,7 +141,10 @@ class LiveQueryHandle {
   }
 
   async _subscribe() {
-    const payload = { objectName: this.object, filter: this.filter, fields: this.fields };
+    const payload =
+      this.uoql !== undefined
+        ? { uoql: this.uoql }
+        : { objectName: this.object, filter: this.filter, fields: this.fields };
     if (this.recordTypeId !== undefined) payload.recordTypeId = this.recordTypeId;
 
     const ack = await new Promise((resolve, reject) => {
@@ -249,6 +257,11 @@ class LiveQueryHandle {
  *   this account; falls back to `sdk.socket` if the sdk instance holds one.
  * - object, filter, fields, recordTypeId: subscribe-time query, same shape
  *   as `sdk.objects.query`.
+ * - uoql: subscribe-time query as a UOQL string instead - mutually exclusive
+ *   with object/filter/fields/recordTypeId (throws synchronously if both, or
+ *   neither, are given). Sent to the server as `{ uoql }`; the server runs
+ *   uoql analyze() to resolve it to a fine or coarse subscription. Also
+ *   re-sent verbatim on reconnect resubscribe.
  * - onEvent(frame): called for every 'enter'|'change'|'leave'|'refresh'|
  *   'resync'|'revoked' frame (resync frames are also synthesized locally on
  *   seq gaps and on reconnect).
@@ -257,7 +270,7 @@ class LiveQueryHandle {
  * Resolves to { subscriptionId, mode, unsubscribe() }.
  */
 export async function liveQuery(sdk, args = {}) {
-  const { socket: providedSocket, object, filter, fields, recordTypeId, onEvent, onStateChange } = args;
+  const { socket: providedSocket, object, filter, fields, recordTypeId, uoql, onEvent, onStateChange } = args;
 
   const socket = providedSocket || sdk.socket;
   if (!socket || typeof socket.emit !== 'function' || typeof socket.on !== 'function') {
@@ -267,8 +280,15 @@ export async function liveQuery(sdk, args = {}) {
         'deviation from the locked liveQuery contract, see plan Phase 3',
     );
   }
-  if (!object) {
-    throw new Error('liveQuery :: init :: object is required');
+
+  const hasObjectForm = object !== undefined || filter !== undefined || fields !== undefined || recordTypeId !== undefined;
+  if (uoql !== undefined && hasObjectForm) {
+    throw new Error(
+      'liveQuery :: init :: uoql is mutually exclusive with object/filter/fields/recordTypeId',
+    );
+  }
+  if (uoql === undefined && !object) {
+    throw new Error('liveQuery :: init :: either uoql or object is required');
   }
 
   const manager = getSocketManager(socket);
@@ -279,6 +299,7 @@ export async function liveQuery(sdk, args = {}) {
     filter,
     fields,
     recordTypeId,
+    uoql,
     onEvent,
     onStateChange,
   });
