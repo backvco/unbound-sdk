@@ -219,23 +219,23 @@ const handle = await api.objects.liveQuery({
   onEvent: (frame) => {},
 });
 
-// Joins / relationship paths / aggregates -> classifies COARSE: you only get
+// Relationship paths / aggregates -> classifies COARSE: you only get
 // debounced 'refresh' hints (no row-level frames), so re-run the query
-// yourself via api.objects.query(...) or api.objects.queryV2({ query: uoql })
-// each time onEvent fires with frame.type === 'refresh'.
-const joinUoql =
-  'SELECT c.name, a.status FROM contacts c JOIN accounts a ON a.id = c.accountId';
-const joinHandle = await api.objects.liveQuery({
+// yourself each time onEvent fires with frame.type === 'refresh'.
+// (UOQL expresses joins as dot-notation relationship paths, not JOIN syntax.)
+const relatedUoql =
+  "SELECT name, companyId.name FROM contacts WHERE companyId.industry = 'tech'";
+const relatedHandle = await api.objects.liveQuery({
   socket,
-  uoql: joinUoql,
+  uoql: relatedUoql,
   onEvent: async (frame) => {
     if (frame.type === 'refresh' || frame.type === 'resync') {
-      const results = await api.objects.queryV2({ query: joinUoql });
+      const results = await api.objects.queryV2({ query: relatedUoql });
     }
   },
 });
 
-joinHandle.unsubscribe();
+relatedHandle.unsubscribe();
 ```
 
 Resubscribe-on-reconnect re-sends the same `uoql` string verbatim, so the
