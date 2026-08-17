@@ -463,7 +463,7 @@ Response:
    * @param {string} [config.convertTo] - Convert uploaded file to this format before storing. Supported: 'pdf', 'tiff'. Input must be PDF, DOC, or DOCX.
    * @param {Object} [config.convertOptions] - Options for file conversion (used with convertTo)
    * @param {('fine'|'normal')} [config.convertOptions.resolution='fine'] - Fax resolution: 'fine' (204x196) or 'normal' (204x98)
-   * @param {('letter'|'a4')} [config.convertOptions.paperSize='letter'] - Paper size for conversion
+   * @param {('letter'|'legal'|'a4')} [config.convertOptions.paperSize='letter'] - Paper size for conversion
    * @param {('g4'|'g3')} [config.convertOptions.compression='g4'] - TIFF compression: 'g4' (default) or 'g3' for older fax machines
    * @param {Function} [config.onProgress] - Progress callback for browser uploads
    * @param {Object} [config._options] - Internal options
@@ -1005,7 +1005,7 @@ Response:
    * @param {string} config.convertTo - Target format: 'pdf' or 'tiff' (required)
    * @param {Object} [config.convertOptions] - Options controlling the conversion output
    * @param {('fine'|'normal')} [config.convertOptions.resolution='fine'] - Fax resolution: 'fine' (204x196 DPI) or 'normal' (204x98 DPI)
-   * @param {('letter'|'a4')} [config.convertOptions.paperSize='letter'] - Paper size for conversion
+   * @param {('letter'|'legal'|'a4')} [config.convertOptions.paperSize='letter'] - Paper size for conversion
    * @param {('g4'|'g3')} [config.convertOptions.compression='g4'] - TIFF compression: 'g4' (modern, default) or 'g3' (legacy fax machines)
    * @param {string} [config.classification] - Storage classification for the new file. Defaults to source file's classification.
    * @param {string} [config.folder] - Folder path for the new file. Defaults to source file's folder.

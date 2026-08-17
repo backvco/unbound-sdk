@@ -78,6 +78,8 @@ export class FaxService {
    *   Required if pdfStorageId and tiffStorageId are not provided.
    * @param {string} [options.pdfStorageId] - Storage ID of the PDF version. Required if storageId is not provided.
    * @param {string} [options.tiffStorageId] - Storage ID of the TIFF version. Required if storageId is not provided.
+   * @param {string} [options.coverStorageId] - Optional cover PDF (or TIFF). Concatenated in front of the body before TIFF convert.
+   * @param {('letter'|'legal'|'a4')} [options.paperSize] - Paper size hint for TIFF conversion. Server also reads PDF MediaBox.
    * @param {string} [options.faxHeader] - TSI header text (defaults to mailbox faxHeader)
    * @param {string} [options.resolution] - Fax resolution (defaults to mailbox resolution)
    * @param {boolean} [options.ecm] - Enable Error Correction Mode (default: true)
@@ -95,6 +97,8 @@ export class FaxService {
    *   toNumber: '+15551234567',
    *   fromNumber: '+15559876543',
    *   storageId: '017xyz788...',
+   *   paperSize: 'legal',
+   *   coverStorageId: '017cover...',
    * });
    * console.log(result.id);     // '158def456...'
    * console.log(result.status); // 'sending'
@@ -120,13 +124,15 @@ export class FaxService {
     storageId,
     pdfStorageId,
     tiffStorageId,
+    coverStorageId,
+    paperSize,
     faxHeader,
     resolution,
     ecm,
     timeout,
   }) {
     this.sdk.validateParams(
-      { faxMailboxId, toNumber, fromNumber },
+      { faxMailboxId, toNumber, fromNumber, coverStorageId, paperSize },
       {
         faxMailboxId: { type: 'string', required: true },
         toNumber: { type: 'string', required: true },
@@ -134,6 +140,8 @@ export class FaxService {
         storageId: { type: 'string', required: false },
         pdfStorageId: { type: 'string', required: false },
         tiffStorageId: { type: 'string', required: false },
+        coverStorageId: { type: 'string', required: false },
+        paperSize: { type: 'string', required: false },
       },
     );
 
@@ -151,6 +159,8 @@ export class FaxService {
         storageId,
         pdfStorageId,
         tiffStorageId,
+        coverStorageId,
+        paperSize,
         faxHeader,
         resolution,
         ecm,
