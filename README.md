@@ -14,6 +14,7 @@ The official JavaScript SDK for Unbound's comprehensive communication and AI pla
 - 🤖 **AI**: Generative AI chat, text-to-speech, and speech-to-text
 - 💾 **Data**: Object management with queries and relationships
 - 🔄 **Workflows**: Programmable workflow execution
+- 📄 **Documents**: Templates → PDF (`api.documents`); fax is a consumer, not the owner
 - 🔌 **Extensible**: Plugin system for transports and extensions
 - ⚡ **Performance**: Automatic transport optimization (NATS/Socket/HTTP)
 
@@ -407,6 +408,44 @@ const files = await api.storage.uploadFiles(fileData, {
 const fileUrl = api.storage.getFileUrl(files[0].storageId);
 await api.storage.deleteFile(files[0].storageId);
 ```
+
+
+#### Documents (`api.documents`)
+
+Generic templates → PDF. Implementation: `services/documents.js`.
+`this.documents = new DocumentsService(this)`.
+
+```javascript
+const created = await api.documents.templates.create({
+  name: 'Fax cover',
+  engine: 'generative', // or 'overlay' + sourcePdfStorageId
+});
+await api.documents.templates.update(created.id, { draftSchemaJson, draftLayoutJson });
+await api.documents.templates.publish(created.id);
+
+const doc = await api.documents.generate({
+  templateId: created.id,
+  data: { fromCompany: 'Acme', subject: 'Hello' },
+});
+// { id, storageId, pageCount, pageSize }
+
+await api.fax.send({
+  faxMailboxId,
+  toNumber,
+  fromNumber,
+  storageId: doc.storageId,
+  coverStorageId, // optional; API concatenates cover then body
+  paperSize: doc.pageSize,
+});
+
+const pages = await api.documents.inspect({ storageId: doc.storageId });
+```
+
+There is no `api.fax.generateFromTemplate`. Preview: `api.documents.preview({ templateId, data })`.
+
+Published SDK versions older than this branch may not have `documents` or
+`fax.send({ coverStorageId })`. The client falls back to `_fetch('/documents/…')`
+and `_fetch('/fax/send')`.
 
 #### Workflows (`api.workflows`)
 
