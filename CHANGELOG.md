@@ -1,5 +1,15 @@
 ## 4.6.0
 
+- feat: `sdk.objects.listGoogleAdAccounts` / `listGoogleAdCampaigns` /
+  `listMetaAdAccounts` / `listMetaAdCampaigns` — ad-catalog pickers
+  (`GET /object/ad-catalog/{google|meta}/{accounts|campaigns}`)
+- feat: `sdk.externalOAuth.verify(id, { purpose })` — Ads connection
+  check; `authorize` accepts `fromConnectionId` to reuse credentials
+- feat: `sdk.triggers` — CRUD for object-change triggers (`list`,
+  `listObjects`, `get`, `create`, `update`, `delete`/`remove`,
+  `setStatus`, `listFires`)
+- feat: `skipTriggers` on `objects.create` / `update` / `updateById` /
+  `delete` / `deleteById` (query flag; default false so triggers run)
 - feat: `schemas/workflows/` — new Zod schema package, sibling of
   `schemas/layouts/`, for the Workflow Builder v2 `ModuleSpec` contract
   (`WORKFLOW-V2-PLAN.md` Phase 2): identity (`type`/`category`/

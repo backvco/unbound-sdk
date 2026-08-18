@@ -211,25 +211,27 @@ export class ObjectsService {
    * Update an object record by ID
    *
    * Preferred usage (new signature):
-   * sdk.objects.updateById({ object: 'users', id: 'userId', update: { name: 'Jane' } })
+   * sdk.objects.updateById({ object: 'users', id: 'userId', update: { name: 'Jane' }, skipTriggers: true })
    *
    * Legacy usage (deprecated, but supported):
    * sdk.objects.updateById('users', 'userId', { name: 'Jane' })
    *
    * @param {object} args - Update parameters
+   * @param {boolean} [args.skipTriggers=false] - Skip trigger execution for this write
    * @returns {Promise} Updated object data
    */
   async updateById(...args) {
-    // New signature: updateById({ object, id, update })
+    // New signature: updateById({ object, id, update, skipTriggers })
     if (args.length === 1 && typeof args[0] === 'object' && args[0].object) {
-      const { object, id, update } = args[0];
+      const { object, id, update, skipTriggers = false } = args[0];
 
       this.sdk.validateParams(
-        { object, id, update },
+        { object, id, update, skipTriggers },
         {
           object: { type: 'string', required: true },
           id: { type: 'string', required: true },
           update: { type: 'object', required: true },
+          skipTriggers: { type: 'boolean', required: false },
         },
       );
 
@@ -239,6 +241,7 @@ export class ObjectsService {
           update,
         },
       };
+      if (skipTriggers) params.query = { skipTriggers: true };
 
       return await this.sdk._fetch(`/object/${object}`, 'PUT', params);
     }
@@ -269,13 +272,32 @@ export class ObjectsService {
     throw new Error('Invalid arguments for updateById method');
   }
 
-  async update({ object, where, update }) {
+  /**
+   * Update records matching a where clause.
+   *
+   * @param {object} args
+   * @param {string} args.object
+   * @param {object} args.where
+   * @param {object} args.update
+   * @param {boolean} [args.skipTriggers=false] - Do not run triggers for this write
+   * @returns {Promise} Update result
+   *
+   * @example
+   * await sdk.objects.update({
+   *   object: 'people',
+   *   where: { id: '013…' },
+   *   update: { leadScore: 200 },
+   *   skipTriggers: true,
+   * });
+   */
+  async update({ object, where, update, skipTriggers = false }) {
     this.sdk.validateParams(
-      { object, where, update },
+      { object, where, update, skipTriggers },
       {
         object: { type: 'string', required: true },
         where: { type: 'object', required: true },
         update: { type: 'object', required: true },
+        skipTriggers: { type: 'boolean', required: false },
       },
     );
 
@@ -285,6 +307,7 @@ export class ObjectsService {
         update,
       },
     };
+    if (skipTriggers) params.query = { skipTriggers: true };
 
     const result = await this.sdk._fetch(`/object/${object}`, 'PUT', params);
     return result;
@@ -294,28 +317,31 @@ export class ObjectsService {
    * Create a new object record
    *
    * Preferred usage (new signature):
-   * sdk.objects.create({ object: 'users', body: { name: 'John', email: 'john@example.com' } })
+   * sdk.objects.create({ object: 'users', body: { name: 'John', email: 'john@example.com' }, skipTriggers: true })
    *
    * Legacy usage (deprecated, but supported):
    * sdk.objects.create('users', { name: 'John', email: 'john@example.com' })
    *
    * @param {object} args - Creation parameters
+   * @param {boolean} [args.skipTriggers=false] - Skip trigger execution for this write
    * @returns {Promise} Created object data
    */
   async create(...args) {
-    // New signature: create({ object, body })
+    // New signature: create({ object, body, skipTriggers })
     if (args.length === 1 && typeof args[0] === 'object' && args[0].object) {
-      const { object, body } = args[0];
+      const { object, body, skipTriggers = false } = args[0];
 
       this.sdk.validateParams(
-        { object, body },
+        { object, body, skipTriggers },
         {
           object: { type: 'string', required: true },
           body: { type: 'object', required: true },
+          skipTriggers: { type: 'boolean', required: false },
         },
       );
 
       const params = { body };
+      if (skipTriggers) params.query = { skipTriggers: true };
       return await this.sdk._fetch(`/object/${object}`, 'POST', params);
     }
 
@@ -338,12 +364,29 @@ export class ObjectsService {
     throw new Error('Invalid arguments for create method');
   }
 
-  async delete({ object, where }) {
+  /**
+   * Delete records matching a where clause.
+   *
+   * @param {object} args
+   * @param {string} args.object
+   * @param {object} args.where
+   * @param {boolean} [args.skipTriggers=false] - Do not run triggers for this write
+   * @returns {Promise} Delete result
+   *
+   * @example
+   * await sdk.objects.delete({
+   *   object: 'people',
+   *   where: { id: '013…' },
+   *   skipTriggers: true,
+   * });
+   */
+  async delete({ object, where, skipTriggers = false }) {
     this.sdk.validateParams(
-      { object, where },
+      { object, where, skipTriggers },
       {
         object: { type: 'string', required: true },
         where: { type: 'object', required: true },
+        skipTriggers: { type: 'boolean', required: false },
       },
     );
 
@@ -352,17 +395,31 @@ export class ObjectsService {
         where,
       },
     };
+    if (skipTriggers) params.query = { skipTriggers: true };
 
     const result = await this.sdk._fetch(`/object/${object}`, 'DELETE', params);
     return result;
   }
 
-  async deleteById({ object, id }) {
+  /**
+   * Delete a record by id.
+   *
+   * @param {object} args
+   * @param {string} args.object
+   * @param {string} args.id
+   * @param {boolean} [args.skipTriggers=false] - Do not run triggers for this write
+   * @returns {Promise} Delete result
+   *
+   * @example
+   * await sdk.objects.deleteById({ object: 'people', id: '013…', skipTriggers: true });
+   */
+  async deleteById({ object, id, skipTriggers = false }) {
     this.sdk.validateParams(
-      { object, id },
+      { object, id, skipTriggers },
       {
         object: { type: 'string', required: true },
         id: { type: 'string', required: true },
+        skipTriggers: { type: 'boolean', required: false },
       },
     );
 
@@ -373,6 +430,7 @@ export class ObjectsService {
         },
       },
     };
+    if (skipTriggers) params.query = { skipTriggers: true };
 
     const result = await this.sdk._fetch(`/object/${object}`, 'DELETE', params);
     return result;
@@ -941,5 +999,84 @@ export class ObjectsService {
       'DELETE',
     );
     return result;
+  }
+
+  /**
+   * List Google Ads customer IDs for an OAuth connection.
+   *
+   * @param {object} args
+   * @param {string} args.connectionId
+   * @returns {Promise<{results: object[], warning?: string|null}>}
+   */
+  async listGoogleAdAccounts({ connectionId }) {
+    this.sdk.validateParams(
+      { connectionId },
+      { connectionId: { type: 'string', required: true } },
+    );
+    return this.sdk._fetch('/object/ad-catalog/google/accounts', 'GET', {
+      query: { connectionId },
+    });
+  }
+
+  /**
+   * List Google Ads campaigns for a customer.
+   *
+   * @param {object} args
+   * @param {string} args.connectionId
+   * @param {string} args.customerId
+   * @param {string} [args.loginCustomerId]
+   * @returns {Promise<{results: object[]}>}
+   */
+  async listGoogleAdCampaigns({ connectionId, customerId, loginCustomerId }) {
+    this.sdk.validateParams(
+      { connectionId, customerId },
+      {
+        connectionId: { type: 'string', required: true },
+        customerId: { type: 'string', required: true },
+      },
+    );
+    const query = { connectionId, customerId };
+    if (loginCustomerId) query.loginCustomerId = loginCustomerId;
+    return this.sdk._fetch('/object/ad-catalog/google/campaigns', 'GET', {
+      query,
+    });
+  }
+
+  /**
+   * List Meta ad accounts for an OAuth connection.
+   *
+   * @param {object} args
+   * @param {string} args.connectionId
+   * @returns {Promise<{results: object[]}>}
+   */
+  async listMetaAdAccounts({ connectionId }) {
+    this.sdk.validateParams(
+      { connectionId },
+      { connectionId: { type: 'string', required: true } },
+    );
+    return this.sdk._fetch('/object/ad-catalog/meta/accounts', 'GET', {
+      query: { connectionId },
+    });
+  }
+
+  /**
+   * List Meta campaigns for an ad account.
+   *
+   * @param {object} args
+   * @param {string} args.connectionId
+   * @param {string} args.adAccountId
+   * @returns {Promise<{results: object[]}>}
+   */
+  async listMetaAdCampaigns({ connectionId, adAccountId }) {
+    this.sdk.validateParams(
+      { connectionId, adAccountId },
+      {
+        connectionId: { type: 'string', required: true },
+        adAccountId: { type: 'string', required: true },
+      },
+    );
+    return this.sdk._fetch('/object/ad-catalog/meta/campaigns', 'GET', {
+      query: { connectionId, adAccountId },
+    });
   }
 }

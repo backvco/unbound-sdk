@@ -141,6 +141,7 @@ export class ExternalOAuthService {
     scopes,
     authorizationUrl,
     tokenUrl,
+    fromConnectionId,
   }) {
     this.sdk.validateParams(
       { name, provider },
@@ -152,6 +153,7 @@ export class ExternalOAuthService {
         scopes: { type: 'array', required: false },
         authorizationUrl: { type: 'string', required: false },
         tokenUrl: { type: 'string', required: false },
+        fromConnectionId: { type: 'string', required: false },
       },
     );
 
@@ -161,10 +163,30 @@ export class ExternalOAuthService {
     if (scopes) body.scopes = scopes;
     if (authorizationUrl) body.authorizationUrl = authorizationUrl;
     if (tokenUrl) body.tokenUrl = tokenUrl;
+    if (fromConnectionId) body.fromConnectionId = fromConnectionId;
 
     const result = await this.sdk._fetch('/externalOAuth/authorize', 'POST', {
       body,
     });
     return result;
+  }
+
+  /**
+   * Check whether a connection can be used for a purpose (e.g. Google Ads / Meta ads).
+   *
+   * @param {string} id
+   * @param {object} [args]
+   * @param {string} [args.purpose='googleAds']
+   * @returns {Promise<object>}
+   */
+  async verify(id, { purpose = 'googleAds' } = {}) {
+    this.sdk.validateParams(
+      { id },
+      { id: { type: 'string', required: true } },
+    );
+
+    return this.sdk._fetch(`/externalOAuth/${id}/verify`, 'POST', {
+      body: { purpose },
+    });
   }
 }
