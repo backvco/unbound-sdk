@@ -41,7 +41,7 @@ async function testPublicSDKCompleteness() {
     'phoneNumbers',
     'recordTypes',
     'generateId',
-    'documents',
+    'triggers',
   ];
 
   console.log(`📊 Checking ${publicServices.length} public services...`);

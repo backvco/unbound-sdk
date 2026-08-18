@@ -175,6 +175,41 @@ await api.objects.updateById('contacts', 'contact-123', { name: 'Jane' });
 await api.objects.deleteById('contacts', 'contact-123');
 await api.objects.describe('contacts'); // Get schema
 await api.objects.list(); // List all object types
+
+// Skip trigger execution on a write (imports / bulk tools)
+await api.objects.updateById({
+  object: 'people',
+  id: '013…',
+  update: { leadScore: 200 },
+  skipTriggers: true,
+});
+```
+
+#### Triggers (`api.triggers`)
+
+```javascript
+await api.triggers.listObjects();
+await api.triggers.list({ objectName: 'people', status: 'enabled' });
+await api.triggers.create({
+  name: 'Hot lead',
+  objectName: 'people',
+  actions: ['update'],
+  recordFilter: { type: { op: 'eq', value: 'lead' } },
+  changeFilters: [
+    {
+      field: 'leadScore',
+      previous: { op: 'lt', value: 20 },
+      updated: { op: 'gt', value: 100 },
+    },
+  ],
+  actionType: 'workflow',
+  actionConfig: { workflowVersionId: '052…' },
+});
+await api.triggers.get('173…');
+await api.triggers.update('173…', { status: 'paused' });
+await api.triggers.setStatus('173…', 'enabled');
+await api.triggers.listFires('173…', { limit: 20 });
+await api.triggers.delete('173…');
 ```
 
 #### Live Queries (`api.objects.liveQuery`)
@@ -409,7 +444,6 @@ const fileUrl = api.storage.getFileUrl(files[0].storageId);
 await api.storage.deleteFile(files[0].storageId);
 ```
 
-
 #### Documents (`api.documents`)
 
 Generic templates → PDF. Implementation: `services/documents.js`.
@@ -419,7 +453,9 @@ Generic templates → PDF. Implementation: `services/documents.js`.
 const created = await api.documents.templates.create({
   name: 'Fax cover',
   engine: 'generative', // or 'overlay' + sourcePdfStorageId
+  uses: ['fax'], // omit / [] = every surface
 });
+await api.documents.templates.list({ status: 'published', use: 'fax' });
 await api.documents.templates.update(created.id, { draftSchemaJson, draftLayoutJson });
 await api.documents.templates.publish(created.id);
 

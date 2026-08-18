@@ -9,6 +9,7 @@ export class DocumentTemplatesService {
    * @param {string} params.name - Template name (required)
    * @param {string} [params.description]
    * @param {string} [params.tag]
+   * @param {string[]} [params.uses] - Consumer surfaces (`fax`). Empty = all.
    * @param {'generative'|'overlay'} [params.engine='generative']
    * @param {string} [params.sourcePdfStorageId] - Required when engine is overlay
    * @param {Object} [params.draftSchemaJson]
@@ -21,6 +22,7 @@ export class DocumentTemplatesService {
     name,
     description,
     tag,
+    uses,
     engine,
     sourcePdfStorageId,
     draftSchemaJson,
@@ -34,6 +36,7 @@ export class DocumentTemplatesService {
         name: { type: 'string', required: true },
         description: { type: 'string', required: false },
         tag: { type: 'string', required: false },
+        uses: { type: 'object', required: false },
         engine: { type: 'string', required: false },
         sourcePdfStorageId: { type: 'string', required: false },
         draftSchemaJson: { type: 'object', required: false },
@@ -46,6 +49,7 @@ export class DocumentTemplatesService {
     const body = { name };
     if (description !== undefined) body.description = description;
     if (tag !== undefined) body.tag = tag;
+    if (uses !== undefined) body.uses = uses;
     if (engine !== undefined) body.engine = engine;
     if (sourcePdfStorageId !== undefined) {
       body.sourcePdfStorageId = sourcePdfStorageId;
@@ -63,13 +67,15 @@ export class DocumentTemplatesService {
    * @param {Object} [params]
    * @param {string} [params.tag]
    * @param {string} [params.status]
+   * @param {string} [params.use] - Consumer surface (`fax`). Empty uses match all.
    * @param {number} [params.limit]
    * @returns {Promise<{results: Object[]}>}
    */
-  async list({ tag, status, limit } = {}) {
+  async list({ tag, status, use, limit } = {}) {
     const query = {};
     if (tag) query.tag = tag;
     if (status) query.status = status;
+    if (use) query.use = use;
     if (limit) query.limit = limit;
     return this.sdk._fetch('/documents/templates', 'GET', { query });
   }
@@ -91,6 +97,7 @@ export class DocumentTemplatesService {
    * @param {string} [params.name]
    * @param {string} [params.description]
    * @param {string} [params.tag]
+   * @param {string[]} [params.uses]
    * @param {Object} [params.draftSchemaJson]
    * @param {Object} [params.draftLayoutJson]
    * @param {Object} [params.draftPageJson]
@@ -103,6 +110,8 @@ export class DocumentTemplatesService {
       name,
       description,
       tag,
+      uses,
+      recordTypeId,
       draftSchemaJson,
       draftLayoutJson,
       draftPageJson,
@@ -116,6 +125,8 @@ export class DocumentTemplatesService {
         name: { type: 'string', required: false },
         description: { type: 'string', required: false },
         tag: { type: 'string', required: false },
+        uses: { type: 'object', required: false },
+        recordTypeId: { type: 'string', required: false },
         draftSchemaJson: { type: 'object', required: false },
         draftLayoutJson: { type: 'object', required: false },
         draftPageJson: { type: 'object', required: false },
@@ -127,6 +138,8 @@ export class DocumentTemplatesService {
     if (name !== undefined) body.name = name;
     if (description !== undefined) body.description = description;
     if (tag !== undefined) body.tag = tag;
+    if (uses !== undefined) body.uses = uses;
+    if (recordTypeId !== undefined) body.recordTypeId = recordTypeId;
     if (draftSchemaJson !== undefined) body.draftSchemaJson = draftSchemaJson;
     if (draftLayoutJson !== undefined) body.draftLayoutJson = draftLayoutJson;
     if (draftPageJson !== undefined) body.draftPageJson = draftPageJson;

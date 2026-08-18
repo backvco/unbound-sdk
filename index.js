@@ -29,6 +29,7 @@ import { KnowledgeBaseService } from './services/knowledgeBase.js';
 import { FaxService } from './services/fax.js';
 import { DocumentsService } from './services/documents.js';
 import { PermissionsService } from './services/permissions.js';
+import { TriggersService } from './services/triggers.js';
 
 class UnboundSDK extends BaseSDK {
   constructor(options = {}) {
@@ -99,6 +100,7 @@ class UnboundSDK extends BaseSDK {
     this.fax = new FaxService(this);
     this.documents = new DocumentsService(this);
     this.permissions = new PermissionsService(this);
+    this.triggers = new TriggersService(this);
 
     // Add additional services that might be missing
     this._initializeAdditionalServices();
