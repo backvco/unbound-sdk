@@ -374,4 +374,115 @@ export class PermissionsService {
     const result = await this.sdk._fetch('/permissions/scope-catalog', 'GET');
     return result;
   }
+
+  /**
+   * Catalog of group-settable configuration keys, plus the never-settable list.
+   * @returns {Promise<Object>} { groupSettable: [{key,label,type,pillar,...}], neverSettable: [] }
+   */
+  async getSettingsCatalog() {
+    return this.sdk._fetch('/permissions/settings/catalog', 'GET');
+  }
+
+  /**
+   * Configuration values set at group level.
+   * @param {string|number} groupId - Group ID (required)
+   * @returns {Promise<Object>} { results: [{settingKey, value, updatedAt}] }
+   */
+  async listGroupSettings(groupId) {
+    groupId = String(groupId);
+    this.sdk.validateParams({ groupId }, { groupId: { type: 'string', required: true } });
+    return this.sdk._fetch(`/permissions/groups/${groupId}/settings`, 'GET');
+  }
+
+  /** Set one configuration value on a group. */
+  async setGroupSetting(groupId, settingKey, value) {
+    groupId = String(groupId);
+    settingKey = String(settingKey);
+    this.sdk.validateParams(
+      { groupId, settingKey },
+      {
+        groupId: { type: 'string', required: true },
+        settingKey: { type: 'string', required: true },
+      },
+    );
+    return this.sdk._fetch(
+      `/permissions/groups/${groupId}/settings/${settingKey}`,
+      'PUT',
+      { value },
+    );
+  }
+
+  /** Unset one configuration value on a group (members revert to the next tier). */
+  async deleteGroupSetting(groupId, settingKey) {
+    groupId = String(groupId);
+    settingKey = String(settingKey);
+    this.sdk.validateParams(
+      { groupId, settingKey },
+      {
+        groupId: { type: 'string', required: true },
+        settingKey: { type: 'string', required: true },
+      },
+    );
+    return this.sdk._fetch(
+      `/permissions/groups/${groupId}/settings/${settingKey}`,
+      'DELETE',
+    );
+  }
+
+  /**
+   * Rank groups for same-key conflict resolution; first entry wins.
+   * @param {Array<string|number>} order - Group IDs, highest priority first
+   */
+  async setGroupPriority(order) {
+    this.sdk.validateParams({ order }, { order: { type: 'array', required: true } });
+    return this.sdk._fetch('/permissions/groups/priority', 'PUT', {
+      order: order.map(String),
+    });
+  }
+
+  /**
+   * Resolved configuration for a user: value, where it came from, and any
+   * losing group values for the same key.
+   * @returns {Promise<Object>} { [key]: { value, source: {tier, groupId, groupName}, conflicts: [] } }
+   */
+  async getUserSettings(userId) {
+    userId = String(userId);
+    this.sdk.validateParams({ userId }, { userId: { type: 'string', required: true } });
+    return this.sdk._fetch(`/permissions/users/${userId}/settings`, 'GET');
+  }
+
+  /** Override one configuration value for a single user. */
+  async setUserSetting(userId, settingKey, value) {
+    userId = String(userId);
+    settingKey = String(settingKey);
+    this.sdk.validateParams(
+      { userId, settingKey },
+      {
+        userId: { type: 'string', required: true },
+        settingKey: { type: 'string', required: true },
+      },
+    );
+    return this.sdk._fetch(
+      `/permissions/users/${userId}/settings/${settingKey}`,
+      'PUT',
+      { value },
+    );
+  }
+
+  /** Clear a user's override, reverting to the inherited value. */
+  async deleteUserSetting(userId, settingKey) {
+    userId = String(userId);
+    settingKey = String(settingKey);
+    this.sdk.validateParams(
+      { userId, settingKey },
+      {
+        userId: { type: 'string', required: true },
+        settingKey: { type: 'string', required: true },
+      },
+    );
+    return this.sdk._fetch(
+      `/permissions/users/${userId}/settings/${settingKey}`,
+      'DELETE',
+    );
+  }
 }
