@@ -408,7 +408,7 @@ export class PermissionsService {
     return this.sdk._fetch(
       `/permissions/groups/${groupId}/settings/${settingKey}`,
       'PUT',
-      { value },
+      { body: { value } },
     );
   }
 
@@ -436,7 +436,7 @@ export class PermissionsService {
   async setGroupPriority(order) {
     this.sdk.validateParams({ order }, { order: { type: 'array', required: true } });
     return this.sdk._fetch('/permissions/groups/priority', 'PUT', {
-      order: order.map(String),
+      body: { order: order.map(String) },
     });
   }
 
@@ -465,7 +465,7 @@ export class PermissionsService {
     return this.sdk._fetch(
       `/permissions/users/${userId}/settings/${settingKey}`,
       'PUT',
-      { value },
+      { body: { value } },
     );
   }
 
@@ -482,6 +482,134 @@ export class PermissionsService {
     );
     return this.sdk._fetch(
       `/permissions/users/${userId}/settings/${settingKey}`,
+      'DELETE',
+    );
+  }
+
+  // ---- Group-assigned skills and queues (§9.5) --------------------------
+  // Set-shaped, not scalar: they union across every group a user belongs to
+  // and never consult group priority. Writes fan out to each member's
+  // materialized userSkills/queueUsers rows and re-push their live worker.
+  //
+  // NOTE for anyone adding a method here: `_fetch`'s third argument is the
+  // params envelope — a request body MUST be passed as `{ body: {...} }`.
+  // Passing the payload bare silently sends no body at all.
+
+  /** Skill + queue vocabulary for the group assignment pickers. */
+  async getTaskRoutingCatalog() {
+    return this.sdk._fetch('/permissions/task-routing/catalog', 'GET');
+  }
+
+  /** Skills this group grants. @returns {Promise<{results: Array<{skillId}>}>} */
+  async listGroupSkills(groupId) {
+    groupId = String(groupId);
+    this.sdk.validateParams(
+      { groupId },
+      { groupId: { type: 'string', required: true } },
+    );
+    return this.sdk._fetch(`/permissions/groups/${groupId}/skills`, 'GET');
+  }
+
+  /** Replace the group's full skill list. */
+  async setGroupSkills(groupId, skillIds) {
+    groupId = String(groupId);
+    this.sdk.validateParams(
+      { groupId, skillIds },
+      {
+        groupId: { type: 'string', required: true },
+        skillIds: { type: 'array', required: true },
+      },
+    );
+    return this.sdk._fetch(`/permissions/groups/${groupId}/skills`, 'PUT', {
+      body: { skillIds: skillIds.map(String) },
+    });
+  }
+
+  /** Queues this group grants. @returns {Promise<{results: Array<{queueId, access, autoLogin}>}>} */
+  async listGroupQueues(groupId) {
+    groupId = String(groupId);
+    this.sdk.validateParams(
+      { groupId },
+      { groupId: { type: 'string', required: true } },
+    );
+    return this.sdk._fetch(`/permissions/groups/${groupId}/queues`, 'GET');
+  }
+
+  /**
+   * Replace the group's full queue list.
+   * @param {Array<{queueId: string, access?: boolean, autoLogin?: boolean}>} queues
+   *   `autoLogin` seeds the derived membership row and takes effect at the
+   *   agent's next availability transition — it never logs anyone in
+   *   mid-session.
+   */
+  async setGroupQueues(groupId, queues) {
+    groupId = String(groupId);
+    this.sdk.validateParams(
+      { groupId, queues },
+      {
+        groupId: { type: 'string', required: true },
+        queues: { type: 'array', required: true },
+      },
+    );
+    return this.sdk._fetch(`/permissions/groups/${groupId}/queues`, 'PUT', {
+      body: {
+        queues: queues.map((q) => ({
+          queueId: String(q.queueId),
+          access: q.access !== false,
+          autoLogin: Boolean(q.autoLogin),
+        })),
+      },
+    });
+  }
+
+  /**
+   * A user's effective skills/queues with the source of each row, so the UI
+   * can show "granted by group X" instead of offering a control that would
+   * silently no-op.
+   */
+  async getUserTaskRouting(userId) {
+    userId = String(userId);
+    this.sdk.validateParams(
+      { userId },
+      { userId: { type: 'string', required: true } },
+    );
+    return this.sdk._fetch(`/permissions/users/${userId}/task-routing`, 'GET');
+  }
+
+  /** Exclude one group-granted skill/queue from this user ("in Sales but not queue X"). */
+  async addTaskRoutingExclusion(userId, settingKey, value) {
+    userId = String(userId);
+    settingKey = String(settingKey);
+    value = String(value);
+    this.sdk.validateParams(
+      { userId, settingKey, value },
+      {
+        userId: { type: 'string', required: true },
+        settingKey: { type: 'string', required: true },
+        value: { type: 'string', required: true },
+      },
+    );
+    return this.sdk._fetch(
+      `/permissions/users/${userId}/task-routing/exclusions/${settingKey}/${value}`,
+      'PUT',
+    );
+  }
+
+  /** Drop an exclusion, letting the group grant apply again. */
+  async removeTaskRoutingExclusion(userId, settingKey, value) {
+    userId = String(userId);
+    settingKey = String(settingKey);
+    value = String(value);
+    this.sdk.validateParams(
+      { userId, settingKey, value },
+      {
+        userId: { type: 'string', required: true },
+        settingKey: { type: 'string', required: true },
+        value: { type: 'string', required: true },
+      },
+    );
+    return this.sdk._fetch(
+      `/permissions/users/${userId}/task-routing/exclusions/${settingKey}/${value}`,
       'DELETE',
     );
   }
