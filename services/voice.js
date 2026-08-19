@@ -151,6 +151,32 @@ export class VoiceService {
     return result;
   }
 
+  /**
+   * Get the discrete event timeline for a call
+   * Returns the ordered sequence of discrete CDR events (ringing, answered,
+   * hold, transfer, queue/assignment transitions, recording, dtmf, etc.)
+   * recorded for a call, ordered oldest-first.
+   *
+   * @param {string} cdrId - The CDR id to fetch events for (required)
+   * @returns {Promise<Object>} result
+   * @returns {Array<Object>} result.events - Ordered list of `{ eventType, ts, actorType, actorId, data }`
+   *
+   * @example
+   * const { events } = await sdk.voice.getCdrEvents(cdrId);
+   * events.forEach((e) => console.log(e.eventType, e.ts));
+   */
+  async getCdrEvents(cdrId) {
+    this.sdk.validateParams(
+      { cdrId },
+      {
+        cdrId: { type: 'string', required: true },
+      },
+    );
+
+    const result = await this.sdk._fetch(`/voice/cdr/${cdrId}/events`, 'GET');
+    return result;
+  }
+
   /* legacy methods, to be updated and replaced */
 
   async hold(channels) {
