@@ -91,4 +91,24 @@ export class InboxService {
     const result = await this.sdk._fetch('/inbox/stats', 'GET');
     return result;
   }
+
+  /**
+   * Trigger transcription for a voicemail that has a recording but no
+   * transcript (fire-and-forget server-side; poll the record for the
+   * resulting `transcription` / `transcriptionStatus`).
+   *
+   * @param {string} voicemailMessageId
+   * @returns {Promise<{accepted?: boolean, skipped?: boolean}>}
+   */
+  async transcribeVoicemail(voicemailMessageId) {
+    this.sdk.validateParams(
+      { voicemailMessageId },
+      { voicemailMessageId: { type: 'string', required: true } },
+    );
+    return await this.sdk._fetch(
+      `/inbox/voicemail/${voicemailMessageId}/transcribe`,
+      'POST',
+      { body: {} },
+    );
+  }
 }
