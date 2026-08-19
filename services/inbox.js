@@ -80,4 +80,15 @@ export class InboxService {
     const result = await this.sdk._fetch('/inbox/smsThread', 'GET', params);
     return result;
   }
+
+  /**
+   * Fetch inbox stats (calls/talk time/missed/unread voicemail) for the
+   * current user.
+   *
+   * @returns {Promise<{callsToday: number, talkTimeSeconds: number, missedToday: number, unreadVoicemail: number, oldestUnreadVoicemailAt: string|null}>}
+   */
+  async stats() {
+    const result = await this.sdk._fetch('/inbox/stats', 'GET');
+    return result;
+  }
 }
