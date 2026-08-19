@@ -30,6 +30,8 @@ import { FaxService } from './services/fax.js';
 import { DocumentsService } from './services/documents.js';
 import { PermissionsService } from './services/permissions.js';
 import { TriggersService } from './services/triggers.js';
+import { InboxService } from './services/inbox.js';
+import { DirectoryService } from './services/directory.js';
 
 class UnboundSDK extends BaseSDK {
   constructor(options = {}) {
@@ -101,6 +103,8 @@ class UnboundSDK extends BaseSDK {
     this.documents = new DocumentsService(this);
     this.permissions = new PermissionsService(this);
     this.triggers = new TriggersService(this);
+    this.inbox = new InboxService(this);
+    this.directory = new DirectoryService(this);
 
     // Add additional services that might be missing
     this._initializeAdditionalServices();
@@ -281,4 +285,6 @@ export { WorkerService } from './services/taskRouter/WorkerService.js';
 export { KnowledgeBaseService } from './services/knowledgeBase.js';
 export { FaxService } from './services/fax.js';
 export { PermissionsService } from './services/permissions.js';
+export { InboxService } from './services/inbox.js';
+export { DirectoryService } from './services/directory.js';
 export { BaseSDK } from './base.js';
