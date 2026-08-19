@@ -643,6 +643,32 @@ export class SpeechToTextService {
   }
 
   /**
+   * Synchronously transcribe a stored audio file (batch STT).
+   * Counterpart to stream(): give it a storage file id, get the transcript
+   * back in the response (typically ~1-3s for voicemail-length audio).
+   *
+   * @param {Object} options
+   * @param {string} options.storageId - Storage file id of the audio (WAV by default).
+   * @param {string} [options.language] - Language hint (default 'en').
+   * @param {string} [options.encoding] - Audio encoding (default 'WAV').
+   * @returns {Promise<{transcription: string|null, language: string|null, duration: number|null}>}
+   */
+  async file({ storageId, language, encoding } = {}) {
+    this.sdk.validateParams(
+      { storageId, language, encoding },
+      {
+        storageId: { type: 'string', required: true },
+        language: { type: 'string', required: false },
+        encoding: { type: 'string', required: false },
+      },
+    );
+    const body = { storageId };
+    if (language !== undefined) body.language = language;
+    if (encoding !== undefined) body.encoding = encoding;
+    return await this.sdk._fetch('/ai/stt/file', 'POST', { body });
+  }
+
+  /**
    * Create a real-time streaming transcription session
    * Returns an EventEmitter-based stream for sending audio and receiving transcripts
    *
