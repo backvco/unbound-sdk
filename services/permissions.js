@@ -486,6 +486,50 @@ export class PermissionsService {
     );
   }
 
+  /**
+   * Per-user, per-account JSON app state (UI state such as saved tab-sets).
+   * Distinct from settings: free-form JSON, not catalog-validated.
+   * @param {string|number} userId - User ID (required)
+   * @param {string} stateKey - State key, /^[a-zA-Z0-9_-]{1,64}$/ (required)
+   * @returns {Promise<Object>} { value } (value is null if unset)
+   */
+  async getUserAppState(userId, stateKey) {
+    userId = String(userId);
+    stateKey = String(stateKey);
+    this.sdk.validateParams(
+      { userId, stateKey },
+      {
+        userId: { type: 'string', required: true },
+        stateKey: { type: 'string', required: true },
+      },
+    );
+    return this.sdk._fetch(
+      `/permissions/users/${userId}/app-state/${stateKey}`,
+      'GET',
+    );
+  }
+
+  /**
+   * Upsert one app-state value for a user (JSON-serializable, ≤256KB serialized).
+   * @returns {Promise<Object>} { userId, stateKey, value, updatedAt }
+   */
+  async setUserAppState(userId, stateKey, value) {
+    userId = String(userId);
+    stateKey = String(stateKey);
+    this.sdk.validateParams(
+      { userId, stateKey },
+      {
+        userId: { type: 'string', required: true },
+        stateKey: { type: 'string', required: true },
+      },
+    );
+    return this.sdk._fetch(
+      `/permissions/users/${userId}/app-state/${stateKey}`,
+      'PUT',
+      { body: { value } },
+    );
+  }
+
   // ---- Group-assigned skills and queues (§9.5) --------------------------
   // Set-shaped, not scalar: they union across every group a user belongs to
   // and never consult group priority. Writes fan out to each member's
