@@ -436,6 +436,58 @@ export class ObjectsService {
     return result;
   }
 
+  /**
+   * List saved list-views for an object (system + shared + own).
+   * @param {Object} params
+   * @param {string} params.objectName - Object the views belong to.
+   * @returns {Promise<{results: Object[]}>}
+   */
+  async listViews({ objectName }) {
+    this.sdk.validateParams(
+      { objectName },
+      { objectName: { type: 'string', required: true } },
+    );
+    return await this.sdk._fetch('/object/views', 'GET', {
+      query: { objectName },
+    });
+  }
+
+  /**
+   * Create a saved list-view.
+   * @param {Object} params
+   * @param {string} params.objectName
+   * @param {string} params.name
+   * @param {Array} params.filters
+   * @param {string} [params.visibility] - 'user' (default) or 'shared'.
+   * @returns {Promise<Object>}
+   */
+  async createView({ objectName, name, filters, visibility }) {
+    this.sdk.validateParams(
+      { objectName, name, filters },
+      {
+        objectName: { type: 'string', required: true },
+        name: { type: 'string', required: true },
+        filters: { type: 'array', required: true },
+      },
+    );
+    const body = { objectName, name, filters };
+    if (visibility !== undefined) body.visibility = visibility;
+    return await this.sdk._fetch('/object/views', 'POST', { body });
+  }
+
+  /**
+   * Delete a saved list-view by id.
+   * @param {string} viewId
+   * @returns {Promise<Object>}
+   */
+  async deleteView(viewId) {
+    this.sdk.validateParams(
+      { viewId },
+      { viewId: { type: 'string', required: true } },
+    );
+    return await this.sdk._fetch(`/object/views/${viewId}`, 'DELETE');
+  }
+
   async botSchema() {
     const result = await this.sdk._fetch(
       '/object/manage/bot-schema',
