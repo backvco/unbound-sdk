@@ -97,21 +97,29 @@ export class LayoutsService {
     return result;
   }
 
-  async resolve({ object, kind, recordId, recordTypeId, asUser } = {}) {
+  // `object` is required for object-scoped kinds ('list'/'detail'/'compact')
+  // but omitted for kind:'home' (home layouts are not object-scoped).
+  async resolve({
+    object, kind, recordId, recordTypeId, asUser, preset,
+  } = {}) {
     this.sdk.validateParams(
-      { object, kind },
+      { object, kind, preset },
       {
-        object: { type: 'string', required: true },
+        object: { type: 'string', required: kind !== 'home' },
         kind: { type: 'string', required: true },
         recordId: { type: 'string', required: false },
         recordTypeId: { type: 'string', required: false },
         asUser: { type: 'string', required: false },
+        preset: { type: 'string', required: false },
       },
     );
 
-    const params = {
-      query: { object, kind, recordId, recordTypeId, asUser },
-    };
+    const query = { kind, recordId, recordTypeId, asUser, preset };
+    if (object) {
+      query.object = object;
+    }
+
+    const params = { query };
 
     const result = await this.sdk._fetch('/layouts/resolve', 'GET', params);
     return result;
@@ -174,9 +182,13 @@ export class LayoutAssignmentsService {
     this.sdk = sdk;
   }
 
+  // objectName defaults to '' for kind:'home' — matches the assignments
+  // table's existing "empty string = wildcard" convention for
+  // recordTypeId/audienceId; not a new pattern.
   async list({ objectName, kind } = {}) {
+    const resolvedObjectName = objectName ?? (kind === 'home' ? '' : objectName);
     this.sdk.validateParams(
-      { objectName, kind },
+      { objectName: resolvedObjectName, kind },
       {
         objectName: { type: 'string', required: true },
         kind: { type: 'string', required: true },
@@ -184,7 +196,7 @@ export class LayoutAssignmentsService {
     );
 
     const params = {
-      query: { objectName, kind },
+      query: { objectName: resolvedObjectName, kind },
     };
 
     const result = await this.sdk._fetch('/layouts/assignments', 'GET', params);
@@ -192,8 +204,9 @@ export class LayoutAssignmentsService {
   }
 
   async create({ objectName, kind, recordTypeId, audienceType, audienceId, layoutId, priority } = {}) {
+    const resolvedObjectName = objectName ?? (kind === 'home' ? '' : objectName);
     this.sdk.validateParams(
-      { objectName, kind, audienceType, layoutId },
+      { objectName: resolvedObjectName, kind, audienceType, layoutId },
       {
         objectName: { type: 'string', required: true },
         kind: { type: 'string', required: true },
@@ -203,7 +216,9 @@ export class LayoutAssignmentsService {
     );
 
     const params = {
-      body: { objectName, kind, recordTypeId, audienceType, audienceId, layoutId, priority },
+      body: {
+        objectName: resolvedObjectName, kind, recordTypeId, audienceType, audienceId, layoutId, priority,
+      },
     };
 
     const result = await this.sdk._fetch('/layouts/assignments', 'POST', params);

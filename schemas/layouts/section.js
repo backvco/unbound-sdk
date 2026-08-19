@@ -9,6 +9,7 @@ import { JoinSpec } from './join.js';
 import { FormatType } from './format.js';
 import { KanbanConfigSpec } from './kanban.js';
 import { RelatedListSpec } from './relatedList.js';
+import { WidgetSection } from './widgetSection.js';
 
 const TableFieldSpec = z.object({
   field: z.string().min(1),
@@ -100,5 +101,5 @@ const TableKanbanSection = BaseSection.extend({
 // "delete TableEditor's legacy code path" work a schema-level forcing
 // function.
 export const SectionSpec = z.discriminatedUnion('type', [
-  ContentSection, TableSection, KanbanSection, TableKanbanSection,
+  ContentSection, TableSection, KanbanSection, TableKanbanSection, WidgetSection,
 ]);
