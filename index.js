@@ -31,6 +31,7 @@ import { DocumentsService } from './services/documents.js';
 import { PermissionsService } from './services/permissions.js';
 import { TriggersService } from './services/triggers.js';
 import { InboxService } from './services/inbox.js';
+import { SearchService } from './services/search.js';
 import { DirectoryService } from './services/directory.js';
 
 class UnboundSDK extends BaseSDK {
@@ -104,6 +105,7 @@ class UnboundSDK extends BaseSDK {
     this.permissions = new PermissionsService(this);
     this.triggers = new TriggersService(this);
     this.inbox = new InboxService(this);
+    this.search = new SearchService(this);
     this.directory = new DirectoryService(this);
 
     // Add additional services that might be missing
@@ -286,5 +288,6 @@ export { KnowledgeBaseService } from './services/knowledgeBase.js';
 export { FaxService } from './services/fax.js';
 export { PermissionsService } from './services/permissions.js';
 export { InboxService } from './services/inbox.js';
+export { SearchService } from './services/search.js';
 export { DirectoryService } from './services/directory.js';
 export { BaseSDK } from './base.js';
