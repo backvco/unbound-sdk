@@ -13,6 +13,31 @@
  * npm install mime-types
  */
 
+const requestBySdk = new WeakMap();
+const SDK_REQUEST = Symbol.for('unbound.sdk.request');
+
+/**
+ * Service-internal request. Not part of the public SDK surface.
+ * Named SDK methods call this; app code must not. Optional transports
+ * (e.g. Socket.IO) are used when available unless httpOnly/forceFetch.
+ *
+ * @param {object} sdk
+ * @param {string} endpoint
+ * @param {string} method
+ * @param {object} [params]
+ * @param {boolean} [forceFetch] Skip optional transports (HTTP only).
+ *   Use for file upload/download.
+ */
+export function internalRequest(sdk, endpoint, method, params = {}, forceFetch) {
+  const run =
+    requestBySdk.get(sdk) || sdk?.[SDK_REQUEST];
+  if (typeof run !== 'function') {
+    throw new Error('SDK request is not initialized');
+  }
+  const httpOnly = forceFetch === true || params?.httpOnly === true;
+  return run(endpoint, method, params, httpOnly);
+}
+
 export class BaseSDK {
   constructor(options = {}) {
     // Support both object and legacy positional parameters for backwards compatibility
@@ -35,6 +60,15 @@ export class BaseSDK {
     this.transports = new Map();
     this.debugMode = false;
     this._initializeEnvironment();
+    const run = (endpoint, method, params, forceFetch) =>
+      this.#request(endpoint, method, params, forceFetch);
+    requestBySdk.set(this, run);
+    Object.defineProperty(this, SDK_REQUEST, {
+      value: run,
+      enumerable: false,
+      configurable: false,
+      writable: false,
+    });
   }
 
   _initializeEnvironment() {
@@ -177,7 +211,13 @@ export class BaseSDK {
     }
   }
 
-  async _fetch(endpoint, method, params = {}, forceFetch = false) {
+  _fetch() {
+    throw new Error(
+      'sdk._fetch is private. Use a service method (sdk.chat, sdk.objects, ...).',
+    );
+  }
+
+  async #request(endpoint, method, params = {}, forceFetch = false) {
     const startTime = Date.now();
     const { body, query, headers = {}, returnRawResponse = false } = params;
 

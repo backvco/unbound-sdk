@@ -1,3 +1,5 @@
+import { internalRequest } from '../../base.js';
+
 /**
  * AI Translate helper - Batch-translate arbitrary text items
  * Exposed directly on AIService as translate()
@@ -33,6 +35,6 @@ export async function translate(
     body: { items, targetLanguage, sourceLanguage, domain, context },
   };
 
-  const result = await sdk._fetch('/ai/translate', 'POST', params);
+  const result = await internalRequest(sdk, '/ai/translate', 'POST', params);
   return result;
 }

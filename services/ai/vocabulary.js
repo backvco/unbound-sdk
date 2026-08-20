@@ -1,3 +1,4 @@
+import { internalRequest } from '../../base.js';
 /**
  * Vocabulary Service - Manage account-level custom transcription vocabulary
  */
@@ -11,7 +12,7 @@ export class VocabularyService {
    * @returns {Promise<Object>} { terms: [{id, term, createdBy, createdAt}] }
    */
   async list() {
-    const result = await this.sdk._fetch('/ai/vocabulary', 'GET');
+    const result = await internalRequest(this.sdk, '/ai/vocabulary', 'GET');
     return result;
   }
 
@@ -32,7 +33,7 @@ export class VocabularyService {
       body: { term },
     };
 
-    const result = await this.sdk._fetch('/ai/vocabulary', 'POST', params);
+    const result = await internalRequest(this.sdk, '/ai/vocabulary', 'POST', params);
     return result;
   }
 
@@ -49,7 +50,7 @@ export class VocabularyService {
       },
     );
 
-    const result = await this.sdk._fetch(`/ai/vocabulary/${id}`, 'DELETE');
+    const result = await internalRequest(this.sdk, `/ai/vocabulary/${id}`, 'DELETE');
     return result;
   }
 }

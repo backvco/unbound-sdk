@@ -1,3 +1,4 @@
+import { internalRequest } from '../base.js';
 /**
  * SearchService -- cross-entity fan-out search (WP6.1).
  * Backed by GET /search on app1-api: parallel per-store LIKE/fulltext
@@ -43,6 +44,6 @@ export class SearchService {
       query.entities = Array.isArray(entities) ? entities.join(',') : entities;
     }
 
-    return await this.sdk._fetch('/search', 'GET', { query });
+    return await internalRequest(this.sdk, '/search', 'GET', { query });
   }
 }

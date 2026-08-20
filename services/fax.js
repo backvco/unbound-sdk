@@ -1,3 +1,4 @@
+import { internalRequest } from '../base.js';
 export class FaxService {
   constructor(sdk) {
     this.sdk = sdk;
@@ -61,7 +62,7 @@ export class FaxService {
       },
     };
 
-    return await this.sdk._fetch('/fax/receive', 'POST', params);
+    return await internalRequest(this.sdk, '/fax/receive', 'POST', params);
   }
 
   /**
@@ -168,7 +169,7 @@ export class FaxService {
       },
     };
 
-    return await this.sdk._fetch('/fax/send', 'POST', params);
+    return await internalRequest(this.sdk, '/fax/send', 'POST', params);
   }
 
   /**
@@ -254,6 +255,6 @@ export class FaxService {
       },
     };
 
-    return await this.sdk._fetch('/fax/status', 'POST', params);
+    return await internalRequest(this.sdk, '/fax/status', 'POST', params);
   }
 }

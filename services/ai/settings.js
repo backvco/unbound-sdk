@@ -1,3 +1,5 @@
+import { internalRequest } from '../../base.js';
+
 /**
  * AI Settings helpers - Manage account-level AI feature settings
  * Exposed directly on AIService as getSettings()/updateSettings()
@@ -9,7 +11,7 @@
  * @returns {Promise<Object>} { settings: { shareOcrEnabled } }
  */
 export async function getSettings(sdk) {
-  const result = await sdk._fetch('/ai/settings', 'GET');
+  const result = await internalRequest(sdk, '/ai/settings', 'GET');
   return result;
 }
 
@@ -32,6 +34,6 @@ export async function updateSettings(sdk, { shareOcrEnabled }) {
     body: { shareOcrEnabled },
   };
 
-  const result = await sdk._fetch('/ai/settings', 'PUT', params);
+  const result = await internalRequest(sdk, '/ai/settings', 'PUT', params);
   return result;
 }

@@ -1,3 +1,4 @@
+import { internalRequest } from '../base.js';
 export class InboxService {
   constructor(sdk) {
     this.sdk = sdk;
@@ -92,7 +93,7 @@ export class InboxService {
 
     const params = { query };
 
-    const result = await this.sdk._fetch('/inbox', 'GET', params);
+    const result = await internalRequest(this.sdk, '/inbox', 'GET', params);
     return result;
   }
 
@@ -124,7 +125,7 @@ export class InboxService {
 
     const params = { query };
 
-    const result = await this.sdk._fetch('/inbox/smsThread', 'GET', params);
+    const result = await internalRequest(this.sdk, '/inbox/smsThread', 'GET', params);
     return result;
   }
 
@@ -135,7 +136,7 @@ export class InboxService {
    * @returns {Promise<{callsToday: number, talkTimeSeconds: number, missedToday: number, unreadVoicemail: number, oldestUnreadVoicemailAt: string|null, meetingsToday: number, meetingMinutesToday: number}>}
    */
   async stats() {
-    const result = await this.sdk._fetch('/inbox/stats', 'GET');
+    const result = await internalRequest(this.sdk, '/inbox/stats', 'GET');
     return result;
   }
 
@@ -152,7 +153,7 @@ export class InboxService {
       { voicemailMessageId },
       { voicemailMessageId: { type: 'string', required: true } },
     );
-    return await this.sdk._fetch(
+    return await internalRequest(this.sdk, 
       `/inbox/voicemail/${voicemailMessageId}/transcribe`,
       'POST',
       { body: {} },

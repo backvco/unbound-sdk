@@ -1,3 +1,4 @@
+import { internalRequest } from '../base.js';
 /**
  * Triggers Service — object-change automations (workflow or outbound webhook).
  *
@@ -37,7 +38,7 @@ export class TriggersService {
    * const { results } = await sdk.triggers.listObjects();
    */
   async listObjects() {
-    return this.sdk._fetch('/triggers/objects', 'GET', {});
+    return internalRequest(this.sdk, '/triggers/objects', 'GET', {});
   }
 
   /**
@@ -57,7 +58,7 @@ export class TriggersService {
     if (objectName) query.objectName = objectName;
     if (status) query.status = status;
     if (limit) query.limit = limit;
-    return this.sdk._fetch('/triggers/', 'GET', { query });
+    return internalRequest(this.sdk, '/triggers/', 'GET', { query });
   }
 
   /**
@@ -71,7 +72,7 @@ export class TriggersService {
    */
   async get(id) {
     this.sdk.validateParams({ id }, { id: { type: 'string', required: true } });
-    return this.sdk._fetch(`/triggers/${id}`, 'GET', {});
+    return internalRequest(this.sdk, `/triggers/${id}`, 'GET', {});
   }
 
   /**
@@ -152,7 +153,7 @@ export class TriggersService {
       },
     );
 
-    return this.sdk._fetch('/triggers/', 'POST', { body });
+    return internalRequest(this.sdk, '/triggers/', 'POST', { body });
   }
 
   /**
@@ -173,7 +174,7 @@ export class TriggersService {
         args: { type: 'object', required: true },
       },
     );
-    return this.sdk._fetch(`/triggers/${id}`, 'PUT', { body: args });
+    return internalRequest(this.sdk, `/triggers/${id}`, 'PUT', { body: args });
   }
 
   /**
@@ -187,7 +188,7 @@ export class TriggersService {
    */
   async delete(id) {
     this.sdk.validateParams({ id }, { id: { type: 'string', required: true } });
-    return this.sdk._fetch(`/triggers/${id}`, 'DELETE', {});
+    return internalRequest(this.sdk, `/triggers/${id}`, 'DELETE', {});
   }
 
   /**
@@ -220,7 +221,7 @@ export class TriggersService {
         status: { type: 'string', required: true },
       },
     );
-    return this.sdk._fetch(`/triggers/${id}/status`, 'POST', {
+    return internalRequest(this.sdk, `/triggers/${id}/status`, 'POST', {
       body: { status, pausedReason },
     });
   }
@@ -240,6 +241,6 @@ export class TriggersService {
     this.sdk.validateParams({ id }, { id: { type: 'string', required: true } });
     const query = {};
     if (limit) query.limit = limit;
-    return this.sdk._fetch(`/triggers/${id}/fires`, 'GET', { query });
+    return internalRequest(this.sdk, `/triggers/${id}/fires`, 'GET', { query });
   }
 }

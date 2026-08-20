@@ -1,3 +1,4 @@
+import { internalRequest } from '../base.js';
 export class VoiceService {
   constructor(sdk) {
     this.sdk = sdk;
@@ -18,7 +19,7 @@ export class VoiceService {
       body: { callId, cdrId, action, direction },
     };
 
-    const result = await this.sdk._fetch(`/voice/record/`, 'POST', params);
+    const result = await internalRequest(this.sdk, `/voice/record/`, 'POST', params);
     return result;
   }
 
@@ -42,7 +43,7 @@ export class VoiceService {
       body: { callId, cdrId, action, direction },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/voice/transcription/`,
       'POST',
       params,
@@ -79,7 +80,7 @@ export class VoiceService {
       },
     };
 
-    const result = await this.sdk._fetch('/voice/', 'POST', params);
+    const result = await internalRequest(this.sdk, '/voice/', 'POST', params);
     return result;
   }
 
@@ -143,7 +144,7 @@ export class VoiceService {
       },
     };
 
-    const result = await this.sdk._fetch('/voice/replace', 'PUT', params);
+    const result = await internalRequest(this.sdk, '/voice/replace', 'PUT', params);
     return result;
   }
 
@@ -175,7 +176,7 @@ export class VoiceService {
       },
     };
 
-    const result = await this.sdk._fetch(`/voice/hangup`, 'PUT', params);
+    const result = await internalRequest(this.sdk, `/voice/hangup`, 'PUT', params);
     return result;
   }
 
@@ -201,7 +202,7 @@ export class VoiceService {
       },
     );
 
-    const result = await this.sdk._fetch(`/voice/cdr/${cdrId}/events`, 'GET');
+    const result = await internalRequest(this.sdk, `/voice/cdr/${cdrId}/events`, 'GET');
     return result;
   }
 
@@ -219,7 +220,7 @@ export class VoiceService {
       body: { channels },
     };
 
-    const result = await this.sdk._fetch('/voice/calls/hold', 'PUT', params);
+    const result = await internalRequest(this.sdk, '/voice/calls/hold', 'PUT', params);
     return result;
   }
 
@@ -237,7 +238,7 @@ export class VoiceService {
       body: { action, direction },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/voice/calls/mute/${voiceChannelId}`,
       'PUT',
       params,
@@ -262,7 +263,7 @@ export class VoiceService {
       body: { dtmf },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/voice/calls/dtmf/${voiceChannelId}`,
       'POST',
       params,
@@ -308,7 +309,7 @@ export class VoiceService {
       body: bodyData,
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/voice/calls/transcribe/${voiceChannelId}`,
       'POST',
       params,
@@ -351,7 +352,7 @@ export class VoiceService {
       body: bodyData,
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/voice/calls/transfer',
       'POST',
       params,
@@ -371,7 +372,7 @@ export class VoiceService {
       body: { channels },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/voice/calls/conference',
       'POST',
       params,

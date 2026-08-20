@@ -1,3 +1,4 @@
+import { internalRequest } from '../base.js';
 export class SipEndpointsService {
   constructor(sdk) {
     this.sdk = sdk;
@@ -45,7 +46,7 @@ export class SipEndpointsService {
       },
     };
 
-    const result = await this.sdk._fetch('/sipEndpoints', 'POST', params);
+    const result = await internalRequest(this.sdk, '/sipEndpoints', 'POST', params);
     return result;
   }
 
@@ -54,7 +55,7 @@ export class SipEndpointsService {
    * @returns {Promise<Object>} WebRTC endpoint configuration
    */
   async getWebRtcDetails() {
-    const result = await this.sdk._fetch('/sipEndpoints/webrtc', 'GET');
+    const result = await internalRequest(this.sdk, '/sipEndpoints/webrtc', 'GET');
     return result;
   }
 
@@ -82,7 +83,7 @@ export class SipEndpointsService {
       body: { ...options }, // Pass all options through
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/sipEndpoints/${endpointId}`,
       'PUT',
       params,
@@ -103,7 +104,7 @@ export class SipEndpointsService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/sipEndpoints/${endpointId}`,
       'DELETE',
     );
@@ -123,7 +124,7 @@ export class SipEndpointsService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/sipEndpoints/${endpointId}/reboot`,
       'POST',
     );
@@ -143,7 +144,7 @@ export class SipEndpointsService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/sipEndpoints/${endpointId}/secret`,
       'POST',
     );
@@ -163,7 +164,7 @@ export class SipEndpointsService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/sipEndpoints/${endpointId}/secret/provisioning`,
       'POST',
     );

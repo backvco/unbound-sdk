@@ -1,3 +1,4 @@
+import { internalRequest } from '../../base.js';
 export class EmailSuppressionService {
   constructor(sdk) {
     this.sdk = sdk;
@@ -38,7 +39,7 @@ export class EmailSuppressionService {
     if (page !== undefined) options.query.page = page;
     if (limit !== undefined) options.query.limit = limit;
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/messaging/email/suppression',
       'GET',
       options,
@@ -77,7 +78,7 @@ export class EmailSuppressionService {
       body: { reason },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/messaging/email/suppression/${id}`,
       'DELETE',
       options,
@@ -106,7 +107,7 @@ export class EmailSuppressionService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/messaging/email/suppression/global/${encodeURIComponent(emailAddress)}`,
       'GET',
     );
@@ -149,7 +150,7 @@ export class EmailSuppressionService {
       body: { reason },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/messaging/email/suppression/global/${encodeURIComponent(
         emailAddress,
       )}/request-removal`,

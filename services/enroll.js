@@ -1,3 +1,4 @@
+import { internalRequest } from '../base.js';
 export class EnrollService {
   constructor(sdk) {
     this.sdk = sdk;
@@ -15,7 +16,7 @@ export class EnrollService {
       query: { namespace },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/enroll/checkNamespace',
       'GET',
       params,
@@ -35,7 +36,7 @@ export class EnrollService {
       body: companyInfo,
     };
 
-    const result = await this.sdk._fetch('/enroll/companyInfo', 'POST', params);
+    const result = await internalRequest(this.sdk, '/enroll/companyInfo', 'POST', params);
     return result;
   }
 
@@ -52,7 +53,7 @@ export class EnrollService {
       body: updateData,
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/enroll/enrollment/${enrollmentId}`,
       'PUT',
       params,
@@ -72,7 +73,7 @@ export class EnrollService {
       body: enrollmentData,
     };
 
-    const result = await this.sdk._fetch('/enroll/validate', 'POST', params);
+    const result = await internalRequest(this.sdk, '/enroll/validate', 'POST', params);
     return result;
   }
 
@@ -89,7 +90,7 @@ export class EnrollService {
       body: { email, code },
     };
 
-    const result = await this.sdk._fetch('/enroll/verifyEmail', 'POST', params);
+    const result = await internalRequest(this.sdk, '/enroll/verifyEmail', 'POST', params);
     return result;
   }
 
@@ -106,7 +107,7 @@ export class EnrollService {
       body: { phoneNumber, code },
     };
 
-    const result = await this.sdk._fetch('/enroll/verifySms', 'POST', params);
+    const result = await internalRequest(this.sdk, '/enroll/verifySms', 'POST', params);
     return result;
   }
 
@@ -122,7 +123,7 @@ export class EnrollService {
       body: paymentData,
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/enroll/verifyPayment',
       'POST',
       params,
@@ -142,7 +143,7 @@ export class EnrollService {
       body: sessionData,
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/enroll/stripeVerification',
       'POST',
       params,
@@ -162,7 +163,7 @@ export class EnrollService {
       query: { sessionId },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/enroll/stripeVerification/status',
       'GET',
       params,
@@ -182,7 +183,7 @@ export class EnrollService {
       body: agreementData,
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/enroll/signAgreement',
       'POST',
       params,
@@ -203,7 +204,7 @@ export class EnrollService {
       query: { type: agreementType, version },
     };
 
-    const result = await this.sdk._fetch('/enroll/agreement', 'GET', params);
+    const result = await internalRequest(this.sdk, '/enroll/agreement', 'GET', params);
     return result;
   }
 
@@ -215,7 +216,7 @@ export class EnrollService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/enroll/brand/${enrollmentId}`,
       'GET',
     );
@@ -230,7 +231,7 @@ export class EnrollService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/enroll/buildStatus/${enrollmentId}`,
       'GET',
     );
@@ -250,7 +251,7 @@ export class EnrollService {
       body: completionData,
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/enroll/complete/${enrollmentId}`,
       'POST',
       params,
@@ -266,7 +267,7 @@ export class EnrollService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/enroll/createDatabase/${enrollmentId}`,
       'POST',
     );

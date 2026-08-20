@@ -6,6 +6,7 @@ import { EmailAnalyticsService } from './EmailAnalyticsService.js';
 import { EmailQueueService } from './EmailQueueService.js';
 import { EmailSuppressionService } from './EmailSuppressionService.js';
 
+import { internalRequest } from '../../base.js';
 export class EmailService {
   constructor(sdk) {
     this.sdk = sdk;
@@ -133,7 +134,7 @@ export class EmailService {
       body: emailData,
     };
 
-    const result = await this.sdk._fetch('/messaging/email', 'POST', options);
+    const result = await internalRequest(this.sdk, '/messaging/email', 'POST', options);
     return result;
   }
 
@@ -167,7 +168,7 @@ export class EmailService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/messaging/email/message/${id}`,
       'GET',
     );
@@ -200,7 +201,7 @@ export class EmailService {
       body: updateData,
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/messaging/email/${id}`,
       'PUT',
       options,
@@ -321,7 +322,7 @@ export class EmailService {
       body: draftData,
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/messaging/email/drafts',
       'POST',
       params,
@@ -429,7 +430,7 @@ export class EmailService {
       body: updateData,
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/messaging/email/drafts/${id}`,
       'PUT',
       params,
@@ -450,7 +451,7 @@ export class EmailService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/messaging/email/drafts/${id}`,
       'GET',
     );
@@ -470,7 +471,7 @@ export class EmailService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/messaging/email/drafts/${id}`,
       'DELETE',
     );
@@ -514,7 +515,7 @@ export class EmailService {
       },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/messaging/email/drafts',
       'GET',
       params,
@@ -608,7 +609,7 @@ export class EmailService {
       query,
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/messaging/email/mailbox/${mailboxId}/emails`,
       'GET',
       params,
@@ -648,7 +649,7 @@ export class EmailService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/messaging/email/message/${emailId}`,
       'PUT',
       {
@@ -681,7 +682,7 @@ export class EmailService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/messaging/email/message/${emailId}`,
       'DELETE',
     );

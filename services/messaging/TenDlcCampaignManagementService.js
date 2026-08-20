@@ -1,3 +1,4 @@
+import { internalRequest } from '../../base.js';
 export class TenDlcCampaignManagementService {
   constructor(sdk) {
     this.sdk = sdk;
@@ -26,7 +27,7 @@ export class TenDlcCampaignManagementService {
       ? `/messaging/campaigns/10dlc/campaign?${queryParams.toString()}`
       : '/messaging/campaigns/10dlc/campaign';
 
-    const result = await this.sdk._fetch(url, 'GET');
+    const result = await internalRequest(this.sdk, url, 'GET');
     return result;
   }
 
@@ -136,7 +137,7 @@ export class TenDlcCampaignManagementService {
     if (mnoIds !== undefined) campaignData.mnoIds = mnoIds;
     if (referenceId !== undefined) campaignData.referenceId = referenceId;
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/messaging/campaigns/10dlc/campaign',
       'POST',
       { body: campaignData },
@@ -160,7 +161,7 @@ export class TenDlcCampaignManagementService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/messaging/campaigns/10dlc/campaign/${campaignId}/submit`,
       'POST',
       { body: { termsAndConditions } },
@@ -186,7 +187,7 @@ export class TenDlcCampaignManagementService {
     const body = {};
     if (name !== undefined) body.name = name;
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/messaging/campaigns/10dlc/campaign/${campaignId}/duplicate`,
       'POST',
       { body },
@@ -205,7 +206,7 @@ export class TenDlcCampaignManagementService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/messaging/campaigns/10dlc/campaign/${campaignId}`,
       'GET',
     );
@@ -316,7 +317,7 @@ export class TenDlcCampaignManagementService {
       updateData.termsAndConditions = termsAndConditions;
     if (mnoIds !== undefined) updateData.mnoIds = mnoIds;
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/messaging/campaigns/10dlc/campaign/${campaignId}`,
       'PUT',
       { body: updateData },
@@ -335,7 +336,7 @@ export class TenDlcCampaignManagementService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/messaging/campaigns/10dlc/campaign/${campaignId}`,
       'DELETE',
     );
@@ -353,7 +354,7 @@ export class TenDlcCampaignManagementService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/messaging/campaigns/10dlc/campaign/${campaignId}/operationStatus`,
       'GET',
     );
@@ -371,7 +372,7 @@ export class TenDlcCampaignManagementService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/messaging/campaigns/10dlc/campaign/${campaignId}/mnoMetaData`,
       'GET',
     );
@@ -391,7 +392,7 @@ export class TenDlcCampaignManagementService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/messaging/campaigns/10dlc/campaign/${campaignId}/phoneNumbers`,
       'GET',
     );
@@ -414,7 +415,7 @@ export class TenDlcCampaignManagementService {
       body: phoneNumberData,
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/messaging/campaigns/10dlc/campaign/${campaignId}/phoneNumber`,
       'POST',
       options,
@@ -438,7 +439,7 @@ export class TenDlcCampaignManagementService {
       body: phoneNumberData,
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/messaging/campaigns/10dlc/campaign/${campaignId}/phoneNumber`,
       'PUT',
       options,
@@ -462,7 +463,7 @@ export class TenDlcCampaignManagementService {
       body: phoneNumberData,
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/messaging/campaigns/10dlc/campaign/${campaignId}/phoneNumber`,
       'DELETE',
       options,

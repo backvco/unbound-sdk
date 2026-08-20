@@ -1,3 +1,4 @@
+import { internalRequest } from '../../base.js';
 export class TenDlcBrandsService {
   constructor(sdk) {
     this.sdk = sdk;
@@ -26,7 +27,7 @@ export class TenDlcBrandsService {
       ? `/messaging/campaigns/10dlc/brand?${queryParams.toString()}`
       : '/messaging/campaigns/10dlc/brand';
 
-    const result = await this.sdk._fetch(url, 'GET');
+    const result = await internalRequest(this.sdk, url, 'GET');
     return result;
   }
 
@@ -150,7 +151,7 @@ export class TenDlcBrandsService {
       body: brandData,
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/messaging/campaigns/10dlc/brand',
       'POST',
       options,
@@ -171,7 +172,7 @@ export class TenDlcBrandsService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/messaging/campaigns/10dlc/brand/${brandId}`,
       'GET',
     );
@@ -309,7 +310,7 @@ export class TenDlcBrandsService {
       body: updateData,
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/messaging/campaigns/10dlc/brand/${brandId}`,
       'PUT',
       options,
@@ -330,7 +331,7 @@ export class TenDlcBrandsService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/messaging/campaigns/10dlc/brand/${brandId}`,
       'DELETE',
     );
@@ -350,7 +351,7 @@ export class TenDlcBrandsService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/messaging/campaigns/10dlc/brand/${brandId}/revet`,
       'PUT',
     );
@@ -370,7 +371,7 @@ export class TenDlcBrandsService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/messaging/campaigns/10dlc/brand/${brandId}/feedback`,
       'GET',
     );
@@ -396,7 +397,7 @@ export class TenDlcBrandsService {
       body: vettingData || {},
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/messaging/campaigns/10dlc/brand/${brandId}/externalVetting`,
       'POST',
       options,
@@ -417,7 +418,7 @@ export class TenDlcBrandsService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/messaging/campaigns/10dlc/brand/${brandId}/externalvetting/responses`,
       'GET',
     );
@@ -437,7 +438,7 @@ export class TenDlcBrandsService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/messaging/campaigns/10dlc/brand/${brandId}/resend-2fa`,
       'POST',
     );

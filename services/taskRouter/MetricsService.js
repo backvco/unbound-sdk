@@ -1,3 +1,4 @@
+import { internalRequest } from '../../base.js';
 export class MetricsService {
   constructor(sdk) {
     this.sdk = sdk;
@@ -101,7 +102,7 @@ export class MetricsService {
       requestParams.body.metricType = metricType;
     }
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/taskRouter/metrics/current',
       'GET',
       requestParams,
@@ -155,7 +156,7 @@ export class MetricsService {
     if (compareFrom) query.compareFrom = compareFrom;
     if (compareTo) query.compareTo = compareTo;
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/taskRouter/metrics/window',
       'GET',
       { query },

@@ -1,3 +1,4 @@
+import { internalRequest } from '../../base.js';
 export class EmailTemplatesService {
   constructor(sdk) {
     this.sdk = sdk;
@@ -50,7 +51,7 @@ export class EmailTemplatesService {
       body: templateData,
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/messaging/email/template',
       'POST',
       options,
@@ -106,7 +107,7 @@ export class EmailTemplatesService {
       body: updateData,
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/messaging/email/template/${id}`,
       'PUT',
       options,
@@ -127,7 +128,7 @@ export class EmailTemplatesService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/messaging/email/template/${id}`,
       'DELETE',
     );
@@ -147,7 +148,7 @@ export class EmailTemplatesService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/messaging/email/template/${id}`,
       'GET',
     );
@@ -159,7 +160,7 @@ export class EmailTemplatesService {
    * @returns {Promise<Array>} List of email templates
    */
   async list() {
-    const result = await this.sdk._fetch('/messaging/email/template', 'GET');
+    const result = await internalRequest(this.sdk, '/messaging/email/template', 'GET');
     return result;
   }
 }

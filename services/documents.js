@@ -1,3 +1,4 @@
+import { internalRequest } from '../base.js';
 export class DocumentTemplatesService {
   constructor(sdk) {
     this.sdk = sdk;
@@ -59,7 +60,7 @@ export class DocumentTemplatesService {
     if (draftPageJson !== undefined) body.draftPageJson = draftPageJson;
     if (draftThemeJson !== undefined) body.draftThemeJson = draftThemeJson;
 
-    return this.sdk._fetch('/documents/templates', 'POST', { body });
+    return internalRequest(this.sdk, '/documents/templates', 'POST', { body });
   }
 
   /**
@@ -77,7 +78,7 @@ export class DocumentTemplatesService {
     if (status) query.status = status;
     if (use) query.use = use;
     if (limit) query.limit = limit;
-    return this.sdk._fetch('/documents/templates', 'GET', { query });
+    return internalRequest(this.sdk, '/documents/templates', 'GET', { query });
   }
 
   /**
@@ -87,7 +88,7 @@ export class DocumentTemplatesService {
    */
   async get(id) {
     this.sdk.validateParams({ id }, { id: { type: 'string', required: true } });
-    return this.sdk._fetch(`/documents/templates/${id}`, 'GET');
+    return internalRequest(this.sdk, `/documents/templates/${id}`, 'GET');
   }
 
   /**
@@ -145,7 +146,7 @@ export class DocumentTemplatesService {
     if (draftPageJson !== undefined) body.draftPageJson = draftPageJson;
     if (draftThemeJson !== undefined) body.draftThemeJson = draftThemeJson;
 
-    return this.sdk._fetch(`/documents/templates/${id}`, 'PATCH', { body });
+    return internalRequest(this.sdk, `/documents/templates/${id}`, 'PATCH', { body });
   }
 
   /**
@@ -155,7 +156,7 @@ export class DocumentTemplatesService {
    */
   async publish(id) {
     this.sdk.validateParams({ id }, { id: { type: 'string', required: true } });
-    return this.sdk._fetch(`/documents/templates/${id}/publish`, 'POST', {
+    return internalRequest(this.sdk, `/documents/templates/${id}/publish`, 'POST', {
       body: {},
     });
   }
@@ -167,7 +168,7 @@ export class DocumentTemplatesService {
    */
   async delete(id) {
     this.sdk.validateParams({ id }, { id: { type: 'string', required: true } });
-    return this.sdk._fetch(`/documents/templates/${id}`, 'DELETE');
+    return internalRequest(this.sdk, `/documents/templates/${id}`, 'DELETE');
   }
 }
 
@@ -207,7 +208,7 @@ export class DocumentsService {
     if (options !== undefined) body.options = options;
     if (source !== undefined) body.source = source;
 
-    return this.sdk._fetch('/documents/generate', 'POST', { body });
+    return internalRequest(this.sdk, '/documents/generate', 'POST', { body });
   }
 
   /**
@@ -232,7 +233,7 @@ export class DocumentsService {
     if (data !== undefined) body.data = data;
     if (versionId !== undefined) body.versionId = versionId;
 
-    return this.sdk._fetch('/documents/preview', 'POST', { body });
+    return internalRequest(this.sdk, '/documents/preview', 'POST', { body });
   }
 
   /**
@@ -257,7 +258,7 @@ export class DocumentsService {
     if (sourceId !== undefined) body.sourceId = sourceId;
     if (sourceType !== undefined) body.sourceType = sourceType;
 
-    return this.sdk._fetch(`/documents/generated/${id}`, 'PATCH', { body });
+    return internalRequest(this.sdk, `/documents/generated/${id}`, 'PATCH', { body });
   }
 
   /**
@@ -271,6 +272,6 @@ export class DocumentsService {
       { storageId },
       { storageId: { type: 'string', required: true } },
     );
-    return this.sdk._fetch('/documents/inspect', 'POST', { body: { storageId } });
+    return internalRequest(this.sdk, '/documents/inspect', 'POST', { body: { storageId } });
   }
 }

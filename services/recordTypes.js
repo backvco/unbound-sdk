@@ -1,3 +1,4 @@
+import { internalRequest } from '../base.js';
 export class RecordTypesService {
   constructor(sdk) {
     this.sdk = sdk;
@@ -55,7 +56,7 @@ export class RecordTypesService {
       body: recordTypeData,
     };
 
-    const result = await this.sdk._fetch('/recordTypes/', 'POST', params);
+    const result = await internalRequest(this.sdk, '/recordTypes/', 'POST', params);
     return result;
   }
 
@@ -110,7 +111,7 @@ export class RecordTypesService {
       body: updateData,
     };
 
-    const result = await this.sdk._fetch(`/recordTypes/${id}`, 'PUT', params);
+    const result = await internalRequest(this.sdk, `/recordTypes/${id}`, 'PUT', params);
     return result;
   }
 
@@ -129,7 +130,7 @@ export class RecordTypesService {
       },
     );
 
-    const result = await this.sdk._fetch(`/recordTypes/${id}`, 'DELETE');
+    const result = await internalRequest(this.sdk, `/recordTypes/${id}`, 'DELETE');
     return result;
   }
 
@@ -173,7 +174,7 @@ export class RecordTypesService {
       query: options,
     };
 
-    const result = await this.sdk._fetch(`/recordTypes/${id}`, 'GET', params);
+    const result = await internalRequest(this.sdk, `/recordTypes/${id}`, 'GET', params);
     return result;
   }
 
@@ -225,7 +226,7 @@ export class RecordTypesService {
       query: options,
     };
 
-    const result = await this.sdk._fetch('/recordTypes/', 'GET', params);
+    const result = await internalRequest(this.sdk, '/recordTypes/', 'GET', params);
     return result;
   }
 }
@@ -252,7 +253,7 @@ export class UserRecordTypeDefaultsService {
       body: defaultData,
     };
 
-    const result = await this.sdk._fetch('/recordTypes/user/', 'POST', params);
+    const result = await internalRequest(this.sdk, '/recordTypes/user/', 'POST', params);
     return result;
   }
 
@@ -273,7 +274,7 @@ export class UserRecordTypeDefaultsService {
       body: updateData,
     };
 
-    const result = await this.sdk._fetch('/recordTypes/user/', 'PUT', params);
+    const result = await internalRequest(this.sdk, '/recordTypes/user/', 'PUT', params);
     return result;
   }
 
@@ -293,7 +294,7 @@ export class UserRecordTypeDefaultsService {
       body: deleteData,
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/recordTypes/user/',
       'DELETE',
       params,
@@ -314,7 +315,7 @@ export class UserRecordTypeDefaultsService {
       query: { object, userId },
     };
 
-    const result = await this.sdk._fetch('/recordTypes/user/', 'GET', params);
+    const result = await internalRequest(this.sdk, '/recordTypes/user/', 'GET', params);
     return result;
   }
 
@@ -356,7 +357,7 @@ export class UserRecordTypeDefaultsService {
       ? `/recordTypes/user/defaults/${userId}`
       : '/recordTypes/user/defaults';
 
-    const result = await this.sdk._fetch(url, 'GET', params);
+    const result = await internalRequest(this.sdk, url, 'GET', params);
     return result;
   }
 
@@ -397,7 +398,7 @@ export class UserRecordTypeDefaultsService {
       query: options,
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/recordTypes/${recordTypeId}/users`,
       'GET',
       params,

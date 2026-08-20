@@ -1,3 +1,4 @@
+import { internalRequest } from '../../base.js';
 export class CCService {
   constructor(sdk) {
     this.sdk = sdk;
@@ -18,7 +19,7 @@ export class CCService {
    * console.log(scope.isManager, scope.queues.length);
    */
   async getScope() {
-    const result = await this.sdk._fetch('/taskRouter/cc/scope', 'GET', {});
+    const result = await internalRequest(this.sdk, '/taskRouter/cc/scope', 'GET', {});
     return result;
   }
 
@@ -52,7 +53,7 @@ export class CCService {
       params.query = { queueIds: queueIds.join(',') };
     }
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/taskRouter/cc/snapshot',
       'GET',
       params,
@@ -91,7 +92,7 @@ export class CCService {
     if (from) query.from = from;
     if (to) query.to = to;
 
-    const result = await this.sdk._fetch('/taskRouter/cc/sessions', 'GET', {
+    const result = await internalRequest(this.sdk, '/taskRouter/cc/sessions', 'GET', {
       query,
     });
     return result;
@@ -137,7 +138,7 @@ export class CCService {
       query.queueIds = queueIds.join(',');
     }
 
-    const result = await this.sdk._fetch('/taskRouter/cc/rankings', 'GET', {
+    const result = await internalRequest(this.sdk, '/taskRouter/cc/rankings', 'GET', {
       query,
     });
     return result;
@@ -172,7 +173,7 @@ export class CCService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/taskRouter/cc/queues/${queueId}/rankingWeights`,
       'PUT',
       { body: weights },
@@ -225,7 +226,7 @@ export class CCService {
     if (compareFrom) query.compareFrom = compareFrom;
     if (compareTo) query.compareTo = compareTo;
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/taskRouter/cc/agents/${workerId}/summary`,
       'GET',
       { query },
@@ -262,7 +263,7 @@ export class CCService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/taskRouter/cc/workers/${workerId}/queues`,
       'PUT',
       { body: { queueId, action } },
@@ -292,7 +293,7 @@ export class CCService {
       { workerId: { type: 'string', required: true } },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/taskRouter/cc/workers/${workerId}/forceLogout`,
       'POST',
       {},

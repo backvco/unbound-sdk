@@ -1,3 +1,4 @@
+import { internalRequest } from '../../base.js';
 export class SmsTemplatesService {
   constructor(sdk) {
     this.sdk = sdk;
@@ -28,7 +29,7 @@ export class SmsTemplatesService {
       body: templateData,
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/messaging/sms/templates',
       'POST',
       options,
@@ -65,7 +66,7 @@ export class SmsTemplatesService {
       body: updateData,
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/messaging/sms/templates/${id}`,
       'PUT',
       options,
@@ -86,7 +87,7 @@ export class SmsTemplatesService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/messaging/sms/templates/${id}`,
       'DELETE',
     );
@@ -106,7 +107,7 @@ export class SmsTemplatesService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/messaging/sms/templates/${id}`,
       'GET',
     );
@@ -118,7 +119,7 @@ export class SmsTemplatesService {
    * @returns {Promise<Array>} List of templates
    */
   async list() {
-    const result = await this.sdk._fetch('/messaging/sms/templates', 'GET');
+    const result = await internalRequest(this.sdk, '/messaging/sms/templates', 'GET');
     return result;
   }
 }

@@ -1,3 +1,4 @@
+import { internalRequest } from '../../base.js';
 /**
  * Playbooks Service - Manage AI-driven playbook sessions for guided workflows
  */
@@ -36,7 +37,7 @@ export class PlaybooksService {
       body: { name, recordTypeId },
     };
 
-    const result = await this.sdk._fetch('/ai/playbooks', 'POST', params);
+    const result = await internalRequest(this.sdk, '/ai/playbooks', 'POST', params);
     return result;
   }
 
@@ -60,7 +61,7 @@ export class PlaybooksService {
       },
     );
 
-    const result = await this.sdk._fetch(`/ai/playbooks/${playbookId}`, 'GET');
+    const result = await internalRequest(this.sdk, `/ai/playbooks/${playbookId}`, 'GET');
     return result;
   }
 
@@ -92,7 +93,7 @@ export class PlaybooksService {
       query: { limit, orderBy, orderDirection, isPublished, recordTypeId },
     };
 
-    const result = await this.sdk._fetch('/ai/playbooks', 'GET', params);
+    const result = await internalRequest(this.sdk, '/ai/playbooks', 'GET', params);
     return result;
   }
 
@@ -128,7 +129,7 @@ export class PlaybooksService {
       body: { name, isPublished, recordTypeId },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/ai/playbooks/${playbookId}`,
       'PUT',
       params,
@@ -156,7 +157,7 @@ export class PlaybooksService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/ai/playbooks/${playbookId}`,
       'DELETE',
     );
@@ -247,7 +248,7 @@ export class PlaybooksService {
       },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/ai/playbooks/${playbookId}/goals`,
       'POST',
       params,
@@ -278,7 +279,7 @@ export class PlaybooksService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/ai/playbooks/${playbookId}/goals/${goalId}`,
       'GET',
     );
@@ -305,7 +306,7 @@ export class PlaybooksService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/ai/playbooks/${playbookId}/goals`,
       'GET',
     );
@@ -390,7 +391,7 @@ export class PlaybooksService {
       },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/ai/playbooks/goals/${goalId}`,
       'PUT',
       params,
@@ -418,7 +419,7 @@ export class PlaybooksService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/ai/playbooks/goals/${goalId}`,
       'DELETE',
     );
@@ -454,7 +455,7 @@ export class PlaybooksService {
       },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/ai/playbooks/${playbookId}/goals/reorder`,
       'PUT',
       params,
@@ -511,7 +512,7 @@ export class PlaybooksService {
       body: { name, description, keywords, recommendedPhase, role, signal, recordTypeId },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/ai/playbooks/goalTypes',
       'POST',
       params,
@@ -539,7 +540,7 @@ export class PlaybooksService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/ai/playbooks/goalTypes/${goalTypeId}`,
       'GET',
     );
@@ -574,7 +575,7 @@ export class PlaybooksService {
       query: { limit, orderBy, orderDirection, recommendedPhase, recordTypeId },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/ai/playbooks/goalTypes',
       'GET',
       params,
@@ -629,7 +630,7 @@ export class PlaybooksService {
       body: { name, description, keywords, recommendedPhase, role, signal, recordTypeId },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/ai/playbooks/goalTypes/${goalTypeId}`,
       'PUT',
       params,
@@ -657,7 +658,7 @@ export class PlaybooksService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/ai/playbooks/goalTypes/${goalTypeId}`,
       'DELETE',
     );
@@ -736,7 +737,7 @@ export class PlaybooksService {
       },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/ai/playbooks/sessions/${playbookId}`,
       'POST',
       params,
@@ -792,7 +793,7 @@ export class PlaybooksService {
     );
 
     if (sessionId) {
-      const result = await this.sdk._fetch(
+      const result = await internalRequest(this.sdk, 
         `/ai/playbooks/sessions/${sessionId}`,
         'GET',
       );
@@ -804,7 +805,7 @@ export class PlaybooksService {
     if (workerId) query.workerId = workerId;
     if (userId) query.userId = userId;
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/ai/playbooks/sessions`,
       'GET',
       { query },
@@ -882,7 +883,7 @@ export class PlaybooksService {
       },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/ai/playbooks/sessions/${sessionId}/complete`,
       'PUT',
       params,
@@ -984,7 +985,7 @@ export class PlaybooksService {
       },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/ai/playbooks/sessions/${sessionId}/goal`,
       'POST',
       params,

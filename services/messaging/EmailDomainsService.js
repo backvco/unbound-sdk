@@ -1,3 +1,4 @@
+import { internalRequest } from '../../base.js';
 export class EmailDomainsService {
   constructor(sdk) {
     this.sdk = sdk;
@@ -32,7 +33,7 @@ export class EmailDomainsService {
       body: domainData,
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/messaging/email/validate/domain',
       'POST',
       options,
@@ -57,7 +58,7 @@ export class EmailDomainsService {
       body: { domainId },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/messaging/email/validate/domain',
       'DELETE',
       options,
@@ -85,7 +86,7 @@ export class EmailDomainsService {
    * // }
    */
   async list() {
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/messaging/email/validate/domain',
       'GET',
     );
@@ -147,7 +148,7 @@ export class EmailDomainsService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/messaging/email/validate/domain/${domainId}`,
       'GET',
     );
@@ -171,7 +172,7 @@ export class EmailDomainsService {
       query: { domain },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/messaging/email/validate/domain/dns',
       'GET',
       options,
@@ -196,7 +197,7 @@ export class EmailDomainsService {
       query: { domain },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/messaging/email/validate/domain/status',
       'GET',
       options,
@@ -242,7 +243,7 @@ export class EmailDomainsService {
       body: updateData,
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/messaging/email/validate/domain',
       'PUT',
       options,

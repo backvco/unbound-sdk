@@ -1,3 +1,4 @@
+import { internalRequest } from '../base.js';
 export class GenerateIdService {
   constructor(sdk) {
     this.sdk = sdk;
@@ -21,7 +22,7 @@ export class GenerateIdService {
       query: { service, serviceCode },
     };
 
-    const result = await this.sdk._fetch('/generateId/', 'POST', params);
+    const result = await internalRequest(this.sdk, '/generateId/', 'POST', params);
     return result;
   }
 
@@ -33,7 +34,7 @@ export class GenerateIdService {
       },
     );
 
-    const result = await this.sdk._fetch(`/generateId/${input}`, 'GET');
+    const result = await internalRequest(this.sdk, `/generateId/${input}`, 'GET');
     return result;
   }
 }

@@ -1,3 +1,4 @@
+import { internalRequest } from '../base.js';
 export class GoogleCalendarService {
   constructor(sdk) {
     this.sdk = sdk;
@@ -40,7 +41,7 @@ export class GoogleCalendarService {
       body: webhookData,
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/googleCalendar/webhook',
       'POST',
       params,
@@ -56,7 +57,7 @@ export class GoogleCalendarService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/googleCalendar/webhook/${webhookId}`,
       'DELETE',
     );
@@ -64,12 +65,12 @@ export class GoogleCalendarService {
   }
 
   async listWebhooks() {
-    const result = await this.sdk._fetch('/googleCalendar/webhooks', 'GET');
+    const result = await internalRequest(this.sdk, '/googleCalendar/webhooks', 'GET');
     return result;
   }
 
   async getCalendarList() {
-    const result = await this.sdk._fetch('/googleCalendar/calendars', 'GET');
+    const result = await internalRequest(this.sdk, '/googleCalendar/calendars', 'GET');
     return result;
   }
 
@@ -97,7 +98,7 @@ export class GoogleCalendarService {
       query: { calendarId, ...options },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/googleCalendar/events',
       'GET',
       params,
@@ -117,7 +118,7 @@ export class GoogleCalendarService {
       body: changeData,
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/googleCalendar/processChange',
       'POST',
       params,

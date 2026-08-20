@@ -4,16 +4,21 @@ import { VideoService } from '../services/video.js';
 
 /**
  * Build a minimal SDK double that the VideoService can call into. Captures
- * _fetch calls for inspection.
+ * request calls for inspection.
  */
 function buildFakeSdk() {
 	const calls = [];
 	const fakeSdk = {
-		_fetch: async (endpoint, method, params, forceFetch) => {
-			calls.push({ endpoint, method, params, forceFetch });
-			return { ok: true };
-		},
 		validateParams: () => {}, // accept anything
+	};
+	fakeSdk[Symbol.for('unbound.sdk.request')] = async (
+		endpoint,
+		method,
+		params,
+		forceFetch,
+	) => {
+		calls.push({ endpoint, method, params, forceFetch });
+		return { ok: true };
 	};
 	return { fakeSdk, calls };
 }

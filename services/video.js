@@ -1,3 +1,4 @@
+import { internalRequest } from '../base.js';
 export class VideoService {
   constructor(sdk) {
     this.sdk = sdk;
@@ -5,7 +6,7 @@ export class VideoService {
 
   async clearToken() {
     const params = {};
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/video/clearVideoToken`,
       'POST',
       params,
@@ -50,7 +51,7 @@ export class VideoService {
         token,
       },
     };
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/video/${room}/join`,
       'POST',
       params,
@@ -101,7 +102,7 @@ export class VideoService {
         isSip: true,
       },
     };
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/video/${room}/join`,
       'POST',
       params,
@@ -124,7 +125,7 @@ export class VideoService {
         ...update,
       },
     };
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/video/${roomId}/${participantId}`,
       'PUT',
       params,
@@ -145,7 +146,7 @@ export class VideoService {
         participantId,
       },
     };
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/video/${roomId}/leave`,
       'DELETE',
       params,
@@ -161,7 +162,7 @@ export class VideoService {
       },
     );
     const params = {};
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/video/${roomId}/leave`,
       'DELETE',
       params,
@@ -195,7 +196,7 @@ export class VideoService {
         streamCreation,
       },
     };
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/video/${roomId}/${participantId}/mute/${mediaType}`,
       'PUT',
       params,
@@ -325,7 +326,7 @@ export class VideoService {
         earlyJoinMinutes,
       },
     };
-    const result = await this.sdk._fetch(`/video`, 'POST', params);
+    const result = await internalRequest(this.sdk, `/video`, 'POST', params);
     return result;
   }
 
@@ -380,7 +381,7 @@ export class VideoService {
         ...update,
       },
     };
-    const result = await this.sdk._fetch(`/video/${roomId}`, 'PUT', params);
+    const result = await internalRequest(this.sdk, `/video/${roomId}`, 'PUT', params);
     return result;
   }
 
@@ -408,7 +409,7 @@ export class VideoService {
         ...update,
       },
     };
-    const result = await this.sdk._fetch(`/video/${roomId}/bot`, 'PUT', params);
+    const result = await internalRequest(this.sdk, `/video/${roomId}/bot`, 'PUT', params);
     return result;
   }
 
@@ -428,7 +429,7 @@ export class VideoService {
         callerIdNumber,
       },
     };
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/video/${roomId}/placeOutboundCall`,
       'POST',
       params,
@@ -451,7 +452,7 @@ export class VideoService {
       },
     };
 
-    return await this.sdk._fetch(`/video/${roomId}`, 'GET', params);
+    return await internalRequest(this.sdk, `/video/${roomId}`, 'GET', params);
   }
 
   async listMeetings(options = {}) {
@@ -470,7 +471,7 @@ export class VideoService {
       query: options,
     };
 
-    const result = await this.sdk._fetch('/video/meetings', 'GET', params);
+    const result = await internalRequest(this.sdk, '/video/meetings', 'GET', params);
     return result;
   }
 
@@ -499,7 +500,7 @@ export class VideoService {
       query: params,
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/video/meetings/${roomId}/analytics`,
       'GET',
       options,
@@ -518,7 +519,7 @@ export class VideoService {
     if (options && options.deleteCalendarEvent === true) {
       params.body = { deleteCalendarEvent: true };
     }
-    const result = await this.sdk._fetch(`/video/${roomId}`, 'DELETE', params);
+    const result = await internalRequest(this.sdk, `/video/${roomId}`, 'DELETE', params);
     return result;
   }
 
@@ -535,7 +536,7 @@ export class VideoService {
       body: participant,
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/video/${roomId}/participants`,
       'POST',
       params,
@@ -552,7 +553,7 @@ export class VideoService {
     );
 
     const params = {};
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/video/${roomId}/close`,
       'POST',
       params,
@@ -594,7 +595,7 @@ export class VideoService {
       body: { token },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/video/${id}/validate`,
       'POST',
       params,
@@ -639,7 +640,7 @@ export class VideoService {
       { roomId },
       { roomId: { type: 'string', required: true } },
     );
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/video/session/end`,
       'POST',
       { body: { roomId } },
@@ -661,7 +662,7 @@ export class VideoService {
       body: stats,
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/video/${roomId}/stats`,
       'POST',
       params,
@@ -682,7 +683,7 @@ export class VideoService {
         summary: { type: 'object', required: true },
       },
     );
-    return this.sdk._fetch(
+    return internalRequest(this.sdk, 
       `/internal/video/${roomId}/participants/${participantId}/summary`,
       'POST',
       { body: summary },
@@ -734,7 +735,7 @@ export class VideoService {
       },
     };
 
-    const result = await this.sdk._fetch('/video/survey', 'POST', params);
+    const result = await internalRequest(this.sdk, '/video/survey', 'POST', params);
     return result;
   }
 
@@ -764,7 +765,7 @@ export class VideoService {
 
     const params = { body };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/video/${roomId}/chat`,
       'POST',
       params,
@@ -812,7 +813,7 @@ export class VideoService {
       query: options,
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/video/${roomId}/chat`,
       'GET',
       params,
@@ -848,7 +849,7 @@ export class VideoService {
       query: options,
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/video/${roomId}/transcript`,
       'GET',
       params,
@@ -885,7 +886,7 @@ export class VideoService {
 
     const params = { body };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/video/${roomId}/chat/${messageId}`,
       'PUT',
       params,
@@ -911,7 +912,7 @@ export class VideoService {
 
     const params = {};
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/video/${roomId}/chat/${messageId}`,
       'DELETE',
       params,
@@ -973,7 +974,7 @@ export class VideoService {
       body: settings,
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/video/settings/user',
       'POST',
       params,
@@ -1023,7 +1024,7 @@ export class VideoService {
       body: settings,
     };
 
-    const result = await this.sdk._fetch('/video/settings/user', 'PUT', params);
+    const result = await internalRequest(this.sdk, '/video/settings/user', 'PUT', params);
     return result;
   }
 
@@ -1047,7 +1048,7 @@ export class VideoService {
       params.query.userId = userId;
     }
 
-    const result = await this.sdk._fetch('/video/settings/user', 'GET', params);
+    const result = await internalRequest(this.sdk, '/video/settings/user', 'GET', params);
     return result;
   }
 
@@ -1065,7 +1066,7 @@ export class VideoService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/video/${roomId}/livePresence`,
       'GET',
     );
@@ -1085,7 +1086,7 @@ export class VideoService {
       },
     );
 
-    const result = await this.sdk._fetch(`/video/${roomId}/summary`, 'GET');
+    const result = await internalRequest(this.sdk, `/video/${roomId}/summary`, 'GET');
     return result;
   }
 
@@ -1109,7 +1110,7 @@ export class VideoService {
       body: { summaryJson },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/video/${roomId}/summary`,
       'PATCH',
       params,
@@ -1130,7 +1131,7 @@ export class VideoService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/video/${roomId}/catch-me-up`,
       'POST',
       {},
@@ -1161,7 +1162,7 @@ export class VideoService {
       body.history = history;
     }
 
-    const result = await this.sdk._fetch(`/video/${roomId}/assistant`, 'POST', {
+    const result = await internalRequest(this.sdk, `/video/${roomId}/assistant`, 'POST', {
       body,
     });
     return result;
@@ -1189,7 +1190,7 @@ export class VideoService {
       body: { text },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/video/${roomId}/transcript/${messageId}`,
       'PATCH',
       params,
@@ -1212,7 +1213,7 @@ export class VideoService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/video/${roomId}/transcript/${messageId}/redact`,
       'POST',
       {},
@@ -1242,7 +1243,7 @@ export class VideoService {
       body: { participantId, displayName },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/video/${roomId}/transcript-speakers`,
       'PATCH',
       params,
@@ -1263,7 +1264,7 @@ export class VideoService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/video/${roomId}/recording-convert-retry`,
       'POST',
       {},
@@ -1285,7 +1286,7 @@ export class VideoService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/video/${roomId}/auto-name`,
       'POST',
       {},
@@ -1312,7 +1313,7 @@ export class VideoService {
       body: { action },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/video/${roomId}/transcription`,
       'POST',
       params,
@@ -1340,7 +1341,7 @@ export class VideoService {
       body: { language },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/video/${roomId}/caption-language`,
       'POST',
       params,
@@ -1369,7 +1370,7 @@ export class VideoService {
       body: { targetLanguage },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/video/${roomId}/transcript/translate`,
       'POST',
       params,
@@ -1399,7 +1400,7 @@ export class VideoService {
       body: { image, title },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/video/${roomId}/content-frame`,
       'POST',
       params,
@@ -1420,7 +1421,7 @@ export class VideoService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/video/${roomId}/content-events`,
       'GET',
     );
@@ -1450,7 +1451,7 @@ export class VideoService {
       );
       params.query.userId = userId;
     }
-    const result = await this.sdk._fetch('/video/personal-room', 'GET', params);
+    const result = await internalRequest(this.sdk, '/video/personal-room', 'GET', params);
     return result;
   }
 
@@ -1489,7 +1490,7 @@ export class VideoService {
     if (userId !== undefined) body.userId = userId;
 
     const params = { body };
-    const result = await this.sdk._fetch('/video/personal-room', 'PUT', params);
+    const result = await internalRequest(this.sdk, '/video/personal-room', 'PUT', params);
     return result;
   }
 
@@ -1508,7 +1509,7 @@ export class VideoService {
       );
       body.userId = userId;
     }
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/video/personal-room/regenerate-pin',
       'POST',
       { body },
@@ -1533,7 +1534,7 @@ export class VideoService {
     );
     const query = { slug };
     if (userId) query.userId = userId;
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/video/personal-room/slug-available',
       'GET',
       { query },
@@ -1558,7 +1559,7 @@ export class VideoService {
       );
       body.userId = userId;
     }
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/video/personal-room/regenerate-password',
       'POST',
       { body },
@@ -1588,7 +1589,7 @@ export class VideoService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/video/personal-room/resolve/${slug}`,
       'POST',
       { body: { password } },

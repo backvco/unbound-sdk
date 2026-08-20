@@ -1,3 +1,4 @@
+import { internalRequest } from '../base.js';
 export class PermissionsService {
   constructor(sdk) {
     this.sdk = sdk;
@@ -10,7 +11,7 @@ export class PermissionsService {
    * const { results } = await sdk.permissions.listGroups();
    */
   async listGroups() {
-    const result = await this.sdk._fetch('/permissions/groups', 'GET');
+    const result = await internalRequest(this.sdk, '/permissions/groups', 'GET');
     return result;
   }
 
@@ -42,7 +43,7 @@ export class PermissionsService {
       body: groupData,
     };
 
-    const result = await this.sdk._fetch('/permissions/groups', 'POST', params);
+    const result = await internalRequest(this.sdk, '/permissions/groups', 'POST', params);
     return result;
   }
 
@@ -67,7 +68,7 @@ export class PermissionsService {
       body: data,
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/permissions/groups/${groupId}`,
       'PUT',
       params,
@@ -91,7 +92,7 @@ export class PermissionsService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/permissions/groups/${groupId}`,
       'DELETE',
     );
@@ -121,7 +122,7 @@ export class PermissionsService {
       body: { userId },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/permissions/groups/${groupId}/members`,
       'POST',
       params,
@@ -148,7 +149,7 @@ export class PermissionsService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/permissions/groups/${groupId}/members/${userId}`,
       'DELETE',
     );
@@ -162,7 +163,7 @@ export class PermissionsService {
    * const { results } = await sdk.permissions.listPermissionSets();
    */
   async listPermissionSets() {
-    const result = await this.sdk._fetch('/permissions/sets', 'GET');
+    const result = await internalRequest(this.sdk, '/permissions/sets', 'GET');
     return result;
   }
 
@@ -191,7 +192,7 @@ export class PermissionsService {
       body: { name, scopes },
     };
 
-    const result = await this.sdk._fetch('/permissions/sets', 'POST', params);
+    const result = await internalRequest(this.sdk, '/permissions/sets', 'POST', params);
     return result;
   }
 
@@ -216,7 +217,7 @@ export class PermissionsService {
       body: data,
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/permissions/sets/${setId}`,
       'PUT',
       params,
@@ -240,7 +241,7 @@ export class PermissionsService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/permissions/sets/${setId}`,
       'DELETE',
     );
@@ -285,7 +286,7 @@ export class PermissionsService {
       body: { permissionSetId, principalType, principalId, grantType },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/permissions/assignments',
       'POST',
       params,
@@ -314,7 +315,7 @@ export class PermissionsService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/permissions/assignments/${permissionSetId}/${principalType}/${principalId}`,
       'DELETE',
     );
@@ -341,7 +342,7 @@ export class PermissionsService {
         groupId: { type: 'string', required: true },
       },
     );
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/permissions/groups/${groupId}/effective-scopes`,
       'GET',
     );
@@ -357,7 +358,7 @@ export class PermissionsService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/permissions/users/${userId}/effective-scopes`,
       'GET',
     );
@@ -371,7 +372,7 @@ export class PermissionsService {
    * const { pillars } = await sdk.permissions.getScopeCatalog();
    */
   async getScopeCatalog() {
-    const result = await this.sdk._fetch('/permissions/scope-catalog', 'GET');
+    const result = await internalRequest(this.sdk, '/permissions/scope-catalog', 'GET');
     return result;
   }
 
@@ -380,7 +381,7 @@ export class PermissionsService {
    * @returns {Promise<Object>} { groupSettable: [{key,label,type,pillar,...}], neverSettable: [] }
    */
   async getSettingsCatalog() {
-    return this.sdk._fetch('/permissions/settings/catalog', 'GET');
+    return internalRequest(this.sdk, '/permissions/settings/catalog', 'GET');
   }
 
   /**
@@ -391,7 +392,7 @@ export class PermissionsService {
   async listGroupSettings(groupId) {
     groupId = String(groupId);
     this.sdk.validateParams({ groupId }, { groupId: { type: 'string', required: true } });
-    return this.sdk._fetch(`/permissions/groups/${groupId}/settings`, 'GET');
+    return internalRequest(this.sdk, `/permissions/groups/${groupId}/settings`, 'GET');
   }
 
   /** Set one configuration value on a group. */
@@ -405,7 +406,7 @@ export class PermissionsService {
         settingKey: { type: 'string', required: true },
       },
     );
-    return this.sdk._fetch(
+    return internalRequest(this.sdk, 
       `/permissions/groups/${groupId}/settings/${settingKey}`,
       'PUT',
       { body: { value } },
@@ -423,7 +424,7 @@ export class PermissionsService {
         settingKey: { type: 'string', required: true },
       },
     );
-    return this.sdk._fetch(
+    return internalRequest(this.sdk, 
       `/permissions/groups/${groupId}/settings/${settingKey}`,
       'DELETE',
     );
@@ -435,7 +436,7 @@ export class PermissionsService {
    */
   async setGroupPriority(order) {
     this.sdk.validateParams({ order }, { order: { type: 'array', required: true } });
-    return this.sdk._fetch('/permissions/groups/priority', 'PUT', {
+    return internalRequest(this.sdk, '/permissions/groups/priority', 'PUT', {
       body: { order: order.map(String) },
     });
   }
@@ -448,7 +449,7 @@ export class PermissionsService {
   async getUserSettings(userId) {
     userId = String(userId);
     this.sdk.validateParams({ userId }, { userId: { type: 'string', required: true } });
-    return this.sdk._fetch(`/permissions/users/${userId}/settings`, 'GET');
+    return internalRequest(this.sdk, `/permissions/users/${userId}/settings`, 'GET');
   }
 
   /** Override one configuration value for a single user. */
@@ -462,7 +463,7 @@ export class PermissionsService {
         settingKey: { type: 'string', required: true },
       },
     );
-    return this.sdk._fetch(
+    return internalRequest(this.sdk, 
       `/permissions/users/${userId}/settings/${settingKey}`,
       'PUT',
       { body: { value } },
@@ -480,7 +481,7 @@ export class PermissionsService {
         settingKey: { type: 'string', required: true },
       },
     );
-    return this.sdk._fetch(
+    return internalRequest(this.sdk, 
       `/permissions/users/${userId}/settings/${settingKey}`,
       'DELETE',
     );
@@ -503,7 +504,7 @@ export class PermissionsService {
         stateKey: { type: 'string', required: true },
       },
     );
-    return this.sdk._fetch(
+    return internalRequest(this.sdk, 
       `/permissions/users/${userId}/app-state/${stateKey}`,
       'GET',
     );
@@ -523,7 +524,7 @@ export class PermissionsService {
         stateKey: { type: 'string', required: true },
       },
     );
-    return this.sdk._fetch(
+    return internalRequest(this.sdk, 
       `/permissions/users/${userId}/app-state/${stateKey}`,
       'PUT',
       { body: { value } },
@@ -541,7 +542,7 @@ export class PermissionsService {
 
   /** Skill + queue vocabulary for the group assignment pickers. */
   async getTaskRoutingCatalog() {
-    return this.sdk._fetch('/permissions/task-routing/catalog', 'GET');
+    return internalRequest(this.sdk, '/permissions/task-routing/catalog', 'GET');
   }
 
   /** Skills this group grants. @returns {Promise<{results: Array<{skillId}>}>} */
@@ -551,7 +552,7 @@ export class PermissionsService {
       { groupId },
       { groupId: { type: 'string', required: true } },
     );
-    return this.sdk._fetch(`/permissions/groups/${groupId}/skills`, 'GET');
+    return internalRequest(this.sdk, `/permissions/groups/${groupId}/skills`, 'GET');
   }
 
   /** Replace the group's full skill list. */
@@ -564,7 +565,7 @@ export class PermissionsService {
         skillIds: { type: 'array', required: true },
       },
     );
-    return this.sdk._fetch(`/permissions/groups/${groupId}/skills`, 'PUT', {
+    return internalRequest(this.sdk, `/permissions/groups/${groupId}/skills`, 'PUT', {
       body: { skillIds: skillIds.map(String) },
     });
   }
@@ -576,7 +577,7 @@ export class PermissionsService {
       { groupId },
       { groupId: { type: 'string', required: true } },
     );
-    return this.sdk._fetch(`/permissions/groups/${groupId}/queues`, 'GET');
+    return internalRequest(this.sdk, `/permissions/groups/${groupId}/queues`, 'GET');
   }
 
   /**
@@ -595,7 +596,7 @@ export class PermissionsService {
         queues: { type: 'array', required: true },
       },
     );
-    return this.sdk._fetch(`/permissions/groups/${groupId}/queues`, 'PUT', {
+    return internalRequest(this.sdk, `/permissions/groups/${groupId}/queues`, 'PUT', {
       body: {
         queues: queues.map((q) => ({
           queueId: String(q.queueId),
@@ -617,7 +618,7 @@ export class PermissionsService {
       { userId },
       { userId: { type: 'string', required: true } },
     );
-    return this.sdk._fetch(`/permissions/users/${userId}/task-routing`, 'GET');
+    return internalRequest(this.sdk, `/permissions/users/${userId}/task-routing`, 'GET');
   }
 
   /** Exclude one group-granted skill/queue from this user ("in Sales but not queue X"). */
@@ -633,7 +634,7 @@ export class PermissionsService {
         value: { type: 'string', required: true },
       },
     );
-    return this.sdk._fetch(
+    return internalRequest(this.sdk, 
       `/permissions/users/${userId}/task-routing/exclusions/${settingKey}/${value}`,
       'PUT',
     );
@@ -652,7 +653,7 @@ export class PermissionsService {
         value: { type: 'string', required: true },
       },
     );
-    return this.sdk._fetch(
+    return internalRequest(this.sdk, 
       `/permissions/users/${userId}/task-routing/exclusions/${settingKey}/${value}`,
       'DELETE',
     );

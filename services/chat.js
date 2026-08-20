@@ -1,3 +1,4 @@
+import { internalRequest } from '../base.js';
 /**
  * ChatService — channels, DMs, membership, unreads, DND, messages, search,
  * webhooks, card actions, reports, admin review, admin export, record feeds,
@@ -38,7 +39,7 @@ export class ChatService {
     if (settings !== undefined) body.settings = settings;
     if (groupIds !== undefined) body.groupIds = groupIds;
 
-    return this.sdk._fetch('/chat/channels', 'POST', { body });
+    return internalRequest(this.sdk, '/chat/channels', 'POST', { body });
   }
 
   /**
@@ -46,7 +47,7 @@ export class ChatService {
    * @returns {Promise<Object>}
    */
   async listChannels() {
-    return this.sdk._fetch('/chat/channels', 'GET');
+    return internalRequest(this.sdk, '/chat/channels', 'GET');
   }
 
   /**
@@ -54,7 +55,7 @@ export class ChatService {
    * @returns {Promise<Object>}
    */
   async browseChannels() {
-    return this.sdk._fetch('/chat/channels/browse', 'GET');
+    return internalRequest(this.sdk, '/chat/channels/browse', 'GET');
   }
 
   /**
@@ -64,7 +65,7 @@ export class ChatService {
    */
   async getChannel(id) {
     this.sdk.validateParams({ id }, { id: { type: 'string', required: true } });
-    return this.sdk._fetch(`/chat/channels/${id}`, 'GET');
+    return internalRequest(this.sdk, `/chat/channels/${id}`, 'GET');
   }
 
   /**
@@ -92,7 +93,7 @@ export class ChatService {
     if (topic !== undefined) body.topic = topic;
     if (settings !== undefined) body.settings = settings;
 
-    return this.sdk._fetch(`/chat/channels/${id}`, 'PATCH', { body });
+    return internalRequest(this.sdk, `/chat/channels/${id}`, 'PATCH', { body });
   }
 
   /**
@@ -102,7 +103,7 @@ export class ChatService {
    */
   async archiveChannel(id) {
     this.sdk.validateParams({ id }, { id: { type: 'string', required: true } });
-    return this.sdk._fetch(`/chat/channels/${id}/archive`, 'POST', {
+    return internalRequest(this.sdk, `/chat/channels/${id}/archive`, 'POST', {
       body: {},
     });
   }
@@ -114,7 +115,7 @@ export class ChatService {
    */
   async unarchiveChannel(id) {
     this.sdk.validateParams({ id }, { id: { type: 'string', required: true } });
-    return this.sdk._fetch(`/chat/channels/${id}/unarchive`, 'POST', {
+    return internalRequest(this.sdk, `/chat/channels/${id}/unarchive`, 'POST', {
       body: {},
     });
   }
@@ -126,7 +127,7 @@ export class ChatService {
    */
   async joinChannel(id) {
     this.sdk.validateParams({ id }, { id: { type: 'string', required: true } });
-    return this.sdk._fetch(`/chat/channels/${id}/join`, 'POST', { body: {} });
+    return internalRequest(this.sdk, `/chat/channels/${id}/join`, 'POST', { body: {} });
   }
 
   /**
@@ -136,7 +137,7 @@ export class ChatService {
    */
   async leaveChannel(id) {
     this.sdk.validateParams({ id }, { id: { type: 'string', required: true } });
-    return this.sdk._fetch(`/chat/channels/${id}/leave`, 'POST', { body: {} });
+    return internalRequest(this.sdk, `/chat/channels/${id}/leave`, 'POST', { body: {} });
   }
 
   /**
@@ -146,7 +147,7 @@ export class ChatService {
    */
   async listMembers(id) {
     this.sdk.validateParams({ id }, { id: { type: 'string', required: true } });
-    return this.sdk._fetch(`/chat/channels/${id}/members`, 'GET');
+    return internalRequest(this.sdk, `/chat/channels/${id}/members`, 'GET');
   }
 
   /**
@@ -170,7 +171,7 @@ export class ChatService {
     const body = { userId };
     if (role !== undefined) body.role = role;
 
-    return this.sdk._fetch(`/chat/channels/${id}/members`, 'POST', { body });
+    return internalRequest(this.sdk, `/chat/channels/${id}/members`, 'POST', { body });
   }
 
   /**
@@ -187,7 +188,7 @@ export class ChatService {
         userId: { type: 'string', required: true },
       },
     );
-    return this.sdk._fetch(`/chat/channels/${id}/members/${userId}`, 'DELETE');
+    return internalRequest(this.sdk, `/chat/channels/${id}/members/${userId}`, 'DELETE');
   }
 
   /**
@@ -197,7 +198,7 @@ export class ChatService {
    */
   async getGroupDefaults(id) {
     this.sdk.validateParams({ id }, { id: { type: 'string', required: true } });
-    return this.sdk._fetch(`/chat/channels/${id}/group-defaults`, 'GET');
+    return internalRequest(this.sdk, `/chat/channels/${id}/group-defaults`, 'GET');
   }
 
   /**
@@ -215,7 +216,7 @@ export class ChatService {
         groupIds: { type: 'array', required: true },
       },
     );
-    return this.sdk._fetch(`/chat/channels/${id}/group-defaults`, 'PUT', {
+    return internalRequest(this.sdk, `/chat/channels/${id}/group-defaults`, 'PUT', {
       body: { groupIds },
     });
   }
@@ -231,7 +232,7 @@ export class ChatService {
       { userIds },
       { userIds: { type: 'array', required: true } },
     );
-    return this.sdk._fetch('/chat/dms', 'POST', { body: { userIds } });
+    return internalRequest(this.sdk, '/chat/dms', 'POST', { body: { userIds } });
   }
 
   /**
@@ -239,7 +240,7 @@ export class ChatService {
    * @returns {Promise<Object>}
    */
   async getUnreads() {
-    return this.sdk._fetch('/chat/unreads', 'GET');
+    return internalRequest(this.sdk, '/chat/unreads', 'GET');
   }
 
   /**
@@ -247,7 +248,7 @@ export class ChatService {
    * @returns {Promise<Object>}
    */
   async getDnd() {
-    return this.sdk._fetch('/chat/dnd', 'GET');
+    return internalRequest(this.sdk, '/chat/dnd', 'GET');
   }
 
   /**
@@ -261,7 +262,7 @@ export class ChatService {
       { enabled },
       { enabled: { type: 'boolean', required: true } },
     );
-    return this.sdk._fetch('/chat/dnd', 'PATCH', { body: { enabled } });
+    return internalRequest(this.sdk, '/chat/dnd', 'PATCH', { body: { enabled } });
   }
 
   /**
@@ -278,7 +279,7 @@ export class ChatService {
         messageId: { type: 'string', required: true },
       },
     );
-    return this.sdk._fetch(`/chat/channels/${channelId}/read`, 'POST', {
+    return internalRequest(this.sdk, `/chat/channels/${channelId}/read`, 'POST', {
       body: { messageId },
     });
   }
@@ -297,7 +298,7 @@ export class ChatService {
         messageId: { type: 'string', required: true },
       },
     );
-    return this.sdk._fetch(`/chat/channels/${channelId}/unread`, 'POST', {
+    return internalRequest(this.sdk, `/chat/channels/${channelId}/unread`, 'POST', {
       body: { messageId },
     });
   }
@@ -317,7 +318,7 @@ export class ChatService {
         userId: { type: 'string', required: true },
       },
     );
-    return this.sdk._fetch(`/chat/groups/${groupId}/linked-channels`, 'GET', {
+    return internalRequest(this.sdk, `/chat/groups/${groupId}/linked-channels`, 'GET', {
       query: { userId },
     });
   }
@@ -347,7 +348,7 @@ export class ChatService {
     if (after !== undefined) query.after = after;
     if (limit !== undefined) query.limit = limit;
 
-    return this.sdk._fetch(`/chat/channels/${channelId}/messages`, 'GET', {
+    return internalRequest(this.sdk, `/chat/channels/${channelId}/messages`, 'GET', {
       query,
     });
   }
@@ -384,7 +385,7 @@ export class ChatService {
     }
     if (storageIds !== undefined) body.storageIds = storageIds;
 
-    return this.sdk._fetch(`/chat/channels/${channelId}/messages`, 'POST', {
+    return internalRequest(this.sdk, `/chat/channels/${channelId}/messages`, 'POST', {
       body,
     });
   }
@@ -404,7 +405,7 @@ export class ChatService {
         message: { type: 'object', required: true },
       },
     );
-    return this.sdk._fetch(`/chat/messages/${id}`, 'PATCH', {
+    return internalRequest(this.sdk, `/chat/messages/${id}`, 'PATCH', {
       body: { message },
     });
   }
@@ -416,7 +417,7 @@ export class ChatService {
    */
   async deleteMessage(id) {
     this.sdk.validateParams({ id }, { id: { type: 'string', required: true } });
-    return this.sdk._fetch(`/chat/messages/${id}`, 'DELETE');
+    return internalRequest(this.sdk, `/chat/messages/${id}`, 'DELETE');
   }
 
   /**
@@ -434,7 +435,7 @@ export class ChatService {
         emoji: { type: 'string', required: true },
       },
     );
-    return this.sdk._fetch(`/chat/messages/${id}/reactions`, 'POST', {
+    return internalRequest(this.sdk, `/chat/messages/${id}/reactions`, 'POST', {
       body: { emoji },
     });
   }
@@ -454,7 +455,7 @@ export class ChatService {
         emoji: { type: 'string', required: true },
       },
     );
-    return this.sdk._fetch(`/chat/messages/${id}/reactions`, 'DELETE', {
+    return internalRequest(this.sdk, `/chat/messages/${id}/reactions`, 'DELETE', {
       body: { emoji },
     });
   }
@@ -473,7 +474,7 @@ export class ChatService {
         rootId: { type: 'string', required: true },
       },
     );
-    return this.sdk._fetch(
+    return internalRequest(this.sdk, 
       `/chat/channels/${channelId}/messages/${rootId}/thread`,
       'GET',
     );
@@ -525,7 +526,7 @@ export class ChatService {
     if (nextId !== undefined) query.nextId = nextId;
     if (limit !== undefined) query.limit = limit;
 
-    return this.sdk._fetch('/chat/search', 'GET', { query });
+    return internalRequest(this.sdk, '/chat/search', 'GET', { query });
   }
 
   /**
@@ -553,7 +554,7 @@ export class ChatService {
     if (avatar !== undefined) body.avatar = avatar;
     if (callbackUrl !== undefined) body.callbackUrl = callbackUrl;
 
-    return this.sdk._fetch(`/chat/channels/${channelId}/webhooks`, 'POST', {
+    return internalRequest(this.sdk, `/chat/channels/${channelId}/webhooks`, 'POST', {
       body,
     });
   }
@@ -568,7 +569,7 @@ export class ChatService {
       { channelId },
       { channelId: { type: 'string', required: true } },
     );
-    return this.sdk._fetch(`/chat/channels/${channelId}/webhooks`, 'GET');
+    return internalRequest(this.sdk, `/chat/channels/${channelId}/webhooks`, 'GET');
   }
 
   /**
@@ -585,7 +586,7 @@ export class ChatService {
         webhookId: { type: 'string', required: true },
       },
     );
-    return this.sdk._fetch(
+    return internalRequest(this.sdk, 
       `/chat/channels/${channelId}/webhooks/${webhookId}`,
       'DELETE',
     );
@@ -612,7 +613,7 @@ export class ChatService {
     const body = { actionId };
     if (value !== undefined) body.value = value;
 
-    return this.sdk._fetch(`/chat/messages/${messageId}/actions`, 'POST', {
+    return internalRequest(this.sdk, `/chat/messages/${messageId}/actions`, 'POST', {
       body,
     });
   }
@@ -632,7 +633,7 @@ export class ChatService {
         reason: { type: 'string', required: true },
       },
     );
-    return this.sdk._fetch(`/chat/messages/${id}/report`, 'POST', {
+    return internalRequest(this.sdk, `/chat/messages/${id}/report`, 'POST', {
       body: { reason },
     });
   }
@@ -657,7 +658,7 @@ export class ChatService {
     if (q !== undefined) query.q = q;
     if (kind !== undefined) query.kind = kind;
 
-    return this.sdk._fetch('/chat/admin/channels', 'GET', { query });
+    return internalRequest(this.sdk, '/chat/admin/channels', 'GET', { query });
   }
 
   /**
@@ -667,7 +668,7 @@ export class ChatService {
    */
   async adminGetChannel(id) {
     this.sdk.validateParams({ id }, { id: { type: 'string', required: true } });
-    return this.sdk._fetch(`/chat/admin/channels/${id}`, 'GET');
+    return internalRequest(this.sdk, `/chat/admin/channels/${id}`, 'GET');
   }
 
   /**
@@ -677,7 +678,7 @@ export class ChatService {
    */
   async adminExportChannel(id) {
     this.sdk.validateParams({ id }, { id: { type: 'string', required: true } });
-    return this.sdk._fetch(`/chat/admin/channels/${id}/export`, 'GET');
+    return internalRequest(this.sdk, `/chat/admin/channels/${id}/export`, 'GET');
   }
 
   /**
@@ -695,7 +696,7 @@ export class ChatService {
     const query = {};
     if (status !== undefined) query.status = status;
 
-    return this.sdk._fetch('/chat/admin/reports', 'GET', { query });
+    return internalRequest(this.sdk, '/chat/admin/reports', 'GET', { query });
   }
 
   /**
@@ -713,7 +714,7 @@ export class ChatService {
         status: { type: 'string', required: true },
       },
     );
-    return this.sdk._fetch(`/chat/admin/reports/${id}`, 'POST', {
+    return internalRequest(this.sdk, `/chat/admin/reports/${id}`, 'POST', {
       body: { status },
     });
   }
@@ -725,7 +726,7 @@ export class ChatService {
    */
   async adminDeleteMessage(id) {
     this.sdk.validateParams({ id }, { id: { type: 'string', required: true } });
-    return this.sdk._fetch(`/chat/admin/messages/${id}`, 'DELETE');
+    return internalRequest(this.sdk, `/chat/admin/messages/${id}`, 'DELETE');
   }
 
   /**
@@ -733,7 +734,7 @@ export class ChatService {
    * @returns {Promise<Object>}
    */
   async adminAudit() {
-    return this.sdk._fetch('/chat/admin/audit', 'GET');
+    return internalRequest(this.sdk, '/chat/admin/audit', 'GET');
   }
 
   /**
@@ -751,7 +752,7 @@ export class ChatService {
         recordTypeId: { type: 'string', required: true },
       },
     );
-    return this.sdk._fetch(`/chat/records/${relatedId}`, 'GET', {
+    return internalRequest(this.sdk, `/chat/records/${relatedId}`, 'GET', {
       query: { recordTypeId },
     });
   }
@@ -773,7 +774,7 @@ export class ChatService {
         recordTypeId: { type: 'string', required: true },
       },
     );
-    return this.sdk._fetch(`/chat/records/${relatedId}/messages`, 'POST', {
+    return internalRequest(this.sdk, `/chat/records/${relatedId}/messages`, 'POST', {
       body: { message, recordTypeId },
     });
   }
@@ -788,7 +789,7 @@ export class ChatService {
       { channelId },
       { channelId: { type: 'string', required: true } },
     );
-    return this.sdk._fetch(`/chat/channels/${channelId}/meet`, 'GET');
+    return internalRequest(this.sdk, `/chat/channels/${channelId}/meet`, 'GET');
   }
 
   /**
@@ -796,7 +797,7 @@ export class ChatService {
    * @returns {Promise<Object>}
    */
   async getVapidPublicKey() {
-    return this.sdk._fetch('/chat/push/vapidPublicKey', 'GET');
+    return internalRequest(this.sdk, '/chat/push/vapidPublicKey', 'GET');
   }
 
   /**
@@ -814,7 +815,7 @@ export class ChatService {
         subscription: { type: 'object', required: true },
       },
     );
-    return this.sdk._fetch('/chat/push/devices', 'POST', {
+    return internalRequest(this.sdk, '/chat/push/devices', 'POST', {
       body: { kind, subscription },
     });
   }
@@ -826,7 +827,7 @@ export class ChatService {
    */
   async unregisterPushDevice(id) {
     this.sdk.validateParams({ id }, { id: { type: 'string', required: true } });
-    return this.sdk._fetch(`/chat/push/devices/${id}`, 'DELETE');
+    return internalRequest(this.sdk, `/chat/push/devices/${id}`, 'DELETE');
   }
 
   /**
@@ -844,8 +845,83 @@ export class ChatService {
         notifyLevel: { type: 'string', required: true },
       },
     );
-    return this.sdk._fetch(`/chat/channels/${channelId}/notify`, 'PATCH', {
+    return internalRequest(this.sdk, `/chat/channels/${channelId}/notify`, 'PATCH', {
       body: { notifyLevel },
+    });
+  }
+
+  /**
+   * List the caller's pinned conversations (channel or record).
+   * @returns {Promise<Object>}
+   */
+  async listPins() {
+    return internalRequest(this.sdk, '/chat/pins', 'GET');
+  }
+
+  /**
+   * Pin a channel or record conversation to the sidebar.
+   * @param {Object} params
+   * @param {'channel'|'record'} params.kind
+   * @param {string} [params.channelId]
+   * @param {string} [params.relatedId]
+   * @param {string} [params.relatedRecordTypeId]
+   * @returns {Promise<Object>}
+   */
+  async pinItem({ kind, channelId, relatedId, relatedRecordTypeId } = {}) {
+    this.sdk.validateParams(
+      { kind, channelId, relatedId, relatedRecordTypeId },
+      {
+        kind: { type: 'string', required: true },
+        channelId: { type: 'string', required: false },
+        relatedId: { type: 'string', required: false },
+        relatedRecordTypeId: { type: 'string', required: false },
+      },
+    );
+    const body = { kind };
+    if (channelId !== undefined) body.channelId = channelId;
+    if (relatedId !== undefined) body.relatedId = relatedId;
+    if (relatedRecordTypeId !== undefined) body.relatedRecordTypeId =
+      relatedRecordTypeId;
+    return internalRequest(this.sdk, '/chat/pins', 'POST', { body });
+  }
+
+  /**
+   * Remove a sidebar pin by id.
+   * @param {string} id
+   * @returns {Promise<Object>}
+   */
+  async unpinItem(id) {
+    this.sdk.validateParams({ id }, { id: { type: 'string', required: true } });
+    return internalRequest(this.sdk, `/chat/pins/${id}`, 'DELETE');
+  }
+
+  async listAdminChannels(query) {
+    return this.adminListChannels(query);
+  }
+
+  async getAdminChannel(id) {
+    return this.adminGetChannel(id);
+  }
+
+  async listAdminReports(query) {
+    return this.adminListReports(query);
+  }
+
+  async listAdminAudit() {
+    return this.adminAudit();
+  }
+
+  async listAdminMessages(channelId, query) {
+    return this.listMessages(channelId, query);
+  }
+
+  async dismissAdminReport(id) {
+    return this.adminReviewReport(id, { status: 'dismissed' });
+  }
+
+  async actionAdminReport(id, body = {}) {
+    return this.adminReviewReport(id, {
+      status: body.status || 'actioned',
     });
   }
 }

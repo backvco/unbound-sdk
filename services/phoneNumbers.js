@@ -1,3 +1,4 @@
+import { internalRequest } from '../base.js';
 export class PhoneNumbersService {
   constructor(sdk) {
     this.sdk = sdk;
@@ -59,7 +60,7 @@ export class PhoneNumbersService {
       },
     };
 
-    const result = await this.sdk._fetch('/phoneNumbers/search', 'GET', params);
+    const result = await internalRequest(this.sdk, '/phoneNumbers/search', 'GET', params);
     return result;
   }
 
@@ -79,7 +80,7 @@ export class PhoneNumbersService {
       body: orderData,
     };
 
-    const result = await this.sdk._fetch('/phoneNumbers/order', 'POST', params);
+    const result = await internalRequest(this.sdk, '/phoneNumbers/order', 'POST', params);
     return result;
   }
 
@@ -91,7 +92,7 @@ export class PhoneNumbersService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/phoneNumbers/${phoneNumber}`,
       'DELETE',
     );
@@ -159,7 +160,7 @@ export class PhoneNumbersService {
       body: updateData,
     };
 
-    const result = await this.sdk._fetch(`/phoneNumbers/${id}`, 'PUT', params);
+    const result = await internalRequest(this.sdk, `/phoneNumbers/${id}`, 'PUT', params);
     return result;
   }
 
@@ -176,7 +177,7 @@ export class PhoneNumbersService {
       body: { cnam },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/phoneNumbers/cnam/${phoneNumber}`,
       'PUT',
       params,
@@ -192,7 +193,7 @@ export class PhoneNumbersService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/phoneNumbers/format/${number}`,
       'GET',
     );
@@ -272,7 +273,7 @@ export class PhoneNumbersService {
       },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/phoneNumbers/routing-options',
       'GET',
       params,
@@ -281,7 +282,7 @@ export class PhoneNumbersService {
   }
 
   async getSupportedCountries() {
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/phoneNumbers/supported-countries',
       'GET',
     );
@@ -323,7 +324,7 @@ export class PhoneNumbersService {
     const body = { phoneNumbers, runPortabilityCheck };
     if (portingOrderId) body.portingOrderId = portingOrderId;
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/phoneNumbers/porting/portability-check',
       'POST',
       {
@@ -394,7 +395,7 @@ export class PhoneNumbersService {
     if (portOrderType) body.portOrderType = portOrderType;
     if (tags) body.tags = tags;
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/phoneNumbers/porting/orders',
       'POST',
       {
@@ -429,7 +430,7 @@ export class PhoneNumbersService {
       query,
     };
 
-    const result = await this.sdk._fetch(url, 'GET', params);
+    const result = await internalRequest(this.sdk, url, 'GET', params);
     return result;
   }
 
@@ -470,7 +471,7 @@ export class PhoneNumbersService {
       ? `/phoneNumbers/porting/orders/${id}?${queryString}`
       : `/phoneNumbers/porting/orders/${id}`;
 
-    const result = await this.sdk._fetch(url, 'GET');
+    const result = await internalRequest(this.sdk, url, 'GET');
     return result;
   }
 
@@ -510,7 +511,7 @@ export class PhoneNumbersService {
     if (portOrderType) body.portOrderType = portOrderType;
     if (tags) body.tags = tags;
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/phoneNumbers/porting/orders/${id}`,
       'PUT',
       {
@@ -538,7 +539,7 @@ export class PhoneNumbersService {
       status: 'submit',
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/phoneNumbers/porting/orders/${id}`,
       'PUT',
       {
@@ -565,7 +566,7 @@ export class PhoneNumbersService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/phoneNumbers/porting/orders/${id}`,
       'DELETE',
     );
@@ -595,7 +596,7 @@ export class PhoneNumbersService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/phoneNumbers/porting/orders/${encodeURIComponent(
         portingOrderId,
       )}/numbers/${encodeURIComponent(phoneNumber)}`,
@@ -639,7 +640,7 @@ export class PhoneNumbersService {
 
     if (documentId) body.documentId = documentId;
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/phoneNumbers/porting/documents',
       'POST',
       {
@@ -671,7 +672,7 @@ export class PhoneNumbersService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/phoneNumbers/porting/orders/${encodeURIComponent(
         portingOrderId,
       )}/generate-loa`,
@@ -700,7 +701,7 @@ export class PhoneNumbersService {
       ? `/phoneNumbers/porting/orders/${id}/events?${queryString}`
       : `/phoneNumbers/porting/orders/${id}/events`;
 
-    const result = await this.sdk._fetch(url, 'GET');
+    const result = await internalRequest(this.sdk, url, 'GET');
     return result;
   }
 
@@ -734,7 +735,7 @@ export class PhoneNumbersService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/phoneNumbers/porting/orders/${id}/foc-windows`,
       'GET',
     );
@@ -765,7 +766,7 @@ export class PhoneNumbersService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/phoneNumbers/porting/orders/${id}/sync`,
       'POST',
     );
@@ -806,7 +807,7 @@ export class PhoneNumbersService {
       queryString ? '?' + queryString : ''
     }`;
 
-    const result = await this.sdk._fetch(url, 'GET');
+    const result = await internalRequest(this.sdk, url, 'GET');
     return result;
   }
 
@@ -840,7 +841,7 @@ export class PhoneNumbersService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/phoneNumbers/porting/orders/${id}/comments`,
       'POST',
       {
@@ -889,7 +890,7 @@ export class PhoneNumbersService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/phoneNumbers/porting/auto-create-orders',
       'POST',
       {
@@ -919,7 +920,7 @@ export class PhoneNumberCarrierService {
       query: { updateVoiceConnection, updateMessagingConnection },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/phoneNumbers/carrier/syncPhoneNumbers/${carrier}`,
       'POST',
       params,
@@ -935,7 +936,7 @@ export class PhoneNumberCarrierService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/phoneNumbers/carrier/${phoneNumber}`,
       'GET',
     );
@@ -950,7 +951,7 @@ export class PhoneNumberCarrierService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/phoneNumbers/carrier/${phoneNumber}`,
       'DELETE',
     );

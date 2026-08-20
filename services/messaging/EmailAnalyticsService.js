@@ -1,3 +1,4 @@
+import { internalRequest } from '../../base.js';
 export class EmailAnalyticsService {
   constructor(sdk) {
     this.sdk = sdk;
@@ -25,7 +26,7 @@ export class EmailAnalyticsService {
     if (granularity) options.query.granularity = granularity;
     if (timezone) options.query.timezone = timezone;
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/messaging/email/analytics/timeseries',
       'GET',
       options,
@@ -61,7 +62,7 @@ export class EmailAnalyticsService {
     if (period) options.query.period = period;
     if (timezone) options.query.timezone = timezone;
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/messaging/email/analytics/summary',
       'GET',
       options,
@@ -78,7 +79,7 @@ export class EmailAnalyticsService {
    * // Returns: { queueDepth, currentSendRatePerMinute, last5Minutes: { sent, delivered, failed } }
    */
   async realtime() {
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/messaging/email/analytics/realtime',
       'GET',
     );
@@ -99,7 +100,7 @@ export class EmailAnalyticsService {
     const options = { query: {} };
     if (period) options.query.period = period;
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/messaging/email/analytics/errors',
       'GET',
       options,

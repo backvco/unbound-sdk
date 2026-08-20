@@ -1,3 +1,4 @@
+import { internalRequest } from '../base.js';
 export class StorageService {
   constructor(sdk) {
     this.sdk = sdk;
@@ -327,7 +328,7 @@ export class StorageService {
       headers,
     };
 
-    return await this.sdk._fetch(endpoint, method, params, true);
+    return await internalRequest(this.sdk, endpoint, method, params, true);
   }
 
   // Upload with progress tracking using XMLHttpRequest
@@ -655,7 +656,7 @@ Response:
       headers,
     };
 
-    return await this.sdk._fetch('/storage/upload', 'POST', params, true);
+    return await internalRequest(this.sdk, '/storage/upload', 'POST', params, true);
   }
 
   async getFile(storageId, path, download = false) {
@@ -678,7 +679,7 @@ Response:
       url += `/storage/${path.startsWith('/') ? path.slice(1) : path}`;
     }
 
-    const result = await this.sdk._fetch(url, 'GET', params, true);
+    const result = await internalRequest(this.sdk, url, 'GET', params, true);
     return result;
   }
 
@@ -713,7 +714,7 @@ Response:
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/storage/${storageId}`,
       'DELETE',
     );
@@ -721,7 +722,7 @@ Response:
   }
 
   async getStorageClassifications() {
-    const result = await this.sdk._fetch('/storage/classifications', 'GET');
+    const result = await internalRequest(this.sdk, '/storage/classifications', 'GET');
     return result;
   }
 
@@ -771,7 +772,7 @@ Response:
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/storage/file/${storageId}/info`,
       'GET',
     );
@@ -791,7 +792,7 @@ Response:
       body: { metadata },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/storage/file/${storageId}/metadata`,
       'PUT',
       params,
@@ -822,7 +823,7 @@ Response:
       query: options,
     };
 
-    const result = await this.sdk._fetch('/storage/files', 'GET', params);
+    const result = await internalRequest(this.sdk, '/storage/files', 'GET', params);
     return result;
   }
 
@@ -845,7 +846,7 @@ Response:
       body: { expiresIn },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/storage/${fileId}/accessKey`,
       'POST',
       params,
@@ -882,7 +883,7 @@ Response:
       query: options,
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/storage/configurations',
       'GET',
       params,
@@ -933,7 +934,7 @@ Response:
       body: config,
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/storage/configurations',
       'POST',
       params,
@@ -962,7 +963,7 @@ Response:
       body: updates,
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/storage/configurations/${id}`,
       'PUT',
       params,
@@ -984,7 +985,7 @@ Response:
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/storage/configurations/${id}`,
       'DELETE',
     );
@@ -1091,7 +1092,7 @@ Response:
 
     const params = { body };
 
-    return await this.sdk._fetch(`/storage/${storageId}/convert`, 'POST', params);
+    return await internalRequest(this.sdk, `/storage/${storageId}/convert`, 'POST', params);
   }
 
   /**
@@ -1174,7 +1175,7 @@ Response:
         body: updateData,
       };
 
-      const result = await this.sdk._fetch(
+      const result = await internalRequest(this.sdk, 
         `/storage/${storageId}`,
         'PUT',
         options,

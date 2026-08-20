@@ -1,5 +1,6 @@
 import * as layoutSchemas from '../schemas/layouts/index.js';
 
+import { internalRequest } from '../base.js';
 export class LayoutsService {
   constructor(sdk) {
     this.sdk = sdk;
@@ -26,7 +27,7 @@ export class LayoutsService {
       uri = `${uri}/${id}`;
     }
 
-    const result = await this.sdk._fetch(uri, 'GET', params);
+    const result = await internalRequest(this.sdk, uri, 'GET', params);
     return result;
   }
 
@@ -42,7 +43,7 @@ export class LayoutsService {
       body: layout,
     };
 
-    const result = await this.sdk._fetch('/layouts/', 'POST', params);
+    const result = await internalRequest(this.sdk, '/layouts/', 'POST', params);
     return result;
   }
 
@@ -59,7 +60,7 @@ export class LayoutsService {
       body: layout,
     };
 
-    const result = await this.sdk._fetch(`/layouts/${id}`, 'PUT', params);
+    const result = await internalRequest(this.sdk, `/layouts/${id}`, 'PUT', params);
     return result;
   }
 
@@ -73,7 +74,7 @@ export class LayoutsService {
 
     const params = {};
 
-    const result = await this.sdk._fetch(`/layouts/${id}`, 'DELETE', params);
+    const result = await internalRequest(this.sdk, `/layouts/${id}`, 'DELETE', params);
     return result;
   }
 
@@ -89,7 +90,7 @@ export class LayoutsService {
       query,
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/layouts/selectDynamic/search',
       'GET',
       params,
@@ -121,7 +122,7 @@ export class LayoutsService {
 
     const params = { query };
 
-    const result = await this.sdk._fetch('/layouts/resolve', 'GET', params);
+    const result = await internalRequest(this.sdk, '/layouts/resolve', 'GET', params);
     return result;
   }
 
@@ -131,7 +132,7 @@ export class LayoutsService {
       { layoutId: { type: 'string', required: true } },
     );
 
-    const result = await this.sdk._fetch(`/layouts/${layoutId}/versions`, 'GET', {});
+    const result = await internalRequest(this.sdk, `/layouts/${layoutId}/versions`, 'GET', {});
     return result;
   }
 
@@ -141,7 +142,7 @@ export class LayoutsService {
       { layoutId: { type: 'string', required: true } },
     );
 
-    const result = await this.sdk._fetch(`/layouts/${layoutId}/edit`, 'GET', {});
+    const result = await internalRequest(this.sdk, `/layouts/${layoutId}/edit`, 'GET', {});
     return result;
   }
 
@@ -155,7 +156,7 @@ export class LayoutsService {
       body: { changeNote },
     };
 
-    const result = await this.sdk._fetch(`/layouts/${layoutId}/publish`, 'POST', params);
+    const result = await internalRequest(this.sdk, `/layouts/${layoutId}/publish`, 'POST', params);
     return result;
   }
 
@@ -168,7 +169,7 @@ export class LayoutsService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/layouts/${layoutId}/versions/${version}/rollback`,
       'POST',
       {},
@@ -199,7 +200,7 @@ export class LayoutAssignmentsService {
       query: { objectName: resolvedObjectName, kind },
     };
 
-    const result = await this.sdk._fetch('/layouts/assignments', 'GET', params);
+    const result = await internalRequest(this.sdk, '/layouts/assignments', 'GET', params);
     return result;
   }
 
@@ -221,7 +222,7 @@ export class LayoutAssignmentsService {
       },
     };
 
-    const result = await this.sdk._fetch('/layouts/assignments', 'POST', params);
+    const result = await internalRequest(this.sdk, '/layouts/assignments', 'POST', params);
     return result;
   }
 
@@ -235,7 +236,7 @@ export class LayoutAssignmentsService {
       body: updates,
     };
 
-    const result = await this.sdk._fetch(`/layouts/assignments/${id}`, 'PUT', params);
+    const result = await internalRequest(this.sdk, `/layouts/assignments/${id}`, 'PUT', params);
     return result;
   }
 
@@ -245,7 +246,7 @@ export class LayoutAssignmentsService {
       { id: { type: 'string', required: true } },
     );
 
-    const result = await this.sdk._fetch(`/layouts/assignments/${id}`, 'DELETE', {});
+    const result = await internalRequest(this.sdk, `/layouts/assignments/${id}`, 'DELETE', {});
     return result;
   }
 }

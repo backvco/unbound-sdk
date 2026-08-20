@@ -1,3 +1,4 @@
+import { internalRequest } from '../base.js';
 /**
  * Objects Service - Manage data objects in the Unbound platform
  *
@@ -84,7 +85,7 @@ export class ObjectsService {
 
     const params = { query };
 
-    const result = await this.sdk._fetch(`/object/${id}`, 'GET', params);
+    const result = await internalRequest(this.sdk, `/object/${id}`, 'GET', params);
     // console.log(`sdk.objects.byId :: params :: `, params, result);
     return result;
   }
@@ -157,7 +158,7 @@ export class ObjectsService {
       if (expandDetails) query.expandDetails = expandDetails;
 
       const params = { query };
-      return await this.sdk._fetch(`/object/query/${object}`, 'GET', params);
+      return await internalRequest(this.sdk, `/object/query/${object}`, 'GET', params);
     }
 
     // Old signature: query(objectName, queryParams)
@@ -172,7 +173,7 @@ export class ObjectsService {
       );
 
       const params = { query: queryParams };
-      return await this.sdk._fetch(
+      return await internalRequest(this.sdk, 
         `/object/query/${objectName}`,
         'GET',
         params,
@@ -204,7 +205,7 @@ export class ObjectsService {
     const body = { query, expandDetails };
     if (isPublic) body.isPublic = isPublic;
     const params = { body };
-    return await this.sdk._fetch('/object/query/v2', 'POST', params);
+    return await internalRequest(this.sdk, '/object/query/v2', 'POST', params);
   }
 
   /**
@@ -243,7 +244,7 @@ export class ObjectsService {
       };
       if (skipTriggers) params.query = { skipTriggers: true };
 
-      return await this.sdk._fetch(`/object/${object}`, 'PUT', params);
+      return await internalRequest(this.sdk, `/object/${object}`, 'PUT', params);
     }
 
     // Old signature: updateById(object, id, update)
@@ -266,7 +267,7 @@ export class ObjectsService {
         },
       };
 
-      return await this.sdk._fetch(`/object/${object}`, 'PUT', params);
+      return await internalRequest(this.sdk, `/object/${object}`, 'PUT', params);
     }
 
     throw new Error('Invalid arguments for updateById method');
@@ -309,7 +310,7 @@ export class ObjectsService {
     };
     if (skipTriggers) params.query = { skipTriggers: true };
 
-    const result = await this.sdk._fetch(`/object/${object}`, 'PUT', params);
+    const result = await internalRequest(this.sdk, `/object/${object}`, 'PUT', params);
     return result;
   }
 
@@ -342,7 +343,7 @@ export class ObjectsService {
 
       const params = { body };
       if (skipTriggers) params.query = { skipTriggers: true };
-      return await this.sdk._fetch(`/object/${object}`, 'POST', params);
+      return await internalRequest(this.sdk, `/object/${object}`, 'POST', params);
     }
 
     // Old signature: create(object, body)
@@ -358,7 +359,7 @@ export class ObjectsService {
       );
 
       const params = { body };
-      return await this.sdk._fetch(`/object/${object}`, 'POST', params);
+      return await internalRequest(this.sdk, `/object/${object}`, 'POST', params);
     }
 
     throw new Error('Invalid arguments for create method');
@@ -397,7 +398,7 @@ export class ObjectsService {
     };
     if (skipTriggers) params.query = { skipTriggers: true };
 
-    const result = await this.sdk._fetch(`/object/${object}`, 'DELETE', params);
+    const result = await internalRequest(this.sdk, `/object/${object}`, 'DELETE', params);
     return result;
   }
 
@@ -432,7 +433,7 @@ export class ObjectsService {
     };
     if (skipTriggers) params.query = { skipTriggers: true };
 
-    const result = await this.sdk._fetch(`/object/${object}`, 'DELETE', params);
+    const result = await internalRequest(this.sdk, `/object/${object}`, 'DELETE', params);
     return result;
   }
 
@@ -447,7 +448,7 @@ export class ObjectsService {
       { objectName },
       { objectName: { type: 'string', required: true } },
     );
-    return await this.sdk._fetch('/object/views', 'GET', {
+    return await internalRequest(this.sdk, '/object/views', 'GET', {
       query: { objectName },
     });
   }
@@ -472,7 +473,7 @@ export class ObjectsService {
     );
     const body = { objectName, name, filters };
     if (visibility !== undefined) body.visibility = visibility;
-    return await this.sdk._fetch('/object/views', 'POST', { body });
+    return await internalRequest(this.sdk, '/object/views', 'POST', { body });
   }
 
   /**
@@ -485,11 +486,11 @@ export class ObjectsService {
       { viewId },
       { viewId: { type: 'string', required: true } },
     );
-    return await this.sdk._fetch(`/object/views/${viewId}`, 'DELETE');
+    return await internalRequest(this.sdk, `/object/views/${viewId}`, 'DELETE');
   }
 
   async botSchema() {
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/object/manage/bot-schema',
       'GET',
     );
@@ -506,7 +507,7 @@ export class ObjectsService {
 
     const params = {};
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/object/describe/${object}`,
       'GET',
       params,
@@ -517,7 +518,7 @@ export class ObjectsService {
   async list() {
     const params = {};
 
-    const result = await this.sdk._fetch(`/object/`, 'GET', params);
+    const result = await internalRequest(this.sdk, `/object/`, 'GET', params);
     return result;
   }
 
@@ -567,7 +568,7 @@ export class ObjectsService {
     };
     const params = { body };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/object/expandDetails`,
       'POST',
       params,
@@ -616,7 +617,7 @@ export class ObjectsService {
 
     const params = { query };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/object/expandDetails`,
       'GET',
       params,
@@ -632,7 +633,7 @@ export class ObjectsService {
       },
     );
 
-    const result = await this.sdk._fetch(`/object/expandDetails/${id}`, 'GET');
+    const result = await internalRequest(this.sdk, `/object/expandDetails/${id}`, 'GET');
     return result;
   }
 
@@ -680,7 +681,7 @@ export class ObjectsService {
 
     const params = { body };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/object/expandDetails/${id}`,
       'PUT',
       params,
@@ -696,7 +697,7 @@ export class ObjectsService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/object/expandDetails/${id}`,
       'DELETE',
     );
@@ -749,7 +750,7 @@ export class ObjectsService {
     };
     const params = { body };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/object/generatedColumns`,
       'POST',
       params,
@@ -787,7 +788,7 @@ export class ObjectsService {
 
     const params = { query };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/object/generatedColumns`,
       'GET',
       params,
@@ -803,7 +804,7 @@ export class ObjectsService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/object/generatedColumns/${id}`,
       'GET',
     );
@@ -845,7 +846,7 @@ export class ObjectsService {
 
     const params = { body };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/object/generatedColumns/${id}`,
       'PUT',
       params,
@@ -861,7 +862,7 @@ export class ObjectsService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/object/generatedColumns/${id}`,
       'DELETE',
     );
@@ -880,7 +881,7 @@ export class ObjectsService {
     const body = { name };
     const params = { body };
 
-    const result = await this.sdk._fetch(`/object/manage`, 'POST', params);
+    const result = await internalRequest(this.sdk, `/object/manage`, 'POST', params);
     return result;
   }
 
@@ -935,7 +936,7 @@ export class ObjectsService {
 
     const params = { body };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/object/manage/${objectName}`,
       'POST',
       params,
@@ -966,7 +967,7 @@ export class ObjectsService {
 
     const params = { body };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/object/manage/${objectName}`,
       'PUT',
       params,
@@ -1029,7 +1030,7 @@ export class ObjectsService {
 
     const params = { body };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/object/manage/${objectName}/${columnName}`,
       'PUT',
       params,
@@ -1046,7 +1047,7 @@ export class ObjectsService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/object/manage/${objectName}/${columnName}`,
       'DELETE',
     );
@@ -1065,7 +1066,7 @@ export class ObjectsService {
       { connectionId },
       { connectionId: { type: 'string', required: true } },
     );
-    return this.sdk._fetch('/object/ad-catalog/google/accounts', 'GET', {
+    return internalRequest(this.sdk, '/object/ad-catalog/google/accounts', 'GET', {
       query: { connectionId },
     });
   }
@@ -1089,7 +1090,7 @@ export class ObjectsService {
     );
     const query = { connectionId, customerId };
     if (loginCustomerId) query.loginCustomerId = loginCustomerId;
-    return this.sdk._fetch('/object/ad-catalog/google/campaigns', 'GET', {
+    return internalRequest(this.sdk, '/object/ad-catalog/google/campaigns', 'GET', {
       query,
     });
   }
@@ -1106,7 +1107,7 @@ export class ObjectsService {
       { connectionId },
       { connectionId: { type: 'string', required: true } },
     );
-    return this.sdk._fetch('/object/ad-catalog/meta/accounts', 'GET', {
+    return internalRequest(this.sdk, '/object/ad-catalog/meta/accounts', 'GET', {
       query: { connectionId },
     });
   }
@@ -1127,8 +1128,68 @@ export class ObjectsService {
         adAccountId: { type: 'string', required: true },
       },
     );
-    return this.sdk._fetch('/object/ad-catalog/meta/campaigns', 'GET', {
+    return internalRequest(this.sdk, '/object/ad-catalog/meta/campaigns', 'GET', {
       query: { connectionId, adAccountId },
     });
+  }
+
+  /**
+   * Record activity feed for a single record.
+   * @param {string} recordId
+   * @returns {Promise<{results: object[]}>}
+   */
+  async getActivity(recordId) {
+    this.sdk.validateParams(
+      { recordId },
+      { recordId: { type: 'string', required: true } },
+    );
+    return internalRequest(this.sdk, `/object/${recordId}/activity`, 'GET');
+  }
+
+  /**
+   * Marketing programs dashboard (programs + totals).
+   * @returns {Promise<object>}
+   */
+  async getMarketingProgramsDashboard() {
+    return internalRequest(
+      this.sdk,
+      '/object/marketing-programs/dashboard',
+      'GET',
+    );
+  }
+
+  /**
+   * Metrics for one marketing program.
+   * @param {string} programId
+   * @returns {Promise<object>}
+   */
+  async getMarketingProgramMetrics(programId) {
+    this.sdk.validateParams(
+      { programId },
+      { programId: { type: 'string', required: true } },
+    );
+    return internalRequest(
+      this.sdk,
+      `/object/marketing-programs/${programId}/metrics`,
+      'GET',
+    );
+  }
+
+  /**
+   * Pull latest ad spend for a marketing program.
+   * @param {string} programId
+   * @returns {Promise<object>}
+   */
+  async pullMarketingProgramSpend(programId) {
+    this.sdk.validateParams(
+      { programId },
+      { programId: { type: 'string', required: true } },
+    );
+    return internalRequest(
+      this.sdk,
+      `/object/marketing-programs/${programId}/pull-spend`,
+      'POST',
+      { body: {} },
+    );
   }
 }

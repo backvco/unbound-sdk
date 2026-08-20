@@ -1,3 +1,4 @@
+import { internalRequest } from '../../base.js';
 export class EmailMailboxesService {
   constructor(sdk) {
     this.sdk = sdk;
@@ -76,7 +77,7 @@ export class EmailMailboxesService {
       ticketCreateEmailFrom: { type: 'string', required: false },
     });
 
-    const result = await this.sdk._fetch('/messaging/email/mailbox', 'POST', {
+    const result = await internalRequest(this.sdk, '/messaging/email/mailbox', 'POST', {
       body: mailboxData,
     });
     return result;
@@ -154,7 +155,7 @@ export class EmailMailboxesService {
       },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/messaging/email/mailbox',
       'GET',
       params,
@@ -189,7 +190,7 @@ export class EmailMailboxesService {
       },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/messaging/email/mailbox/${id}`,
       'GET',
       params,
@@ -278,7 +279,7 @@ export class EmailMailboxesService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/messaging/email/mailbox/${id}`,
       'PUT',
       {
@@ -303,7 +304,7 @@ export class EmailMailboxesService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/messaging/email/mailbox/${id}`,
       'DELETE',
     );
@@ -361,7 +362,7 @@ export class EmailMailboxesService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/messaging/email/mailbox/${mailboxId}/alias`,
       'POST',
       {
@@ -401,7 +402,7 @@ export class EmailMailboxesService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/messaging/email/mailbox/alias/${aliasId}`,
       'PUT',
       {
@@ -426,7 +427,7 @@ export class EmailMailboxesService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/messaging/email/mailbox/alias/${aliasId}`,
       'DELETE',
     );
@@ -449,7 +450,7 @@ export class EmailMailboxesService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/messaging/email/mailbox/${mailboxId}/folders`,
       'GET',
     );
@@ -467,7 +468,7 @@ export class EmailMailboxesService {
     );
     const body = { name };
     if (parent) body.parent = parent;
-    return this.sdk._fetch(
+    return internalRequest(this.sdk, 
       `/messaging/email/mailbox/${mailboxId}/folders`,
       'POST',
       { body },
@@ -483,7 +484,7 @@ export class EmailMailboxesService {
         to: { type: 'string', required: true },
       },
     );
-    return this.sdk._fetch(
+    return internalRequest(this.sdk, 
       `/messaging/email/mailbox/${mailboxId}/folders`,
       'PUT',
       { body: { from, to } },
@@ -498,7 +499,7 @@ export class EmailMailboxesService {
         name: { type: 'string', required: true },
       },
     );
-    return this.sdk._fetch(
+    return internalRequest(this.sdk, 
       `/messaging/email/mailbox/${mailboxId}/folders`,
       'DELETE',
       { query: { name }, body: { name } },

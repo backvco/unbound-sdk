@@ -1,3 +1,4 @@
+import { internalRequest } from '../base.js';
 import { PlaybooksService } from './ai/playbooks.js';
 import { VocabularyService } from './ai/vocabulary.js';
 import { translate as translateItems } from './ai/translate.js';
@@ -175,7 +176,7 @@ export class GenerativeService {
         ),
     );
     const forceFetch = stream === true || hasLargeContent;
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/ai/generative/chat',
       'POST',
       params,
@@ -249,7 +250,7 @@ export class GenerativeService {
       },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/ai/generative/chat/clone',
       'POST',
       params,
@@ -274,7 +275,7 @@ export class GenerativeService {
       body: payload,
     };
 
-    const result = await this.sdk._fetch('/ai/summarize', 'POST', params);
+    const result = await internalRequest(this.sdk, '/ai/summarize', 'POST', params);
     return result;
   }
 
@@ -283,7 +284,7 @@ export class GenerativeService {
    * @returns {Promise<Object>} { tools: Array<{ name, label, description, configRequirements }>, count: number }
    */
   async listTools() {
-    return await this.sdk._fetch('/ai/generative/tools', 'GET');
+    return await internalRequest(this.sdk, '/ai/generative/tools', 'GET');
   }
 
   /**
@@ -307,7 +308,7 @@ export class GenerativeService {
     );
 
     const params = { query: { relatedId, scope, limit, offset } };
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/ai/generative/sessions',
       'GET',
       params,
@@ -327,7 +328,7 @@ export class GenerativeService {
       { sessionId: { type: 'string', required: true } },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/ai/generative/sessions/${sessionId}`,
       'GET',
     );
@@ -352,7 +353,7 @@ export class GenerativeService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/ai/generative/sessions/${sessionId}`,
       'PUT',
       { body: { name, scope } },
@@ -372,7 +373,7 @@ export class GenerativeService {
       { sessionId: { type: 'string', required: true } },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/ai/generative/sessions/${sessionId}`,
       'DELETE',
     );
@@ -419,7 +420,7 @@ export class GenerativeService {
       },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/ai/generative/playbook',
       'POST',
       params,
@@ -468,7 +469,7 @@ export class GenerativeService {
 
   //   // Force HTTP transport when streaming is enabled since NATS doesn't support streaming responses
   //   const forceFetch = stream === true;
-  //   const result = await this.sdk._fetch(
+  //   const result = await internalRequest(this.sdk, 
   //     '/ai/generative/ollama',
   //     'POST',
   //     params,
@@ -537,7 +538,7 @@ export class TextToSpeechService {
       body: ttsData,
     };
 
-    const result = await this.sdk._fetch('/ai/tts', 'POST', params);
+    const result = await internalRequest(this.sdk, '/ai/tts', 'POST', params);
     return result;
   }
 
@@ -546,7 +547,7 @@ export class TextToSpeechService {
    * @returns {Promise<Object>} { voices: Array, count: number, supportedEncodings: Array, supportedLanguages: Array }
    */
   async list() {
-    const result = await this.sdk._fetch('/ai/tts', 'GET');
+    const result = await internalRequest(this.sdk, '/ai/tts', 'GET');
     return result;
   }
 }
@@ -638,7 +639,7 @@ export class SpeechToTextService {
       },
     };
 
-    const result = await this.sdk._fetch('/ai/stt', 'POST', params);
+    const result = await internalRequest(this.sdk, '/ai/stt', 'POST', params);
     return result;
   }
 
@@ -665,7 +666,7 @@ export class SpeechToTextService {
     const body = { storageId };
     if (language !== undefined) body.language = language;
     if (encoding !== undefined) body.encoding = encoding;
-    return await this.sdk._fetch('/ai/stt/file', 'POST', { body });
+    return await internalRequest(this.sdk, '/ai/stt/file', 'POST', { body });
   }
 
   /**
@@ -858,7 +859,7 @@ export class SpeechToTextService {
       },
     };
 
-    const session = await this.sdk._fetch(
+    const session = await internalRequest(this.sdk, 
       '/ai/stt/stream',
       'POST',
       sessionParams,
@@ -908,7 +909,7 @@ export class SpeechToTextService {
       query: { includeMessages: includeMessages.toString() },
     };
 
-    const result = await this.sdk._fetch(`/ai/stt/${id}`, 'GET', params);
+    const result = await internalRequest(this.sdk, `/ai/stt/${id}`, 'GET', params);
     return result;
   }
 
@@ -945,7 +946,7 @@ export class SpeechToTextService {
       query: filters,
     };
 
-    const result = await this.sdk._fetch('/ai/stt', 'GET', params);
+    const result = await internalRequest(this.sdk, '/ai/stt', 'GET', params);
     return result;
   }
 
@@ -1039,7 +1040,7 @@ export class SpeechToTextService {
       },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/ai/stt/stream/${sessionId}/messages`,
       'POST',
       params,
@@ -1069,7 +1070,7 @@ export class SpeechToTextService {
       body: { status, error },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/ai/stt/stream/${sessionId}/complete`,
       'PUT',
       params,
@@ -1281,7 +1282,7 @@ export class ExtractService {
       },
     };
 
-    const result = await this.sdk._fetch('/ai/extract', 'POST', requestParams);
+    const result = await internalRequest(this.sdk, '/ai/extract', 'POST', requestParams);
     return result;
   }
 }

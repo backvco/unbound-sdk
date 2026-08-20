@@ -1,3 +1,4 @@
+import { internalRequest } from '../base.js';
 export class DirectoryService {
   constructor(sdk) {
     this.sdk = sdk;
@@ -10,7 +11,7 @@ export class DirectoryService {
    * @returns {Promise<{favorites: Object[]}>}
    */
   async listFavorites() {
-    const result = await this.sdk._fetch('/directory/favorites', 'GET');
+    const result = await internalRequest(this.sdk, '/directory/favorites', 'GET');
     return result;
   }
 
@@ -45,7 +46,7 @@ export class DirectoryService {
 
     const params = { body };
 
-    const result = await this.sdk._fetch('/directory/favorites', 'POST', params);
+    const result = await internalRequest(this.sdk, '/directory/favorites', 'POST', params);
     return result;
   }
 
@@ -80,7 +81,7 @@ export class DirectoryService {
 
     const params = { body };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/directory/favorites/${favoriteId}`,
       'PUT',
       params,
@@ -102,7 +103,7 @@ export class DirectoryService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/directory/favorites/${favoriteId}`,
       'DELETE',
     );
@@ -126,7 +127,7 @@ export class DirectoryService {
 
     const params = { body: { order } };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/directory/favorites/reorder',
       'PUT',
       params,
@@ -139,9 +140,39 @@ export class DirectoryService {
    *
    * @returns {Promise<{contacts: Object[]}>}
    */
-  async listContacts() {
-    const result = await this.sdk._fetch('/directory/contacts', 'GET');
+  async listContacts({ search } = {}) {
+    const query = {};
+    if (search) query.search = search;
+    const result = await internalRequest(this.sdk, '/directory/contacts', 'GET', {
+      query,
+    });
     return result;
+  }
+
+  async favoriteStatus(objectType, objectId) {
+    this.sdk.validateParams(
+      { objectType, objectId },
+      {
+        objectType: { type: 'string', required: true },
+        objectId: { type: 'string', required: true },
+      },
+    );
+    return internalRequest(this.sdk, '/directory/favorites/status', 'GET', {
+      query: { objectType, objectId },
+    });
+  }
+
+  async contactStatus(objectType, objectId) {
+    this.sdk.validateParams(
+      { objectType, objectId },
+      {
+        objectType: { type: 'string', required: true },
+        objectId: { type: 'string', required: true },
+      },
+    );
+    return internalRequest(this.sdk, '/directory/contacts/status', 'GET', {
+      query: { objectType, objectId },
+    });
   }
 
   /**
@@ -163,7 +194,7 @@ export class DirectoryService {
 
     const params = { body: { objectType, objectId } };
 
-    const result = await this.sdk._fetch('/directory/contacts', 'POST', params);
+    const result = await internalRequest(this.sdk, '/directory/contacts', 'POST', params);
     return result;
   }
 
@@ -181,7 +212,7 @@ export class DirectoryService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/directory/contacts/${contactId}`,
       'DELETE',
     );

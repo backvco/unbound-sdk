@@ -1,3 +1,4 @@
+import { internalRequest } from '../../base.js';
 export class EmailAddressesService {
   constructor(sdk) {
     this.sdk = sdk;
@@ -20,7 +21,7 @@ export class EmailAddressesService {
       body: { emailAddress },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/messaging/email/validate/emailAddress',
       'POST',
       options,
@@ -41,7 +42,7 @@ export class EmailAddressesService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/messaging/email/validate/emailAddress/${encodeURIComponent(
         emailAddress,
       )}`,
@@ -55,7 +56,7 @@ export class EmailAddressesService {
    * @returns {Promise<Array>} List of verified email addresses
    */
   async list() {
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/messaging/email/validate/emailAddress',
       'GET',
     );
@@ -79,7 +80,7 @@ export class EmailAddressesService {
       query: { emailAddress },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/messaging/email/validate/emailAddress/status',
       'GET',
       options,
