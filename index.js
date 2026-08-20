@@ -33,6 +33,7 @@ import { TriggersService } from './services/triggers.js';
 import { InboxService } from './services/inbox.js';
 import { SearchService } from './services/search.js';
 import { DirectoryService } from './services/directory.js';
+import { ChatService } from './services/chat.js';
 
 class UnboundSDK extends BaseSDK {
   constructor(options = {}) {
@@ -107,6 +108,7 @@ class UnboundSDK extends BaseSDK {
     this.inbox = new InboxService(this);
     this.search = new SearchService(this);
     this.directory = new DirectoryService(this);
+    this.chat = new ChatService(this);
 
     // Add additional services that might be missing
     this._initializeAdditionalServices();
@@ -290,4 +292,5 @@ export { PermissionsService } from './services/permissions.js';
 export { InboxService } from './services/inbox.js';
 export { SearchService } from './services/search.js';
 export { DirectoryService } from './services/directory.js';
+export { ChatService } from './services/chat.js';
 export { BaseSDK } from './base.js';
