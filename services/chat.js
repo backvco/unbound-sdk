@@ -1,6 +1,6 @@
 /**
- * ChatService — channels, DMs, membership, unreads, messages, search,
- * webhooks, card actions, reports, admin review, record feeds,
+ * ChatService — channels, DMs, membership, unreads, DND, messages, search,
+ * webhooks, card actions, reports, admin review, admin export, record feeds,
  * channel meet, push devices, and notifyLevel.
  * Backed by /chat/* on app1-api (checkApiAuth). Incoming webhook POST
  * (HMAC) is external and is not an SDK method.
@@ -240,6 +240,28 @@ export class ChatService {
    */
   async getUnreads() {
     return this.sdk._fetch('/chat/unreads', 'GET');
+  }
+
+  /**
+   * Get the caller's Do Not Disturb state.
+   * @returns {Promise<Object>}
+   */
+  async getDnd() {
+    return this.sdk._fetch('/chat/dnd', 'GET');
+  }
+
+  /**
+   * Set the caller's Do Not Disturb state.
+   * @param {Object} params
+   * @param {boolean} params.enabled
+   * @returns {Promise<Object>}
+   */
+  async setDnd({ enabled } = {}) {
+    this.sdk.validateParams(
+      { enabled },
+      { enabled: { type: 'boolean', required: true } },
+    );
+    return this.sdk._fetch('/chat/dnd', 'PATCH', { body: { enabled } });
   }
 
   /**
@@ -646,6 +668,16 @@ export class ChatService {
   async adminGetChannel(id) {
     this.sdk.validateParams({ id }, { id: { type: 'string', required: true } });
     return this.sdk._fetch(`/chat/admin/channels/${id}`, 'GET');
+  }
+
+  /**
+   * Admin: export a channel (messages + members).
+   * @param {string} id
+   * @returns {Promise<Object>}
+   */
+  async adminExportChannel(id) {
+    this.sdk.validateParams({ id }, { id: { type: 'string', required: true } });
+    return this.sdk._fetch(`/chat/admin/channels/${id}/export`, 'GET');
   }
 
   /**
