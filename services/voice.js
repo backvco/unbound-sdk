@@ -22,6 +22,34 @@ export class VoiceService {
     return result;
   }
 
+  async transcription({
+    cdrId,
+    callId,
+    action = 'start',
+    direction = 'sendrecv',
+  }) {
+    this.sdk.validateParams(
+      { callId, cdrId, action, direction },
+      {
+        cdrId: { type: 'string', required: false },
+        callId: { type: 'string', required: false },
+        action: { type: 'string', required: false },
+        direction: { type: 'string', required: false },
+      },
+    );
+
+    const params = {
+      body: { callId, cdrId, action, direction },
+    };
+
+    const result = await this.sdk._fetch(
+      `/voice/transcription/`,
+      'POST',
+      params,
+    );
+    return result;
+  }
+
   async call({ to, from, destination, app, timeout, customHeaders, statusWebhook }) {
     this.sdk.validateParams(
       { to, from, destination, app, timeout, customHeaders, statusWebhook },

@@ -410,37 +410,36 @@ export class BaseSDK {
       'application/json';
 
     if (!response.ok) {
+      // A fetch Response's `.body` is a ReadableStream, not the parsed
+      // payload — it must go through json()/text() or the API's
+      // `{ message }` envelope is lost and every error surfaces as the
+      // generic "API Error". Only NATS-transport responses carry a
+      // pre-parsed `.body`.
       let errorBody;
-      if (response?.body) {
-        errorBody = response.body;
-      } else if (response?.headers?.['content-type']) {
-        try {
-          if (
-            typeof response?.json === 'function' ||
-            typeof response?.text === 'function'
-          ) {
-            if (contentType.includes('application/json')) {
-              errorBody = await response.json();
-            } else if (contentType.includes('text/')) {
-              errorBody = await response.text();
-            }
+      try {
+        if (
+          typeof response?.json === 'function' ||
+          typeof response?.text === 'function'
+        ) {
+          if (contentType.includes('application/json')) {
+            errorBody = await response.json();
+          } else if (contentType.includes('text/')) {
+            errorBody = await response.text();
+          }
+        } else if (response?.body) {
+          if (contentType.includes('application/json')) {
+            errorBody = this._getJsonSafely(
+              response?.body,
+              response?.body || {},
+            );
           } else {
-            if (contentType.includes('application/json')) {
-              errorBody = this._getJsonSafely(
-                response?.body,
-                response?.body || {},
-              );
-            } else if (contentType.includes('text/')) {
-              errorBody = response?.body || '';
-            }
+            errorBody = response.body;
           }
-          if (!errorBody) {
-            errorBody = `HTTP ${response.status} ${response.statusText}`;
-          }
-        } catch (parseError) {
-          errorBody = `HTTP ${response.status} ${response.statusText}`;
         }
-      } else {
+      } catch (parseError) {
+        // fall through to the status-line fallback below
+      }
+      if (!errorBody) {
         errorBody = `HTTP ${response.status} ${response.statusText}`;
       }
 
@@ -455,7 +454,10 @@ export class BaseSDK {
       httpError.method = method;
       httpError.endpoint = endpoint;
       httpError.body = errorBody;
-      httpError.message = errorBody?.error || errorBody?.message || 'API Error';
+      httpError.message =
+        errorBody?.error ||
+        errorBody?.message ||
+        (typeof errorBody === 'string' ? errorBody : 'API Error');
 
       // Debug logging for successful HTTP requests
       if (this.debugMode) {

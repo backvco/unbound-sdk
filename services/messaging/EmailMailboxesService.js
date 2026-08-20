@@ -455,4 +455,53 @@ export class EmailMailboxesService {
     );
     return result;
   }
+
+  async createFolder(mailboxId, { name, parent } = {}) {
+    this.sdk.validateParams(
+      { mailboxId, name, parent },
+      {
+        mailboxId: { type: 'string', required: true },
+        name: { type: 'string', required: true },
+        parent: { type: 'string', required: false },
+      },
+    );
+    const body = { name };
+    if (parent) body.parent = parent;
+    return this.sdk._fetch(
+      `/messaging/email/mailbox/${mailboxId}/folders`,
+      'POST',
+      { body },
+    );
+  }
+
+  async renameFolder(mailboxId, { from, to } = {}) {
+    this.sdk.validateParams(
+      { mailboxId, from, to },
+      {
+        mailboxId: { type: 'string', required: true },
+        from: { type: 'string', required: true },
+        to: { type: 'string', required: true },
+      },
+    );
+    return this.sdk._fetch(
+      `/messaging/email/mailbox/${mailboxId}/folders`,
+      'PUT',
+      { body: { from, to } },
+    );
+  }
+
+  async deleteFolder(mailboxId, { name } = {}) {
+    this.sdk.validateParams(
+      { mailboxId, name },
+      {
+        mailboxId: { type: 'string', required: true },
+        name: { type: 'string', required: true },
+      },
+    );
+    return this.sdk._fetch(
+      `/messaging/email/mailbox/${mailboxId}/folders`,
+      'DELETE',
+      { query: { name }, body: { name } },
+    );
+  }
 }

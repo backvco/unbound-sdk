@@ -9,21 +9,59 @@ export class InboxService {
    *
    * @param {Object} params
    * @param {string|string[]} [params.types] - Source kinds to include
-   *   ('call','voicemail','fax','sms'). Pass an array or a comma-joined
-   *   string; omit to include all kinds.
+   *   ('call','voicemail','fax','sms','meeting'). Pass an array or a
+   *   comma-joined string; omit to include all kinds.
    * @param {number} [params.limit] - Max items to return.
    * @param {string} [params.before] - UTC cursor 'YYYY-MM-DD HH:mm:ss';
    *   only items strictly older than this are returned.
    * @param {boolean} [params.unreadOnly] - When true, only unread items.
+   * @param {string} [params.startDate] - Inclusive range start `YYYY-MM-DD`.
+   * @param {string} [params.endDate] - Inclusive range end `YYYY-MM-DD`.
+   * @param {string} [params.q] - Search numbers, names, previews.
+   * @param {string} [params.direction] - `inbound` or `outbound`.
+   * @param {boolean} [params.missed] - Missed inbound calls only.
+   * @param {boolean} [params.hasRecording] - Calls/meetings with a recording.
+   * @param {boolean} [params.hasTranscription] - Calls/meetings/voicemail
+   *   with a transcript.
    * @returns {Promise<{items: Object[], nextCursor: string|null}>}
    */
-  async list({ types, limit, before, unreadOnly } = {}) {
+  async list({
+    types,
+    limit,
+    before,
+    unreadOnly,
+    startDate,
+    endDate,
+    q,
+    direction,
+    missed,
+    hasRecording,
+    hasTranscription,
+  } = {}) {
     this.sdk.validateParams(
-      { limit, before, unreadOnly },
+      {
+        limit,
+        before,
+        unreadOnly,
+        startDate,
+        endDate,
+        q,
+        direction,
+        missed,
+        hasRecording,
+        hasTranscription,
+      },
       {
         limit: { type: 'number', required: false },
         before: { type: 'string', required: false },
         unreadOnly: { type: 'boolean', required: false },
+        startDate: { type: 'string', required: false },
+        endDate: { type: 'string', required: false },
+        q: { type: 'string', required: false },
+        direction: { type: 'string', required: false },
+        missed: { type: 'boolean', required: false },
+        hasRecording: { type: 'boolean', required: false },
+        hasTranscription: { type: 'boolean', required: false },
       },
     );
 
@@ -42,6 +80,15 @@ export class InboxService {
     if (limit !== undefined) query.limit = limit;
     if (before !== undefined) query.before = before;
     if (unreadOnly !== undefined) query.unreadOnly = unreadOnly;
+    if (startDate !== undefined) query.startDate = startDate;
+    if (endDate !== undefined) query.endDate = endDate;
+    if (q !== undefined) query.q = q;
+    if (direction !== undefined) query.direction = direction;
+    if (missed !== undefined) query.missed = missed;
+    if (hasRecording !== undefined) query.hasRecording = hasRecording;
+    if (hasTranscription !== undefined) {
+      query.hasTranscription = hasTranscription;
+    }
 
     const params = { query };
 
@@ -82,10 +129,10 @@ export class InboxService {
   }
 
   /**
-   * Fetch inbox stats (calls/talk time/missed/unread voicemail) for the
-   * current user.
+   * Fetch inbox stats (calls/talk time/missed/unread voicemail/meetings) for
+   * the current user.
    *
-   * @returns {Promise<{callsToday: number, talkTimeSeconds: number, missedToday: number, unreadVoicemail: number, oldestUnreadVoicemailAt: string|null}>}
+   * @returns {Promise<{callsToday: number, talkTimeSeconds: number, missedToday: number, unreadVoicemail: number, oldestUnreadVoicemailAt: string|null, meetingsToday: number, meetingMinutesToday: number}>}
    */
   async stats() {
     const result = await this.sdk._fetch('/inbox/stats', 'GET');

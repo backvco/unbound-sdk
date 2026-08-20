@@ -230,6 +230,7 @@ export class VideoService {
     calendarProvider,
     vocabularyTerms,
     shareOcrEnabled,
+    earlyJoinMinutes,
   }) {
     this.sdk.validateParams(
       {
@@ -259,6 +260,7 @@ export class VideoService {
         calendarProvider,
         vocabularyTerms,
         shareOcrEnabled,
+        earlyJoinMinutes,
       },
       {
         name: { type: 'string', required: false },
@@ -287,6 +289,9 @@ export class VideoService {
         calendarProvider: { type: 'string', required: false },
         vocabularyTerms: { type: 'array', required: false },
         shareOcrEnabled: { type: 'boolean', required: false },
+        // 0 = strict at startTime, 5 = 5-min early window (api rejects
+        // other values); omit for no schedule-window enforcement.
+        earlyJoinMinutes: { type: 'number', required: false },
       },
     );
     const params = {
@@ -317,6 +322,7 @@ export class VideoService {
         calendarProvider,
         vocabularyTerms,
         shareOcrEnabled,
+        earlyJoinMinutes,
       },
     };
     const result = await this.sdk._fetch(`/video`, 'POST', params);
@@ -362,6 +368,8 @@ export class VideoService {
       validationSchema.vocabularyTerms = { type: 'array' };
     if ('shareOcrEnabled' in update)
       validationSchema.shareOcrEnabled = { type: 'boolean' };
+    if ('earlyJoinMinutes' in update)
+      validationSchema.earlyJoinMinutes = { type: 'number' };
 
     if (Object.keys(validationSchema).length > 0) {
       this.sdk.validateParams(update, validationSchema);
@@ -1057,7 +1065,10 @@ export class VideoService {
       },
     );
 
-    const result = await this.sdk._fetch(`/video/${roomId}/livePresence`, 'GET');
+    const result = await this.sdk._fetch(
+      `/video/${roomId}/livePresence`,
+      'GET',
+    );
     return result;
   }
 
@@ -1274,7 +1285,11 @@ export class VideoService {
       },
     );
 
-    const result = await this.sdk._fetch(`/video/${roomId}/auto-name`, 'POST', {});
+    const result = await this.sdk._fetch(
+      `/video/${roomId}/auto-name`,
+      'POST',
+      {},
+    );
     return result;
   }
 
@@ -1408,6 +1423,175 @@ export class VideoService {
     const result = await this.sdk._fetch(
       `/video/${roomId}/content-events`,
       'GET',
+    );
+    return result;
+  }
+
+  /**
+   * Get (or lazily create) the calling user's personal meeting room for this
+   * account. Every account user has exactly one; the first call provisions
+   * it server-side.
+   *
+   * NOTE: implemented flat (`getPersonalRoom`/`updatePersonalRoom`/
+   * `regeneratePersonalRoomPin`/`resolvePersonalRoom`) rather than the
+   * `sdk.video.personalRoom.{get,update,regeneratePin}` namespace named in
+   * the meet-hub plan — this file has no existing nested-namespace
+   * precedent, so flat matches every other method here.
+   *
+   * @param {string} [userId] - Optional target userId (admin viewing another user's room, e.g. Setup -> Users -> Meet). Defaults to the calling user.
+   * @returns {Promise<{personalRoom: {id: string, slug: string, url: string|null, dialInPin: string, guestsCanStart: boolean}}>}
+   */
+  async getPersonalRoom(userId = null) {
+    const params = { query: {} };
+    if (userId) {
+      this.sdk.validateParams(
+        { userId },
+        { userId: { type: 'string', required: true } },
+      );
+      params.query.userId = userId;
+    }
+    const result = await this.sdk._fetch('/video/personal-room', 'GET', params);
+    return result;
+  }
+
+  /**
+   * Update the calling user's personal meeting room (slug and/or
+   * guests-can-start). Omit a field to leave it unchanged.
+   *
+   * @param {Object} [update]
+   * @param {string} [update.slug] - New slug (3-32 chars, lowercase/numbers/hyphens, not reserved). 409-equivalent BadRequestError on collision.
+   * @param {boolean} [update.guestsCanStart] - Whether guests can start the room without the host present.
+   * @param {string} [update.password] - New static room passcode.
+   * @param {string} [update.userId] - Optional target userId (admin editing another user's room). Defaults to the calling user.
+   * @returns {Promise<{personalRoom: {id: string, slug: string, url: string|null, dialInPin: string, guestsCanStart: boolean}}>}
+   */
+  async updatePersonalRoom({ slug, guestsCanStart, password, userId } = {}) {
+    const validationSchema = {};
+    if (slug !== undefined) validationSchema.slug = { type: 'string' };
+    if (guestsCanStart !== undefined)
+      validationSchema.guestsCanStart = { type: 'boolean' };
+    // Static room passcode — 4-6 digits (api-enforced); applied to every
+    // session the room link mints.
+    if (password !== undefined) validationSchema.password = { type: 'string' };
+    if (userId !== undefined) validationSchema.userId = { type: 'string' };
+
+    if (Object.keys(validationSchema).length > 0) {
+      this.sdk.validateParams(
+        { slug, guestsCanStart, password, userId },
+        validationSchema,
+      );
+    }
+
+    const body = {};
+    if (slug !== undefined) body.slug = slug;
+    if (guestsCanStart !== undefined) body.guestsCanStart = guestsCanStart;
+    if (password !== undefined) body.password = password;
+    if (userId !== undefined) body.userId = userId;
+
+    const params = { body };
+    const result = await this.sdk._fetch('/video/personal-room', 'PUT', params);
+    return result;
+  }
+
+  /**
+   * Regenerate the dial-in PIN for the calling user's personal meeting room.
+   *
+   * @param {string} [userId] - Optional target userId (admin action). Defaults to the calling user.
+   * @returns {Promise<{personalRoom: {id: string, dialInPin: string}}>}
+   */
+  async regeneratePersonalRoomPin(userId = null) {
+    const body = {};
+    if (userId) {
+      this.sdk.validateParams(
+        { userId },
+        { userId: { type: 'string', required: true } },
+      );
+      body.userId = userId;
+    }
+    const result = await this.sdk._fetch(
+      '/video/personal-room/regenerate-pin',
+      'POST',
+      { body },
+    );
+    return result;
+  }
+
+  /**
+   * Live availability dry-run for a personal-room slug (settings editor).
+   *
+   * @param {string} slug - Candidate slug.
+   * @param {string} [userId] - Optional target userId (admin action). Defaults to the calling user.
+   * @returns {Promise<{slug: string, available: boolean, reason?: 'invalid'|'taken'}>}
+   */
+  async checkPersonalRoomSlug(slug, userId = null) {
+    this.sdk.validateParams(
+      { slug, userId },
+      {
+        slug: { type: 'string', required: true },
+        userId: { type: 'string', required: false },
+      },
+    );
+    const query = { slug };
+    if (userId) query.userId = userId;
+    const result = await this.sdk._fetch(
+      '/video/personal-room/slug-available',
+      'GET',
+      { query },
+    );
+    return result;
+  }
+
+  /**
+   * Regenerate the static web passcode for the calling user's personal
+   * meeting room (a separate secret from the dial-in PIN). Sessions minted
+   * after this use the new value.
+   *
+   * @param {string} [userId] - Optional target userId (admin action). Defaults to the calling user.
+   * @returns {Promise<{personalRoom: {id: string, password: string}}>}
+   */
+  async regeneratePersonalRoomPassword(userId = null) {
+    const body = {};
+    if (userId) {
+      this.sdk.validateParams(
+        { userId },
+        { userId: { type: 'string', required: true } },
+      );
+      body.userId = userId;
+    }
+    const result = await this.sdk._fetch(
+      '/video/personal-room/regenerate-password',
+      'POST',
+      { body },
+    );
+    return result;
+  }
+
+  /**
+   * Resolve a personal-room slug to a live session (join page). Guest-capable
+   * — mints/claims a fresh meeting if none is live, or returns the already
+   * -claimed session; if the caller is an unauthenticated guest and the room
+   * doesn't allow guests to start, returns `waitingForHost: true` instead.
+   * Guests only receive `password` when they supply the room's static
+   * passcode; otherwise `passwordRequired: true` is returned and the join
+   * page should prompt.
+   *
+   * @param {string} slug - The personal room's slug.
+   * @param {{password?: string}} [options] - The room's static passcode, when known.
+   * @returns {Promise<{claimed: boolean, meetingId?: string, friendlyName?: string, password?: string, passwordRequired?: boolean, waitingForHost?: boolean}>}
+   */
+  async resolvePersonalRoom(slug, { password } = {}) {
+    this.sdk.validateParams(
+      { slug, password },
+      {
+        slug: { type: 'string', required: true },
+        password: { type: 'string', required: false },
+      },
+    );
+
+    const result = await this.sdk._fetch(
+      `/video/personal-room/resolve/${slug}`,
+      'POST',
+      { body: { password } },
     );
     return result;
   }

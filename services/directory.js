@@ -15,27 +15,33 @@ export class DirectoryService {
   }
 
   /**
-   * Add a person or company to directory favorites. Reactivates a
-   * soft-deleted favorite on unique conflict.
+   * Add a person, company, user, or queue to directory favorites.
+   * Reactivates a soft-deleted favorite on unique conflict.
    *
    * @param {Object} params
-   * @param {string} params.objectType - 'person' or 'company' (required).
+   * @param {string} params.objectType - 'person', 'company', 'user', or 'queue' (required).
    * @param {string} params.objectId - Id of the favorited record (required).
    * @param {string[]} [params.channelIds] - Channel ids to pin for this favorite.
+   * @param {string} [params.channelId] - Channel id to pin for this favorite.
+   * @param {string} [params.numberField] - Number field to associate with this favorite.
    * @returns {Promise<Object>} The created (or reactivated) favorite.
    */
-  async addFavorite({ objectType, objectId, channelIds }) {
+  async addFavorite({ objectType, objectId, channelIds, channelId, numberField }) {
     this.sdk.validateParams(
-      { objectType, objectId, channelIds },
+      { objectType, objectId, channelIds, channelId, numberField },
       {
         objectType: { type: 'string', required: true },
         objectId: { type: 'string', required: true },
         channelIds: { type: 'array', required: false },
+        channelId: { type: 'string', required: false },
+        numberField: { type: 'string', required: false },
       },
     );
 
     const body = { objectType, objectId };
     if (channelIds !== undefined) body.channelIds = channelIds;
+    if (channelId !== undefined) body.channelId = channelId;
+    if (numberField !== undefined) body.numberField = numberField;
 
     const params = { body };
 
@@ -49,21 +55,27 @@ export class DirectoryService {
    * @param {string} favoriteId - Id of the favorite to update (required).
    * @param {Object} params
    * @param {string[]} [params.channelIds]
+   * @param {string} [params.channelId]
+   * @param {string} [params.numberField]
    * @param {number} [params.sortOrder]
    * @returns {Promise<Object>} The updated favorite.
    */
-  async updateFavorite(favoriteId, { channelIds, sortOrder } = {}) {
+  async updateFavorite(favoriteId, { channelIds, channelId, numberField, sortOrder } = {}) {
     this.sdk.validateParams(
-      { favoriteId, channelIds, sortOrder },
+      { favoriteId, channelIds, channelId, numberField, sortOrder },
       {
         favoriteId: { type: 'string', required: true },
         channelIds: { type: 'array', required: false },
+        channelId: { type: 'string', required: false },
+        numberField: { type: 'string', required: false },
         sortOrder: { type: 'number', required: false },
       },
     );
 
     const body = {};
     if (channelIds !== undefined) body.channelIds = channelIds;
+    if (channelId !== undefined) body.channelId = channelId;
+    if (numberField !== undefined) body.numberField = numberField;
     if (sortOrder !== undefined) body.sortOrder = sortOrder;
 
     const params = { body };
@@ -118,6 +130,60 @@ export class DirectoryService {
       '/directory/favorites/reorder',
       'PUT',
       params,
+    );
+    return result;
+  }
+
+  /**
+   * List the current user's directory contacts.
+   *
+   * @returns {Promise<{contacts: Object[]}>}
+   */
+  async listContacts() {
+    const result = await this.sdk._fetch('/directory/contacts', 'GET');
+    return result;
+  }
+
+  /**
+   * Add a person or company to directory contacts.
+   *
+   * @param {Object} params
+   * @param {string} params.objectType - 'person' or 'company' (required).
+   * @param {string} params.objectId - Id of the contacted record (required).
+   * @returns {Promise<Object>} The created contact.
+   */
+  async addContact({ objectType, objectId }) {
+    this.sdk.validateParams(
+      { objectType, objectId },
+      {
+        objectType: { type: 'string', required: true },
+        objectId: { type: 'string', required: true },
+      },
+    );
+
+    const params = { body: { objectType, objectId } };
+
+    const result = await this.sdk._fetch('/directory/contacts', 'POST', params);
+    return result;
+  }
+
+  /**
+   * Remove a directory contact.
+   *
+   * @param {string} contactId - Id of the contact to remove (required).
+   * @returns {Promise<Object>}
+   */
+  async removeContact(contactId) {
+    this.sdk.validateParams(
+      { contactId },
+      {
+        contactId: { type: 'string', required: true },
+      },
+    );
+
+    const result = await this.sdk._fetch(
+      `/directory/contacts/${contactId}`,
+      'DELETE',
     );
     return result;
   }

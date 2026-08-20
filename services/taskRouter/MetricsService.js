@@ -108,4 +108,58 @@ export class MetricsService {
     );
     return result;
   }
+
+  /**
+   * Get windowed queue/company metrics with a compare-window delta, per
+   * queue + an 'all' rollup (avg wait, avg handle, service level, longest
+   * wait, live depth/workers, and a waiting-count sparkline).
+   *
+   * @param {Object} params - Parameters
+   * @param {string[]} [params.queueIds] - Queue ids to scope to. Omit/empty for all queues.
+   * @param {string} params.from - ISO-8601 window start
+   * @param {string} params.to - ISO-8601 window end
+   * @param {string} params.compareFrom - ISO-8601 compare-window start
+   * @param {string} params.compareTo - ISO-8601 compare-window end
+   * @returns {Promise<Object>} result
+   * @returns {Object} result.window - `{from, to}`
+   * @returns {Object} result.compare - `{from, to}`
+   * @returns {Object} result.all - Rollup across every scoped queue (avgWaitSec, avgHandleSec, serviceLevelPct, longestWaitSec, depth, workersAvailable, workersTotal, waitingSparkline, deltas)
+   * @returns {Object} result.queues - Same shape as `result.all`, keyed by queueId
+   *
+   * @example
+   * const { all, queues } = await sdk.taskRouter.metrics.getWindow({
+   *   queueIds: ['q1', 'q2'],
+   *   from: '2026-08-19T22:00:00Z',
+   *   to: '2026-08-19T23:00:00Z',
+   *   compareFrom: '2026-08-19T21:00:00Z',
+   *   compareTo: '2026-08-19T22:00:00Z',
+   * });
+   * console.log(all.serviceLevelPct, all.deltas.serviceLevelPct);
+   */
+  async getWindow(params = {}) {
+    const { queueIds, from, to, compareFrom, compareTo } = params;
+
+    this.sdk.validateParams(
+      { queueIds, from, to, compareFrom, compareTo },
+      {
+        queueIds: { type: 'array', required: false },
+        from: { type: 'string', required: true },
+        to: { type: 'string', required: true },
+        compareFrom: { type: 'string', required: false },
+        compareTo: { type: 'string', required: false },
+      },
+    );
+
+    const query = { from, to };
+    if (queueIds && queueIds.length) query.queueIds = queueIds.join(',');
+    if (compareFrom) query.compareFrom = compareFrom;
+    if (compareTo) query.compareTo = compareTo;
+
+    const result = await this.sdk._fetch(
+      '/taskRouter/metrics/window',
+      'GET',
+      { query },
+    );
+    return result;
+  }
 }

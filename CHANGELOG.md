@@ -1,3 +1,18 @@
+## 4.8.10
+
+- feat: `sdk.messaging.email.mailboxes.createFolder` / `renameFolder` /
+  `deleteFolder` — custom and nested mailbox folders
+- feat: `sdk.inbox.list` filters (`startDate`, `endDate`, `q`, `direction`,
+  `missed`, `hasRecording`, `hasTranscription`) and meeting stats
+- feat: `sdk.directory.listContacts` / `addContact` / `removeContact`;
+  favorites accept `user`/`queue` plus `channelId`/`numberField`
+- feat: `sdk.taskRouter.cc` (`getScope`, `getSnapshot`, `getSessions`) and
+  `sdk.taskRouter.metrics.getWindow`
+- feat: meet personal-room methods on `sdk.video`; `statusWebhook` on
+  `sdk.voice.call`
+- fix: HTTP error bodies parse via `json()`/`text()` so API `{ message }`
+  is not swallowed as a generic "API Error"
+
 ## 4.6.0
 
 - feat: `sdk.objects.listGoogleAdAccounts` / `listGoogleAdCampaigns` /
