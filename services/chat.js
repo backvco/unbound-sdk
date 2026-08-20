@@ -1,6 +1,8 @@
 /**
- * ChatService — channels, DMs, membership, unreads, messages, and search.
- * Backed by /chat/* on app1-api (checkApiAuth).
+ * ChatService — channels, DMs, membership, unreads, messages, search,
+ * webhooks, and card actions.
+ * Backed by /chat/* on app1-api (checkApiAuth). Incoming webhook POST
+ * (HMAC) is external and is not an SDK method.
  */
 export class ChatService {
   constructor(sdk) {
@@ -501,5 +503,94 @@ export class ChatService {
     if (limit !== undefined) query.limit = limit;
 
     return this.sdk._fetch('/chat/search', 'GET', { query });
+  }
+
+  /**
+   * Create a channel incoming webhook (signing secret returned once).
+   * Button callback URLs are registered here — never taken from message payloads.
+   * @param {string} channelId
+   * @param {Object} params
+   * @param {string} params.name - Display name (required)
+   * @param {string} [params.avatar]
+   * @param {string} [params.callbackUrl] - Admin-registered button callback URL
+   * @returns {Promise<Object>} Created webhook (includes signingSecret once)
+   */
+  async createWebhook(channelId, { name, avatar, callbackUrl } = {}) {
+    this.sdk.validateParams(
+      { channelId, name, avatar, callbackUrl },
+      {
+        channelId: { type: 'string', required: true },
+        name: { type: 'string', required: true },
+        avatar: { type: 'string', required: false },
+        callbackUrl: { type: 'string', required: false },
+      },
+    );
+
+    const body = { name };
+    if (avatar !== undefined) body.avatar = avatar;
+    if (callbackUrl !== undefined) body.callbackUrl = callbackUrl;
+
+    return this.sdk._fetch(`/chat/channels/${channelId}/webhooks`, 'POST', {
+      body,
+    });
+  }
+
+  /**
+   * List webhooks for a channel.
+   * @param {string} channelId
+   * @returns {Promise<Object>}
+   */
+  async listWebhooks(channelId) {
+    this.sdk.validateParams(
+      { channelId },
+      { channelId: { type: 'string', required: true } },
+    );
+    return this.sdk._fetch(`/chat/channels/${channelId}/webhooks`, 'GET');
+  }
+
+  /**
+   * Revoke a channel webhook.
+   * @param {string} channelId
+   * @param {string} webhookId
+   * @returns {Promise<Object>}
+   */
+  async revokeWebhook(channelId, webhookId) {
+    this.sdk.validateParams(
+      { channelId, webhookId },
+      {
+        channelId: { type: 'string', required: true },
+        webhookId: { type: 'string', required: true },
+      },
+    );
+    return this.sdk._fetch(
+      `/chat/channels/${channelId}/webhooks/${webhookId}`,
+      'DELETE',
+    );
+  }
+
+  /**
+   * Click a card action button on a message. Acting principal is the caller.
+   * @param {string} messageId
+   * @param {Object} params
+   * @param {string} params.actionId
+   * @param {string} [params.value]
+   * @returns {Promise<Object>}
+   */
+  async clickAction(messageId, { actionId, value } = {}) {
+    this.sdk.validateParams(
+      { messageId, actionId, value },
+      {
+        messageId: { type: 'string', required: true },
+        actionId: { type: 'string', required: true },
+        value: { type: 'string', required: false },
+      },
+    );
+
+    const body = { actionId };
+    if (value !== undefined) body.value = value;
+
+    return this.sdk._fetch(`/chat/messages/${messageId}/actions`, 'POST', {
+      body,
+    });
   }
 }
