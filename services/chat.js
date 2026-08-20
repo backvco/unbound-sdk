@@ -1,5 +1,5 @@
 /**
- * ChatService — channels, DMs, membership, and unreads.
+ * ChatService — channels, DMs, membership, unreads, and messages.
  * Backed by /chat/* on app1-api (checkApiAuth).
  */
 export class ChatService {
@@ -295,5 +295,162 @@ export class ChatService {
     return this.sdk._fetch(`/chat/groups/${groupId}/linked-channels`, 'GET', {
       query: { userId },
     });
+  }
+
+  /**
+   * List messages in a channel (cursor pagination).
+   * @param {string} channelId
+   * @param {Object} [params]
+   * @param {string} [params.before]
+   * @param {string} [params.after]
+   * @param {number} [params.limit]
+   * @returns {Promise<Object>}
+   */
+  async listMessages(channelId, { before, after, limit } = {}) {
+    this.sdk.validateParams(
+      { channelId, before, after, limit },
+      {
+        channelId: { type: 'string', required: true },
+        before: { type: 'string', required: false },
+        after: { type: 'string', required: false },
+        limit: { type: 'number', required: false },
+      },
+    );
+
+    const query = {};
+    if (before !== undefined) query.before = before;
+    if (after !== undefined) query.after = after;
+    if (limit !== undefined) query.limit = limit;
+
+    return this.sdk._fetch(`/chat/channels/${channelId}/messages`, 'GET', {
+      query,
+    });
+  }
+
+  /**
+   * Send a message to a channel.
+   * @param {string} channelId
+   * @param {Object} params
+   * @param {Object} params.message - ProseMirror JSON (required)
+   * @param {string} [params.threadRootId]
+   * @param {boolean} [params.alsoSendToChannel]
+   * @param {string[]} [params.storageIds]
+   * @returns {Promise<Object>} Created message
+   */
+  async sendMessage(
+    channelId,
+    { message, threadRootId, alsoSendToChannel, storageIds } = {},
+  ) {
+    this.sdk.validateParams(
+      { channelId, message, threadRootId, alsoSendToChannel, storageIds },
+      {
+        channelId: { type: 'string', required: true },
+        message: { type: 'object', required: true },
+        threadRootId: { type: 'string', required: false },
+        alsoSendToChannel: { type: 'boolean', required: false },
+        storageIds: { type: 'array', required: false },
+      },
+    );
+
+    const body = { message };
+    if (threadRootId !== undefined) body.threadRootId = threadRootId;
+    if (alsoSendToChannel !== undefined) {
+      body.alsoSendToChannel = alsoSendToChannel;
+    }
+    if (storageIds !== undefined) body.storageIds = storageIds;
+
+    return this.sdk._fetch(`/chat/channels/${channelId}/messages`, 'POST', {
+      body,
+    });
+  }
+
+  /**
+   * Edit a message body (ProseMirror JSON).
+   * @param {string} id
+   * @param {Object} params
+   * @param {Object} params.message - ProseMirror JSON (required)
+   * @returns {Promise<Object>}
+   */
+  async editMessage(id, { message } = {}) {
+    this.sdk.validateParams(
+      { id, message },
+      {
+        id: { type: 'string', required: true },
+        message: { type: 'object', required: true },
+      },
+    );
+    return this.sdk._fetch(`/chat/messages/${id}`, 'PATCH', {
+      body: { message },
+    });
+  }
+
+  /**
+   * Delete a message (tombstone).
+   * @param {string} id
+   * @returns {Promise<Object>}
+   */
+  async deleteMessage(id) {
+    this.sdk.validateParams({ id }, { id: { type: 'string', required: true } });
+    return this.sdk._fetch(`/chat/messages/${id}`, 'DELETE');
+  }
+
+  /**
+   * Add an emoji reaction to a message.
+   * @param {string} id
+   * @param {Object} params
+   * @param {string} params.emoji
+   * @returns {Promise<Object>}
+   */
+  async addReaction(id, { emoji } = {}) {
+    this.sdk.validateParams(
+      { id, emoji },
+      {
+        id: { type: 'string', required: true },
+        emoji: { type: 'string', required: true },
+      },
+    );
+    return this.sdk._fetch(`/chat/messages/${id}/reactions`, 'POST', {
+      body: { emoji },
+    });
+  }
+
+  /**
+   * Remove an emoji reaction from a message.
+   * @param {string} id
+   * @param {Object} params
+   * @param {string} params.emoji
+   * @returns {Promise<Object>}
+   */
+  async removeReaction(id, { emoji } = {}) {
+    this.sdk.validateParams(
+      { id, emoji },
+      {
+        id: { type: 'string', required: true },
+        emoji: { type: 'string', required: true },
+      },
+    );
+    return this.sdk._fetch(`/chat/messages/${id}/reactions`, 'DELETE', {
+      body: { emoji },
+    });
+  }
+
+  /**
+   * Get a thread (root + replies) for a channel message.
+   * @param {string} channelId
+   * @param {string} rootId
+   * @returns {Promise<Object>}
+   */
+  async getThread(channelId, rootId) {
+    this.sdk.validateParams(
+      { channelId, rootId },
+      {
+        channelId: { type: 'string', required: true },
+        rootId: { type: 'string', required: true },
+      },
+    );
+    return this.sdk._fetch(
+      `/chat/channels/${channelId}/messages/${rootId}/thread`,
+      'GET',
+    );
   }
 }
