@@ -1,6 +1,6 @@
 /**
  * ChatService — channels, DMs, membership, unreads, messages, search,
- * webhooks, and card actions.
+ * webhooks, card actions, reports, and admin review.
  * Backed by /chat/* on app1-api (checkApiAuth). Incoming webhook POST
  * (HMAC) is external and is not an SDK method.
  */
@@ -592,5 +592,114 @@ export class ChatService {
     return this.sdk._fetch(`/chat/messages/${messageId}/actions`, 'POST', {
       body,
     });
+  }
+
+  /**
+   * Report a message.
+   * @param {string} id
+   * @param {Object} params
+   * @param {string} params.reason
+   * @returns {Promise<Object>}
+   */
+  async reportMessage(id, { reason } = {}) {
+    this.sdk.validateParams(
+      { id, reason },
+      {
+        id: { type: 'string', required: true },
+        reason: { type: 'string', required: true },
+      },
+    );
+    return this.sdk._fetch(`/chat/messages/${id}/report`, 'POST', {
+      body: { reason },
+    });
+  }
+
+  /**
+   * Admin: list all channels (optional search/kind filter).
+   * @param {Object} [params]
+   * @param {string} [params.q]
+   * @param {'public'|'private'|'dm'|'group_dm'|'record'|'meeting'} [params.kind]
+   * @returns {Promise<Object>}
+   */
+  async adminListChannels({ q, kind } = {}) {
+    this.sdk.validateParams(
+      { q, kind },
+      {
+        q: { type: 'string', required: false },
+        kind: { type: 'string', required: false },
+      },
+    );
+
+    const query = {};
+    if (q !== undefined) query.q = q;
+    if (kind !== undefined) query.kind = kind;
+
+    return this.sdk._fetch('/chat/admin/channels', 'GET', { query });
+  }
+
+  /**
+   * Admin: get a channel by id (no membership required).
+   * @param {string} id
+   * @returns {Promise<Object>}
+   */
+  async adminGetChannel(id) {
+    this.sdk.validateParams({ id }, { id: { type: 'string', required: true } });
+    return this.sdk._fetch(`/chat/admin/channels/${id}`, 'GET');
+  }
+
+  /**
+   * Admin: list message reports.
+   * @param {Object} [params]
+   * @param {string} [params.status]
+   * @returns {Promise<Object>}
+   */
+  async adminListReports({ status } = {}) {
+    this.sdk.validateParams(
+      { status },
+      { status: { type: 'string', required: false } },
+    );
+
+    const query = {};
+    if (status !== undefined) query.status = status;
+
+    return this.sdk._fetch('/chat/admin/reports', 'GET', { query });
+  }
+
+  /**
+   * Admin: review a message report (set status).
+   * @param {string} id
+   * @param {Object} params
+   * @param {string} params.status
+   * @returns {Promise<Object>}
+   */
+  async adminReviewReport(id, { status } = {}) {
+    this.sdk.validateParams(
+      { id, status },
+      {
+        id: { type: 'string', required: true },
+        status: { type: 'string', required: true },
+      },
+    );
+    return this.sdk._fetch(`/chat/admin/reports/${id}`, 'POST', {
+      body: { status },
+    });
+  }
+
+  /**
+   * Admin: delete a message (moderation).
+   * @param {string} id
+   * @returns {Promise<Object>}
+   */
+  async adminDeleteMessage(id) {
+    this.sdk.validateParams({ id }, { id: { type: 'string', required: true } });
+    return this.sdk._fetch(`/chat/admin/messages/${id}`, 'DELETE');
+  }
+
+  /**
+   * Admin: audit log of review actions.
+   * @returns {Promise<Object>}
+   */
+  async adminAudit() {
+    return this.sdk._fetch('/chat/admin/audit', 'GET');
   }
 }
