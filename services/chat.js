@@ -1,5 +1,5 @@
 /**
- * ChatService — channels, DMs, membership, unreads, and messages.
+ * ChatService — channels, DMs, membership, unreads, messages, and search.
  * Backed by /chat/* on app1-api (checkApiAuth).
  */
 export class ChatService {
@@ -452,5 +452,54 @@ export class ChatService {
       `/chat/channels/${channelId}/messages/${rootId}/thread`,
       'GET',
     );
+  }
+
+  /**
+   * Search messages the current user can read.
+   * @param {Object} params
+   * @param {string} params.q - Search term (required)
+   * @param {string} [params.channelId]
+   * @param {string} [params.fromUserId]
+   * @param {string} [params.before]
+   * @param {string} [params.after]
+   * @param {'public'|'private'|'dm'|'group_dm'|'record'|'meeting'} [params.kind]
+   * @param {string} [params.nextId]
+   * @param {number} [params.limit]
+   * @returns {Promise<Object>}
+   */
+  async search({
+    q,
+    channelId,
+    fromUserId,
+    before,
+    after,
+    kind,
+    nextId,
+    limit,
+  } = {}) {
+    this.sdk.validateParams(
+      { q, channelId, fromUserId, before, after, kind, nextId, limit },
+      {
+        q: { type: 'string', required: true },
+        channelId: { type: 'string', required: false },
+        fromUserId: { type: 'string', required: false },
+        before: { type: 'string', required: false },
+        after: { type: 'string', required: false },
+        kind: { type: 'string', required: false },
+        nextId: { type: 'string', required: false },
+        limit: { type: 'number', required: false },
+      },
+    );
+
+    const query = { q };
+    if (channelId !== undefined) query.channelId = channelId;
+    if (fromUserId !== undefined) query.fromUserId = fromUserId;
+    if (before !== undefined) query.before = before;
+    if (after !== undefined) query.after = after;
+    if (kind !== undefined) query.kind = kind;
+    if (nextId !== undefined) query.nextId = nextId;
+    if (limit !== undefined) query.limit = limit;
+
+    return this.sdk._fetch('/chat/search', 'GET', { query });
   }
 }
