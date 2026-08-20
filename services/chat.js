@@ -1,7 +1,7 @@
 /**
  * ChatService — channels, DMs, membership, unreads, messages, search,
- * webhooks, card actions, reports, admin review, record feeds, and
- * channel meet.
+ * webhooks, card actions, reports, admin review, record feeds,
+ * channel meet, push devices, and notifyLevel.
  * Backed by /chat/* on app1-api (checkApiAuth). Incoming webhook POST
  * (HMAC) is external and is not an SDK method.
  */
@@ -757,5 +757,63 @@ export class ChatService {
       { channelId: { type: 'string', required: true } },
     );
     return this.sdk._fetch(`/chat/channels/${channelId}/meet`, 'GET');
+  }
+
+  /**
+   * Get the VAPID public key for Web Push subscription.
+   * @returns {Promise<Object>}
+   */
+  async getVapidPublicKey() {
+    return this.sdk._fetch('/chat/push/vapidPublicKey', 'GET');
+  }
+
+  /**
+   * Register a push device (web push subscription or native FCM/APNs token).
+   * @param {Object} params
+   * @param {'webpush'|'fcm'|'apns'} params.kind
+   * @param {Object} params.subscription - Push subscription / token JSON
+   * @returns {Promise<Object>}
+   */
+  async registerPushDevice({ kind, subscription } = {}) {
+    this.sdk.validateParams(
+      { kind, subscription },
+      {
+        kind: { type: 'string', required: true },
+        subscription: { type: 'object', required: true },
+      },
+    );
+    return this.sdk._fetch('/chat/push/devices', 'POST', {
+      body: { kind, subscription },
+    });
+  }
+
+  /**
+   * Unregister a push device.
+   * @param {string} id
+   * @returns {Promise<Object>}
+   */
+  async unregisterPushDevice(id) {
+    this.sdk.validateParams({ id }, { id: { type: 'string', required: true } });
+    return this.sdk._fetch(`/chat/push/devices/${id}`, 'DELETE');
+  }
+
+  /**
+   * Set the caller's notifyLevel on a channel (all | mentions | mute).
+   * @param {string} channelId
+   * @param {Object} params
+   * @param {'all'|'mentions'|'mute'} params.notifyLevel
+   * @returns {Promise<Object>}
+   */
+  async setNotifyLevel(channelId, { notifyLevel } = {}) {
+    this.sdk.validateParams(
+      { channelId, notifyLevel },
+      {
+        channelId: { type: 'string', required: true },
+        notifyLevel: { type: 'string', required: true },
+      },
+    );
+    return this.sdk._fetch(`/chat/channels/${channelId}/notify`, 'PATCH', {
+      body: { notifyLevel },
+    });
   }
 }
