@@ -1,6 +1,7 @@
 /**
  * ChatService — channels, DMs, membership, unreads, messages, search,
- * webhooks, card actions, reports, and admin review.
+ * webhooks, card actions, reports, admin review, record feeds, and
+ * channel meet.
  * Backed by /chat/* on app1-api (checkApiAuth). Incoming webhook POST
  * (HMAC) is external and is not an SDK method.
  */
@@ -701,5 +702,60 @@ export class ChatService {
    */
   async adminAudit() {
     return this.sdk._fetch('/chat/admin/audit', 'GET');
+  }
+
+  /**
+   * Get (find-or-create) the record-feed channel for a related record.
+   * @param {string} relatedId
+   * @param {Object} params
+   * @param {string} params.recordTypeId
+   * @returns {Promise<Object>} Record-kind channel
+   */
+  async getRecordChannel(relatedId, { recordTypeId } = {}) {
+    this.sdk.validateParams(
+      { relatedId, recordTypeId },
+      {
+        relatedId: { type: 'string', required: true },
+        recordTypeId: { type: 'string', required: true },
+      },
+    );
+    return this.sdk._fetch(`/chat/records/${relatedId}`, 'GET', {
+      query: { recordTypeId },
+    });
+  }
+
+  /**
+   * Post a message to a record-feed channel (find-or-create).
+   * @param {string} relatedId
+   * @param {Object} params
+   * @param {Object} params.message - ProseMirror JSON (required)
+   * @param {string} params.recordTypeId
+   * @returns {Promise<Object>} Created message
+   */
+  async postToRecord(relatedId, { message, recordTypeId } = {}) {
+    this.sdk.validateParams(
+      { relatedId, message, recordTypeId },
+      {
+        relatedId: { type: 'string', required: true },
+        message: { type: 'object', required: true },
+        recordTypeId: { type: 'string', required: true },
+      },
+    );
+    return this.sdk._fetch(`/chat/records/${relatedId}/messages`, 'POST', {
+      body: { message, recordTypeId },
+    });
+  }
+
+  /**
+   * Get the Meet/Call room for a channel.
+   * @param {string} channelId
+   * @returns {Promise<Object>}
+   */
+  async getChannelMeet(channelId) {
+    this.sdk.validateParams(
+      { channelId },
+      { channelId: { type: 'string', required: true } },
+    );
+    return this.sdk._fetch(`/chat/channels/${channelId}/meet`, 'GET');
   }
 }
