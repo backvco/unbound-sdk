@@ -2,7 +2,8 @@ import { internalRequest } from '../base.js';
 /**
  * ChatService — channels, DMs, membership, unreads, DND, messages, search,
  * webhooks, card actions, reports, admin review, admin export, record feeds,
- * channel meet, push devices, and notifyLevel.
+ * channel meet, threads, bots, group default channels, push devices, and
+ * notifyLevel.
  * Backed by /chat/* on app1-api (checkApiAuth). Incoming webhook POST
  * (HMAC) is external and is not an SDK method.
  */
@@ -387,6 +388,8 @@ export class ChatService {
    * @param {string} [params.threadRootId]
    * @param {boolean} [params.alsoSendToChannel]
    * @param {string[]} [params.storageIds]
+   * @param {string[]} [params.tools]
+   * @param {Object} [params.toolConfig]
    * @returns {Promise<Object>} Created message
    */
   async sendMessage(
@@ -398,6 +401,8 @@ export class ChatService {
       storageIds,
       suppressUnfurlUrls,
       unfurls,
+      tools,
+      toolConfig,
     } = {},
   ) {
     this.sdk.validateParams(
@@ -409,6 +414,8 @@ export class ChatService {
         storageIds,
         suppressUnfurlUrls,
         unfurls,
+        tools,
+        toolConfig,
       },
       {
         channelId: { type: 'string', required: true },
@@ -418,6 +425,8 @@ export class ChatService {
         storageIds: { type: 'array', required: false },
         suppressUnfurlUrls: { type: 'array', required: false },
         unfurls: { type: 'array', required: false },
+        tools: { type: 'array', required: false },
+        toolConfig: { type: 'object', required: false },
       },
     );
 
@@ -431,6 +440,8 @@ export class ChatService {
       body.suppressUnfurlUrls = suppressUnfurlUrls;
     }
     if (unfurls !== undefined) body.unfurls = unfurls;
+    if (tools !== undefined) body.tools = tools;
+    if (toolConfig !== undefined) body.toolConfig = toolConfig;
 
     return internalRequest(this.sdk, `/chat/channels/${channelId}/messages`, 'POST', {
       body,
@@ -1032,6 +1043,235 @@ export class ChatService {
     if (kind) query.kind = kind;
     if (limit != null) query.limit = limit;
     return internalRequest(this.sdk, '/chat/mentions', 'GET', { query });
+  }
+
+  /**
+   * List thread roots the caller participates in.
+   * @param {Object} [params]
+   * @param {'public'|'private'|'dm'|'group_dm'|'record'} [params.kind]
+   * @param {number} [params.limit]
+   * @returns {Promise<Object>}
+   */
+  async listThreads({ kind, limit } = {}) {
+    const query = {};
+    if (kind) query.kind = kind;
+    if (limit != null) query.limit = limit;
+    return internalRequest(this.sdk, '/chat/threads', 'GET', { query });
+  }
+
+  /**
+   * List default channels for a group (auto-join on membership).
+   * @param {string} groupId
+   * @returns {Promise<Object>}
+   */
+  async getGroupDefaultChannels(groupId) {
+    this.sdk.validateParams(
+      { groupId },
+      { groupId: { type: 'string', required: true } },
+    );
+    return internalRequest(
+      this.sdk,
+      `/chat/groups/${groupId}/default-channels`,
+      'GET',
+    );
+  }
+
+  /**
+   * Replace default channels for a group.
+   * @param {string} groupId
+   * @param {Object} [params]
+   * @param {string[]} [params.channelIds]
+   * @returns {Promise<Object>}
+   */
+  async setGroupDefaultChannels(groupId, { channelIds } = {}) {
+    this.sdk.validateParams(
+      { groupId, channelIds },
+      {
+        groupId: { type: 'string', required: true },
+        channelIds: { type: 'array', required: false },
+      },
+    );
+    return internalRequest(
+      this.sdk,
+      `/chat/groups/${groupId}/default-channels`,
+      'PUT',
+      { body: { channelIds } },
+    );
+  }
+
+  /**
+   * Create a Meet/Call room for a channel.
+   * @param {string} channelId
+   * @returns {Promise<Object>}
+   */
+  async createChannelMeet(channelId) {
+    this.sdk.validateParams(
+      { channelId },
+      { channelId: { type: 'string', required: true } },
+    );
+    return internalRequest(
+      this.sdk,
+      `/chat/channels/${channelId}/meet`,
+      'POST',
+      { body: {} },
+    );
+  }
+
+  /**
+   * Update a channel Meet/Call room.
+   * @param {string} channelId
+   * @param {Object} [patch]
+   * @param {string} [patch.slug]
+   * @param {string} [patch.password]
+   * @param {boolean} [patch.guestsCanStart]
+   * @param {boolean} [patch.startRecordingOn]
+   * @param {boolean} [patch.startTranscribingOn]
+   * @param {number} [patch.endMeetingWithoutHostTimeLimit]
+   * @returns {Promise<Object>}
+   */
+  async updateChannelMeet(channelId, patch = {}) {
+    this.sdk.validateParams(
+      { channelId },
+      { channelId: { type: 'string', required: true } },
+    );
+    const body = {};
+    for (const key of [
+      'slug',
+      'password',
+      'guestsCanStart',
+      'startRecordingOn',
+      'startTranscribingOn',
+      'endMeetingWithoutHostTimeLimit',
+    ]) {
+      if (patch[key] !== undefined) body[key] = patch[key];
+    }
+    return internalRequest(
+      this.sdk,
+      `/chat/channels/${channelId}/meet`,
+      'PATCH',
+      { body },
+    );
+  }
+
+  /**
+   * Check whether a Meet slug is available for a channel.
+   * @param {string} channelId
+   * @param {string} slug
+   * @returns {Promise<Object>}
+   */
+  async checkChannelMeetSlug(channelId, slug) {
+    this.sdk.validateParams(
+      { channelId, slug },
+      {
+        channelId: { type: 'string', required: true },
+        slug: { type: 'string', required: true },
+      },
+    );
+    return internalRequest(
+      this.sdk,
+      `/chat/channels/${channelId}/meet/slug-available`,
+      'GET',
+      { query: { slug } },
+    );
+  }
+
+  /**
+   * Regenerate the Meet room password for a channel.
+   * @param {string} channelId
+   * @returns {Promise<Object>}
+   */
+  async regenerateChannelMeetPassword(channelId) {
+    this.sdk.validateParams(
+      { channelId },
+      { channelId: { type: 'string', required: true } },
+    );
+    return internalRequest(
+      this.sdk,
+      `/chat/channels/${channelId}/meet/regenerate-password`,
+      'POST',
+      { body: {} },
+    );
+  }
+
+  /**
+   * List chat bots for the account.
+   * @returns {Promise<Object>}
+   */
+  async listBots() {
+    return internalRequest(this.sdk, '/chat/bots', 'GET');
+  }
+
+  /**
+   * Update a chat bot.
+   * @param {string} id
+   * @param {Object} [params]
+   * @param {string} [params.name]
+   * @returns {Promise<Object>}
+   */
+  async updateBot(id, { name } = {}) {
+    this.sdk.validateParams(
+      { id, name },
+      {
+        id: { type: 'string', required: true },
+        name: { type: 'string', required: false },
+      },
+    );
+    return internalRequest(this.sdk, `/chat/bots/${id}`, 'PATCH', {
+      body: { name },
+    });
+  }
+
+  /**
+   * Get bot memory for a channel.
+   * @param {string} channelId
+   * @returns {Promise<Object>}
+   */
+  async getBotMemory(channelId) {
+    this.sdk.validateParams(
+      { channelId },
+      { channelId: { type: 'string', required: true } },
+    );
+    return internalRequest(
+      this.sdk,
+      `/chat/channels/${channelId}/bot-memory`,
+      'GET',
+    );
+  }
+
+  /**
+   * Reset bot memory for a channel.
+   * @param {string} channelId
+   * @returns {Promise<Object>}
+   */
+  async resetBotMemory(channelId) {
+    this.sdk.validateParams(
+      { channelId },
+      { channelId: { type: 'string', required: true } },
+    );
+    return internalRequest(
+      this.sdk,
+      `/chat/channels/${channelId}/bot-memory/reset`,
+      'POST',
+      { body: {} },
+    );
+  }
+
+  /**
+   * Compact bot memory for a channel.
+   * @param {string} channelId
+   * @returns {Promise<Object>}
+   */
+  async compactBotMemory(channelId) {
+    this.sdk.validateParams(
+      { channelId },
+      { channelId: { type: 'string', required: true } },
+    );
+    return internalRequest(
+      this.sdk,
+      `/chat/channels/${channelId}/bot-memory/compact`,
+      'POST',
+      { body: {} },
+    );
   }
 
   async listAdminChannels(query) {

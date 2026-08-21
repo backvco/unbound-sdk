@@ -1,3 +1,8 @@
+## 4.8.13
+
+- feat: `sdk.chat` threads, bots, channel-meet create/update/slug/password,
+  group default channels; `sendMessage` accepts `tools` / `toolConfig`
+
 ## 4.8.12
 
 - feat: `sdk.recents` (`list`, `smsThread`, `stats`, `transcribeVoicemail`)
