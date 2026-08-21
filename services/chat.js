@@ -77,14 +77,15 @@ export class ChatService {
    * @param {Object} [params.settings]
    * @returns {Promise<Object>}
    */
-  async updateChannel(id, { name, topic, settings } = {}) {
+  async updateChannel(id, { name, topic, settings, kind } = {}) {
     this.sdk.validateParams(
-      { id, name, topic, settings },
+      { id, name, topic, settings, kind },
       {
         id: { type: 'string', required: true },
         name: { type: 'string', required: false },
         topic: { type: 'string', required: false },
         settings: { type: 'object', required: false },
+        kind: { type: 'string', required: false },
       },
     );
 
@@ -92,6 +93,7 @@ export class ChatService {
     if (name !== undefined) body.name = name;
     if (topic !== undefined) body.topic = topic;
     if (settings !== undefined) body.settings = settings;
+    if (kind !== undefined) body.kind = kind;
 
     return internalRequest(this.sdk, `/chat/channels/${id}`, 'PATCH', { body });
   }
@@ -266,6 +268,30 @@ export class ChatService {
   }
 
   /**
+   * Favorite reaction emojis for the current user.
+   * @returns {Promise<Object>}
+   */
+  async getEmojiFavorites() {
+    return internalRequest(this.sdk, '/chat/emoji-favorites', 'GET');
+  }
+
+  /**
+   * Replace the caller's favorite reaction emojis.
+   * @param {Object} params
+   * @param {string[]} params.emojis
+   * @returns {Promise<Object>}
+   */
+  async setEmojiFavorites({ emojis } = {}) {
+    this.sdk.validateParams(
+      { emojis },
+      { emojis: { type: 'array', required: true } },
+    );
+    return internalRequest(this.sdk, '/chat/emoji-favorites', 'PATCH', {
+      body: { emojis },
+    });
+  }
+
+  /**
    * Advance the read watermark and recompute unread counters.
    * @param {string} channelId
    * @param {string} messageId
@@ -365,16 +391,33 @@ export class ChatService {
    */
   async sendMessage(
     channelId,
-    { message, threadRootId, alsoSendToChannel, storageIds } = {},
+    {
+      message,
+      threadRootId,
+      alsoSendToChannel,
+      storageIds,
+      suppressUnfurlUrls,
+      unfurls,
+    } = {},
   ) {
     this.sdk.validateParams(
-      { channelId, message, threadRootId, alsoSendToChannel, storageIds },
+      {
+        channelId,
+        message,
+        threadRootId,
+        alsoSendToChannel,
+        storageIds,
+        suppressUnfurlUrls,
+        unfurls,
+      },
       {
         channelId: { type: 'string', required: true },
         message: { type: 'object', required: true },
         threadRootId: { type: 'string', required: false },
         alsoSendToChannel: { type: 'boolean', required: false },
         storageIds: { type: 'array', required: false },
+        suppressUnfurlUrls: { type: 'array', required: false },
+        unfurls: { type: 'array', required: false },
       },
     );
 
@@ -384,6 +427,10 @@ export class ChatService {
       body.alsoSendToChannel = alsoSendToChannel;
     }
     if (storageIds !== undefined) body.storageIds = storageIds;
+    if (suppressUnfurlUrls !== undefined) {
+      body.suppressUnfurlUrls = suppressUnfurlUrls;
+    }
+    if (unfurls !== undefined) body.unfurls = unfurls;
 
     return internalRequest(this.sdk, `/chat/channels/${channelId}/messages`, 'POST', {
       body,
@@ -408,6 +455,44 @@ export class ChatService {
     return internalRequest(this.sdk, `/chat/messages/${id}`, 'PATCH', {
       body: { message },
     });
+  }
+
+  /**
+   * Fetch Open Graph data for a URL (composer preview).
+   * @param {Object} params
+   * @param {string} params.url
+   * @returns {Promise<Object>}
+   */
+  async previewLink({ url } = {}) {
+    this.sdk.validateParams({ url }, { url: { type: 'string', required: true } });
+    return internalRequest(
+      this.sdk,
+      `/chat/link-preview?url=${encodeURIComponent(url)}`,
+      'GET',
+    );
+  }
+
+  /**
+   * Hide a link preview on a message.
+   * @param {string} id
+   * @param {Object} params
+   * @param {string} params.url
+   * @returns {Promise<Object>}
+   */
+  async hideUnfurl(id, { url } = {}) {
+    this.sdk.validateParams(
+      { id, url },
+      {
+        id: { type: 'string', required: true },
+        url: { type: 'string', required: true },
+      },
+    );
+    return internalRequest(
+      this.sdk,
+      `/chat/messages/${id}/unfurls/hide`,
+      'POST',
+      { body: { url } },
+    );
   }
 
   /**
@@ -893,6 +978,60 @@ export class ChatService {
   async unpinItem(id) {
     this.sdk.validateParams({ id }, { id: { type: 'string', required: true } });
     return internalRequest(this.sdk, `/chat/pins/${id}`, 'DELETE');
+  }
+
+  /**
+   * Pin a message to the top of a channel/feed.
+   * @param {string} channelId
+   * @param {Object} params
+   * @param {string} params.messageId
+   * @returns {Promise<Object>}
+   */
+  async pinMessage(channelId, { messageId } = {}) {
+    this.sdk.validateParams(
+      { channelId, messageId },
+      {
+        channelId: { type: 'string', required: true },
+        messageId: { type: 'string', required: true },
+      },
+    );
+    return internalRequest(
+      this.sdk,
+      `/chat/channels/${channelId}/pinned-message`,
+      'PUT',
+      { body: { messageId } },
+    );
+  }
+
+  /**
+   * Clear the pinned message on a channel/feed.
+   * @param {string} channelId
+   * @returns {Promise<Object>}
+   */
+  async unpinMessage(channelId) {
+    this.sdk.validateParams(
+      { channelId },
+      { channelId: { type: 'string', required: true } },
+    );
+    return internalRequest(
+      this.sdk,
+      `/chat/channels/${channelId}/pinned-message`,
+      'DELETE',
+    );
+  }
+
+  /**
+   * List messages that mention the caller.
+   * @param {Object} [params]
+   * @param {'public'|'private'|'dm'|'group_dm'|'record'} [params.kind]
+   * @param {number} [params.limit]
+   * @returns {Promise<Object>}
+   */
+  async listMentions({ kind, limit } = {}) {
+    const query = {};
+    if (kind) query.kind = kind;
+    if (limit != null) query.limit = limit;
+    return internalRequest(this.sdk, '/chat/mentions', 'GET', { query });
   }
 
   async listAdminChannels(query) {
