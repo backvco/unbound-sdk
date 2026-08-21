@@ -1,8 +1,13 @@
+## 4.8.12
+
+- feat: `sdk.recents` (`list`, `smsThread`, `stats`, `transcribeVoicemail`)
+  — HTTP `/recents`
+
 ## 4.8.10
 
 - feat: `sdk.messaging.email.mailboxes.createFolder` / `renameFolder` /
   `deleteFolder` — custom and nested mailbox folders
-- feat: `sdk.inbox.list` filters (`startDate`, `endDate`, `q`, `direction`,
+- feat: `sdk.recents.list` filters (`startDate`, `endDate`, `q`, `direction`,
   `missed`, `hasRecording`, `hasTranscription`) and meeting stats
 - feat: `sdk.directory.listContacts` / `addContact` / `removeContact`;
   favorites accept `user`/`queue` plus `channelId`/`numberField`

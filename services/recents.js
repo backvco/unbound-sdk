@@ -1,11 +1,11 @@
 import { internalRequest } from '../base.js';
-export class InboxService {
+export class RecentsService {
   constructor(sdk) {
     this.sdk = sdk;
   }
 
   /**
-   * List unified inbox items merged across call/voicemail/fax/sms sources,
+   * List unified recents items merged across call/voicemail/fax/sms sources,
    * sorted descending by timestamp.
    *
    * @param {Object} params
@@ -93,7 +93,7 @@ export class InboxService {
 
     const params = { query };
 
-    const result = await internalRequest(this.sdk, '/inbox', 'GET', params);
+    const result = await internalRequest(this.sdk, '/recents', 'GET', params);
     return result;
   }
 
@@ -125,18 +125,18 @@ export class InboxService {
 
     const params = { query };
 
-    const result = await internalRequest(this.sdk, '/inbox/smsThread', 'GET', params);
+    const result = await internalRequest(this.sdk, '/recents/smsThread', 'GET', params);
     return result;
   }
 
   /**
-   * Fetch inbox stats (calls/talk time/missed/unread voicemail/meetings) for
+   * Fetch recents stats (calls/talk time/missed/unread voicemail/meetings) for
    * the current user.
    *
    * @returns {Promise<{callsToday: number, talkTimeSeconds: number, missedToday: number, unreadVoicemail: number, oldestUnreadVoicemailAt: string|null, meetingsToday: number, meetingMinutesToday: number}>}
    */
   async stats() {
-    const result = await internalRequest(this.sdk, '/inbox/stats', 'GET');
+    const result = await internalRequest(this.sdk, '/recents/stats', 'GET');
     return result;
   }
 
@@ -154,7 +154,7 @@ export class InboxService {
       { voicemailMessageId: { type: 'string', required: true } },
     );
     return await internalRequest(this.sdk, 
-      `/inbox/voicemail/${voicemailMessageId}/transcribe`,
+      `/recents/voicemail/${voicemailMessageId}/transcribe`,
       'POST',
       { body: {} },
     );
