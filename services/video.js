@@ -455,20 +455,40 @@ export class VideoService {
     return await internalRequest(this.sdk, `/video/${roomId}`, 'GET', params);
   }
 
+  /**
+   * List meetings visible to the current user.
+   *
+   * @param {Object} [options] - Parameters
+   * @param {string} [options.startDate] - Start of the search window
+   * @param {string} [options.endDate] - End of the search window
+   * @param {number} [options.limit] - Max results
+   * @param {number} [options.offset] - Pagination offset
+   * @param {string} [options.engagementSessionId] - When set, returns meetings tied to this
+   *   engagement session instead of filtering by the caller's own hosts/participants email —
+   *   lets a reviewing manager see meetings they weren't part of.
+   * @returns {Promise<Object>} Meetings list result
+   */
   async listMeetings(options = {}) {
+    const { engagementSessionId, ...rest } = options;
+
     // Validate optional parameters
     const validationSchema = {};
-    if ('startDate' in options) validationSchema.startDate = { type: 'string' };
-    if ('endDate' in options) validationSchema.endDate = { type: 'string' };
-    if ('limit' in options) validationSchema.limit = { type: 'number' };
-    if ('offset' in options) validationSchema.offset = { type: 'number' };
+    if ('startDate' in rest) validationSchema.startDate = { type: 'string' };
+    if ('endDate' in rest) validationSchema.endDate = { type: 'string' };
+    if ('limit' in rest) validationSchema.limit = { type: 'number' };
+    if ('offset' in rest) validationSchema.offset = { type: 'number' };
+    if (engagementSessionId !== undefined)
+      validationSchema.engagementSessionId = { type: 'string' };
 
     if (Object.keys(validationSchema).length > 0) {
-      this.sdk.validateParams(options, validationSchema);
+      this.sdk.validateParams({ ...rest, engagementSessionId }, validationSchema);
     }
 
     const params = {
-      query: options,
+      query: {
+        ...rest,
+        engagementSessionId,
+      },
     };
 
     const result = await internalRequest(this.sdk, '/video/meetings', 'GET', params);
