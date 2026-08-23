@@ -85,6 +85,7 @@ export class FaxService {
    * @param {string} [options.resolution] - Fax resolution (defaults to mailbox resolution)
    * @param {boolean} [options.ecm] - Enable Error Correction Mode (default: true)
    * @param {number} [options.timeout] - Dial timeout in seconds (defaults to mailbox dialTimeout)
+   * @param {string} [options.relatedId] - Record (e.g. engagement/task) id; server posts a fax card into that record's activity feed
    * @returns {Promise<Object>} Send result
    * @returns {string} result.id - The fax document ID
    * @returns {string} result.status - 'sending' on success, 'failed' on NATS error
@@ -131,6 +132,7 @@ export class FaxService {
     resolution,
     ecm,
     timeout,
+    relatedId,
   }) {
     this.sdk.validateParams(
       { faxMailboxId, toNumber, fromNumber, coverStorageId, paperSize },
@@ -166,6 +168,7 @@ export class FaxService {
         resolution,
         ecm,
         timeout,
+        relatedId,
       },
     };
 
