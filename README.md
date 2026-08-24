@@ -352,7 +352,7 @@ const call = await api.voice.createCall({
 // Call controls
 await api.voice.mute(call.callControlId);
 await api.voice.hold(call.callControlId);
-await api.voice.sendDtmf(call.callControlId, '1234');
+await api.voice.sendDtmf({ callId: call.callId, dtmf: '1234' }); // mode: 'auto'|'rtp'|'inband'|'info'
 await api.voice.transfer(call.callControlId, '+1555555555');
 await api.voice.hangup(call.callControlId);
 

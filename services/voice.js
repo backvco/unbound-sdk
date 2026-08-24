@@ -250,25 +250,26 @@ export class VoiceService {
     return this.mute(voiceChannelId, 'unmute', direction);
   }
 
-  async sendDtmf(voiceChannelId, dtmf, mode) {
+  /**
+   * Send DTMF digits on a live call (SIP call ID). mode: 'auto' (default —
+   * RFC4733 RTP if negotiated, else in-band tones) | 'rtp' | 'inband' | 'info'
+   * (SIP INFO application/dtmf-relay).
+   */
+  async sendDtmf({ callId, dtmf, mode }) {
     this.sdk.validateParams(
-      { voiceChannelId, dtmf, mode },
+      { callId, dtmf, mode },
       {
-        voiceChannelId: { type: 'string', required: true },
+        callId: { type: 'string', required: true },
         dtmf: { type: 'string', required: true },
         mode: { type: 'string', required: false },
       },
     );
 
     const params = {
-      body: mode ? { dtmf, mode } : { dtmf },
+      body: mode ? { callId, dtmf, mode } : { callId, dtmf },
     };
 
-    const result = await internalRequest(this.sdk,
-      `/voice/calls/dtmf/${voiceChannelId}`,
-      'POST',
-      params,
-    );
+    const result = await internalRequest(this.sdk, `/voice/dtmf`, 'POST', params);
     return result;
   }
 
