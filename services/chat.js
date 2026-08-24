@@ -225,7 +225,8 @@ export class ChatService {
   }
 
   /**
-   * Find-or-create a 1:1 or group DM.
+   * Find-or-create a 1:1, self ("You"), or group DM.
+   * Pass `userIds: []` (or only the caller) for the You channel.
    * @param {Object} params
    * @param {string[]} params.userIds
    * @returns {Promise<Object>}

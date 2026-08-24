@@ -250,20 +250,21 @@ export class VoiceService {
     return this.mute(voiceChannelId, 'unmute', direction);
   }
 
-  async sendDtmf(voiceChannelId, dtmf) {
+  async sendDtmf(voiceChannelId, dtmf, mode) {
     this.sdk.validateParams(
-      { voiceChannelId, dtmf },
+      { voiceChannelId, dtmf, mode },
       {
         voiceChannelId: { type: 'string', required: true },
         dtmf: { type: 'string', required: true },
+        mode: { type: 'string', required: false },
       },
     );
 
     const params = {
-      body: { dtmf },
+      body: mode ? { dtmf, mode } : { dtmf },
     };
 
-    const result = await internalRequest(this.sdk, 
+    const result = await internalRequest(this.sdk,
       `/voice/calls/dtmf/${voiceChannelId}`,
       'POST',
       params,
