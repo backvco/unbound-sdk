@@ -251,23 +251,29 @@ export class VoiceService {
   }
 
   /**
-   * Send DTMF digits on a live call (SIP call ID). mode: 'auto' (default —
-   * RFC4733 RTP if negotiated, else in-band tones) | 'rtp' | 'inband' | 'info'
-   * (SIP INFO application/dtmf-relay).
+   * Send DTMF digits on a live call (SIP call ID).
+   * mode:   'auto' (default — RFC4733 RTP if negotiated, else in-band tones)
+   *         | 'rtp' | 'inband' | 'info' (SIP INFO application/dtmf-relay).
+   * target: 'leg' (default) — transmit on callId's media toward its far end
+   *         (e.g. a bot sending digits on the PSTN leg it dialed);
+   *         'peer' — as if the party on callId pressed the keys: the bridge
+   *         relays to the other side (a user's keypad on their own leg).
    */
-  async sendDtmf({ callId, dtmf, mode }) {
+  async sendDtmf({ callId, dtmf, mode, target }) {
     this.sdk.validateParams(
-      { callId, dtmf, mode },
+      { callId, dtmf, mode, target },
       {
         callId: { type: 'string', required: true },
         dtmf: { type: 'string', required: true },
         mode: { type: 'string', required: false },
+        target: { type: 'string', required: false },
       },
     );
 
-    const params = {
-      body: mode ? { callId, dtmf, mode } : { callId, dtmf },
-    };
+    const body = { callId, dtmf };
+    if (mode) body.mode = mode;
+    if (target) body.target = target;
+    const params = { body };
 
     const result = await internalRequest(this.sdk, `/voice/dtmf`, 'POST', params);
     return result;
