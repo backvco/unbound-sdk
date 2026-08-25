@@ -1,3 +1,7 @@
+## 4.10.1
+
+- fix: storage/drive PATCH methods use HTTP (`forceFetch`) — socket has no PATCH
+
 ## 4.10.0
 
 - feat: `sdk.storage` folder CRUD (`listFolders`, `createFolder`, `updateFolder`,

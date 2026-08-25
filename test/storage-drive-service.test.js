@@ -102,6 +102,7 @@ describe('StorageService.updateFolder', () => {
 
     assert.equal(calls[0].endpoint, '/storage/folders/fold-2');
     assert.equal(calls[0].method, 'PATCH');
+    assert.equal(calls[0].forceFetch, true);
     assert.deepEqual(calls[0].params, {
       body: { relatedId: 'rec-1', name: 'Archive', parentId: 'fold-1' },
     });
@@ -134,6 +135,7 @@ describe('StorageService.moveFiles', () => {
 
     assert.equal(calls[0].endpoint, '/storage/files/move');
     assert.equal(calls[0].method, 'PATCH');
+    assert.equal(calls[0].forceFetch, true);
     assert.deepEqual(calls[0].params, {
       body: {
         ids: ['file-1', 'file-2'],
@@ -157,6 +159,7 @@ describe('StorageService.updateFileMetadata', () => {
 
     assert.equal(calls[0].endpoint, '/storage/files/file-1');
     assert.equal(calls[0].method, 'PATCH');
+    assert.equal(calls[0].forceFetch, true);
     assert.deepEqual(calls[0].params, {
       body: {
         fileName: 'renamed.pdf',
