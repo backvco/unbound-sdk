@@ -169,11 +169,35 @@ export class LayoutsService {
       },
     );
 
-    const result = await internalRequest(this.sdk, 
+    const result = await internalRequest(this.sdk,
       `/layouts/${layoutId}/versions/${version}/rollback`,
       'POST',
       {},
     );
+    return result;
+  }
+
+  async clone(id, { name } = {}) {
+    this.sdk.validateParams(
+      { id },
+      { id: { type: 'string', required: true } },
+    );
+
+    const params = {
+      body: { name },
+    };
+
+    const result = await internalRequest(this.sdk, `/layouts/${id}/clone`, 'POST', params);
+    return result;
+  }
+
+  async getSystemSource(id) {
+    this.sdk.validateParams(
+      { id },
+      { id: { type: 'string', required: true } },
+    );
+
+    const result = await internalRequest(this.sdk, `/layouts/${id}/system-source`, 'GET', {});
     return result;
   }
 }
