@@ -459,6 +459,7 @@ Response:
    * @param {string} [config.country='US'] - Country code for region selection
    * @param {string} [config.expireAfter] - Expiration time
    * @param {string} [config.relatedId] - Related object ID
+   * @param {string} [config.folderId] - Storage folder id
    * @param {boolean} [config.createAccessKey=false] - Generate an access key for the file
    * @param {number} [config.accessKeyExpiresIn] - Access key expiration in seconds
    * @param {string} [config.convertTo] - Convert uploaded file to this format before storing. Supported: 'pdf', 'tiff'. Input must be PDF, DOC, or DOCX.
@@ -479,6 +480,7 @@ Response:
     country = 'US',
     expireAfter,
     relatedId,
+    folderId,
     createAccessKey = false,
     accessKeyExpiresIn,
     convertTo,
@@ -496,6 +498,7 @@ Response:
         country,
         expireAfter,
         relatedId,
+        folderId,
         createAccessKey,
         accessKeyExpiresIn,
         convertTo,
@@ -510,6 +513,7 @@ Response:
         country: { type: 'string', required: false },
         expireAfter: { type: 'string', required: false },
         relatedId: { type: 'string', required: false },
+        folderId: { type: 'string', required: false },
         createAccessKey: { type: 'boolean', required: false },
         accessKeyExpiresIn: { type: 'number', required: false },
         convertTo: { type: 'string', required: false },
@@ -526,6 +530,7 @@ Response:
     if (country) formFields.push(['country', country]);
     if (expireAfter) formFields.push(['expireAfter', expireAfter]);
     if (relatedId) formFields.push(['relatedId', relatedId]);
+    if (folderId) formFields.push(['folderId', folderId]);
     if (createAccessKey !== undefined)
       formFields.push(['createAccessKey', createAccessKey.toString()]);
     if (accessKeyExpiresIn)
@@ -779,41 +784,83 @@ Response:
     return result;
   }
 
-  async updateFileMetadata(storageId, metadata) {
+  /**
+   * Update file metadata (rename and/or move). Does not re-upload the file.
+   * @param {string} id - Storage file id
+   * @param {Object} [updates]
+   * @param {string} [updates.fileName]
+   * @param {string} [updates.folderId]
+   * @param {string} [updates.relatedId]
+   * @returns {Promise<Object>}
+   */
+  async updateFileMetadata(id, { fileName, folderId, relatedId } = {}) {
     this.sdk.validateParams(
-      { storageId, metadata },
+      { id, fileName, folderId, relatedId },
       {
-        storageId: { type: 'string', required: true },
-        metadata: { type: 'object', required: true },
+        id: { type: 'string', required: true },
+        fileName: { type: 'string', required: false },
+        folderId: { type: 'string', required: false },
+        relatedId: { type: 'string', required: false },
       },
     );
 
-    const params = {
-      body: { metadata },
-    };
+    const body = {};
+    if (fileName !== undefined) body.fileName = fileName;
+    if (folderId !== undefined) body.folderId = folderId;
+    if (relatedId !== undefined) body.relatedId = relatedId;
 
-    const result = await internalRequest(this.sdk, 
-      `/storage/file/${storageId}/metadata`,
-      'PUT',
-      params,
+    const result = await internalRequest(
+      this.sdk,
+      `/storage/files/${id}`,
+      'PATCH',
+      { body },
     );
     return result;
   }
 
+  /**
+   * List storage files.
+   * @param {Object} [options]
+   * @param {string} [options.relatedId]
+   * @param {string} [options.folderId]
+   * @param {string} [options.folder]
+   * @param {string} [options.classification]
+   * @param {string} [options.search]
+   * @param {string} [options.view]
+   * @param {number} [options.page]
+   * @param {number} [options.limit]
+   * @param {string} [options.sortBy]
+   * @param {string} [options.sortOrder]
+   * @param {string} [options.fileType]
+   * @param {boolean} [options.isPublic]
+   * @param {number} [options.offset] - Legacy; still forwarded if provided
+   * @param {string} [options.orderBy] - Legacy; still forwarded if provided
+   * @param {string} [options.orderDirection] - Legacy; still forwarded if provided
+   * @returns {Promise<Object>}
+   */
   async listFiles(options = {}) {
-    const { classification, folder, limit, offset, orderBy, orderDirection } =
-      options;
-
-    // Validate optional parameters
     const validationSchema = {};
-    if ('classification' in options)
-      validationSchema.classification = { type: 'string' };
-    if ('folder' in options) validationSchema.folder = { type: 'string' };
-    if ('limit' in options) validationSchema.limit = { type: 'number' };
-    if ('offset' in options) validationSchema.offset = { type: 'number' };
-    if ('orderBy' in options) validationSchema.orderBy = { type: 'string' };
-    if ('orderDirection' in options)
-      validationSchema.orderDirection = { type: 'string' };
+    const optionalTypes = {
+      relatedId: 'string',
+      folderId: 'string',
+      folder: 'string',
+      classification: 'string',
+      search: 'string',
+      view: 'string',
+      page: 'number',
+      limit: 'number',
+      sortBy: 'string',
+      sortOrder: 'string',
+      fileType: 'string',
+      isPublic: 'boolean',
+      offset: 'number',
+      orderBy: 'string',
+      orderDirection: 'string',
+    };
+
+    for (const [key, type] of Object.entries(optionalTypes)) {
+      if (key in options) validationSchema[key] = { type };
+    }
 
     if (Object.keys(validationSchema).length > 0) {
       this.sdk.validateParams(options, validationSchema);
@@ -824,6 +871,150 @@ Response:
     };
 
     const result = await internalRequest(this.sdk, '/storage/files', 'GET', params);
+    return result;
+  }
+
+  /**
+   * List storage folders for a related record.
+   * @param {Object} options
+   * @param {string} options.relatedId
+   * @param {string} [options.parentId]
+   * @param {string} [options.search]
+   * @returns {Promise<Object>}
+   */
+  async listFolders({ relatedId, parentId, search } = {}) {
+    this.sdk.validateParams(
+      { relatedId, parentId, search },
+      {
+        relatedId: { type: 'string', required: true },
+        parentId: { type: 'string', required: false },
+        search: { type: 'string', required: false },
+      },
+    );
+
+    const query = { relatedId };
+    if (parentId !== undefined) query.parentId = parentId;
+    if (search !== undefined) query.search = search;
+
+    const result = await internalRequest(this.sdk, '/storage/folders', 'GET', {
+      query,
+    });
+    return result;
+  }
+
+  /**
+   * Create a storage folder.
+   * @param {Object} options
+   * @param {string} options.relatedId
+   * @param {string} [options.parentId]
+   * @param {string} options.name
+   * @returns {Promise<Object>}
+   */
+  async createFolder({ relatedId, parentId, name } = {}) {
+    this.sdk.validateParams(
+      { relatedId, parentId, name },
+      {
+        relatedId: { type: 'string', required: true },
+        parentId: { type: 'string', required: false },
+        name: { type: 'string', required: true },
+      },
+    );
+
+    const body = { relatedId, name };
+    if (parentId !== undefined) body.parentId = parentId;
+
+    const result = await internalRequest(this.sdk, '/storage/folders', 'POST', {
+      body,
+    });
+    return result;
+  }
+
+  /**
+   * Rename and/or move a storage folder.
+   * @param {string} id
+   * @param {Object} [updates]
+   * @param {string} [updates.relatedId]
+   * @param {string} [updates.name]
+   * @param {string} [updates.parentId]
+   * @returns {Promise<Object>}
+   */
+  async updateFolder(id, { relatedId, name, parentId } = {}) {
+    this.sdk.validateParams(
+      { id, relatedId, name, parentId },
+      {
+        id: { type: 'string', required: true },
+        relatedId: { type: 'string', required: false },
+        name: { type: 'string', required: false },
+        parentId: { type: 'string', required: false },
+      },
+    );
+
+    const body = {};
+    if (relatedId !== undefined) body.relatedId = relatedId;
+    if (name !== undefined) body.name = name;
+    if (parentId !== undefined) body.parentId = parentId;
+
+    const result = await internalRequest(
+      this.sdk,
+      `/storage/folders/${id}`,
+      'PATCH',
+      { body },
+    );
+    return result;
+  }
+
+  /**
+   * Soft-delete a storage folder (cascades to children).
+   * @param {string} id
+   * @param {Object} options
+   * @param {string} options.relatedId
+   * @returns {Promise<Object>}
+   */
+  async deleteFolder(id, { relatedId } = {}) {
+    this.sdk.validateParams(
+      { id, relatedId },
+      {
+        id: { type: 'string', required: true },
+        relatedId: { type: 'string', required: true },
+      },
+    );
+
+    const result = await internalRequest(
+      this.sdk,
+      `/storage/folders/${id}`,
+      'DELETE',
+      { query: { relatedId } },
+    );
+    return result;
+  }
+
+  /**
+   * Move files into a folder (DB folderId only).
+   * @param {Object} options
+   * @param {string[]} options.ids
+   * @param {string} [options.folderId]
+   * @param {string} options.relatedId
+   * @returns {Promise<Object>}
+   */
+  async moveFiles({ ids, folderId, relatedId } = {}) {
+    this.sdk.validateParams(
+      { ids, folderId, relatedId },
+      {
+        ids: { type: 'array', required: true },
+        folderId: { type: 'string', required: false },
+        relatedId: { type: 'string', required: true },
+      },
+    );
+
+    const body = { ids, relatedId };
+    if (folderId !== undefined) body.folderId = folderId;
+
+    const result = await internalRequest(
+      this.sdk,
+      '/storage/files/move',
+      'PATCH',
+      { body },
+    );
     return result;
   }
 

@@ -39,6 +39,7 @@ async function testBasicSDKFunctionality() {
     'sipEndpoints',
     'externalOAuth',
     'googleCalendar',
+    'drive',
     'enroll',
   ];
 

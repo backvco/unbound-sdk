@@ -20,6 +20,7 @@ import { PortalsService } from './services/portals.js';
 import { SipEndpointsService } from './services/sipEndpoints.js';
 import { ExternalOAuthService } from './services/externalOAuth.js';
 import { GoogleCalendarService } from './services/googleCalendar.js';
+import { DriveService } from './services/drive.js';
 import { EnrollService } from './services/enroll.js';
 import { PhoneNumbersService } from './services/phoneNumbers.js';
 import { RecordTypesService } from './services/recordTypes.js';
@@ -97,6 +98,7 @@ class UnboundSDK extends BaseSDK {
     this.sipEndpoints = new SipEndpointsService(this);
     this.externalOAuth = new ExternalOAuthService(this);
     this.googleCalendar = new GoogleCalendarService(this);
+    this.drive = new DriveService(this);
     this.enroll = new EnrollService(this);
     this.phoneNumbers = new PhoneNumbersService(this);
     this.recordTypes = new RecordTypesService(this);
@@ -278,6 +280,7 @@ export { PortalsService } from './services/portals.js';
 export { SipEndpointsService } from './services/sipEndpoints.js';
 export { ExternalOAuthService } from './services/externalOAuth.js';
 export { GoogleCalendarService } from './services/googleCalendar.js';
+export { DriveService } from './services/drive.js';
 export { EnrollService } from './services/enroll.js';
 export {
   PhoneNumbersService,

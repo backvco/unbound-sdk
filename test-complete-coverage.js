@@ -37,6 +37,7 @@ async function testPublicSDKCompleteness() {
     // Additional services found in analysis
     'externalOAuth',
     'googleCalendar',
+    'drive',
     'enroll',
     'phoneNumbers',
     'recordTypes',

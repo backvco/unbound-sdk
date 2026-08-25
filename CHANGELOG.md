@@ -1,3 +1,11 @@
+## 4.10.0
+
+- feat: `sdk.storage` folder CRUD (`listFolders`, `createFolder`, `updateFolder`,
+  `deleteFolder`), `moveFiles`, `updateFileMetadata` → `PATCH /storage/files/:id`
+- feat: `listFiles` query `relatedId` / `folderId` / `search` / `page` / `sortBy`
+- feat: `sdk.drive` — Google Drive proxy (`status`, list/upload/folder/file,
+  `browserToken`)
+
 ## 4.8.13
 
 - feat: `sdk.chat` threads, bots, channel-meet create/update/slug/password,
