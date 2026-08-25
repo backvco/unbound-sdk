@@ -95,7 +95,6 @@ export class DriveService {
       `/drive/folders/${id}`,
       'PATCH',
       { body },
-      true,
     );
     return result;
   }
@@ -140,7 +139,6 @@ export class DriveService {
       `/drive/files/${id}`,
       'PATCH',
       { body },
-      true,
     );
     return result;
   }
@@ -169,7 +167,6 @@ export class DriveService {
       '/drive/files/move',
       'PATCH',
       { body },
-      true,
     );
     return result;
   }

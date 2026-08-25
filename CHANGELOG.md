@@ -1,3 +1,7 @@
+## 4.10.2
+
+- fix: storage/drive PATCH goes over socket/NATS again (revert HTTP forceFetch)
+
 ## 4.10.1
 
 - fix: storage/drive PATCH methods use HTTP (`forceFetch`) — socket has no PATCH

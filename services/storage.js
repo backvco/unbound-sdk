@@ -814,7 +814,6 @@ Response:
       `/storage/files/${id}`,
       'PATCH',
       { body },
-      true,
     );
     return result;
   }
@@ -960,7 +959,6 @@ Response:
       `/storage/folders/${id}`,
       'PATCH',
       { body },
-      true,
     );
     return result;
   }
@@ -1016,7 +1014,6 @@ Response:
       '/storage/files/move',
       'PATCH',
       { body },
-      true,
     );
     return result;
   }
