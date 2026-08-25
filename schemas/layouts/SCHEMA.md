@@ -808,25 +808,35 @@ Root document for type:list|detail layouts.
                           "default": {}
                         },
                         "orderBy": {
-                          "type": "object",
-                          "properties": {
-                            "field": {
-                              "type": "string",
-                              "minLength": 1
-                            },
-                            "direction": {
-                              "type": "string",
-                              "enum": [
-                                "asc",
-                                "desc"
+                          "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "field": {
+                                  "type": "string",
+                                  "minLength": 1
+                                },
+                                "direction": {
+                                  "type": "string",
+                                  "enum": [
+                                    "asc",
+                                    "desc"
+                                  ],
+                                  "default": "asc"
+                                }
+                              },
+                              "required": [
+                                "field"
                               ],
-                              "default": "asc"
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "array",
+                              "items": {
+                                "$ref": "#/definitions/LayoutDoc/properties/sections/items/anyOf/1/properties/tables/items/properties/orderBy/anyOf/0"
+                              }
                             }
-                          },
-                          "required": [
-                            "field"
-                          ],
-                          "additionalProperties": false
+                          ]
                         },
                         "additionalWhere": {
                           "type": "object",
@@ -992,7 +1002,7 @@ Root document for type:list|detail layouts.
                           "additionalProperties": false
                         },
                         "defaultSort": {
-                          "$ref": "#/definitions/LayoutDoc/properties/sections/items/anyOf/1/properties/tables/items/properties/orderBy"
+                          "$ref": "#/definitions/LayoutDoc/properties/sections/items/anyOf/1/properties/tables/items/properties/orderBy/anyOf/0"
                         },
                         "filters": {
                           "type": "object",
@@ -1481,6 +1491,136 @@ Root document for type:list|detail layouts.
                   "type",
                   "tables",
                   "kanban"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "type": {
+                    "type": "string",
+                    "const": "widget"
+                  },
+                  "widgetId": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "x": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 11
+                  },
+                  "y": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "w": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 12
+                  },
+                  "h": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 8
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "settings": {
+                    "type": "object",
+                    "additionalProperties": {},
+                    "default": {}
+                  }
+                },
+                "required": [
+                  "id",
+                  "type",
+                  "widgetId",
+                  "x",
+                  "y",
+                  "w",
+                  "h"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "$ref": "#/definitions/LayoutDoc/properties/sections/items/anyOf/0/properties/id"
+                  },
+                  "header": {
+                    "$ref": "#/definitions/LayoutDoc/properties/sections/items/anyOf/0/properties/header"
+                  },
+                  "editable": {
+                    "$ref": "#/definitions/LayoutDoc/properties/sections/items/anyOf/0/properties/editable"
+                  },
+                  "hideOnCreate": {
+                    "$ref": "#/definitions/LayoutDoc/properties/sections/items/anyOf/0/properties/hideOnCreate"
+                  },
+                  "autoCollapse": {
+                    "$ref": "#/definitions/LayoutDoc/properties/sections/items/anyOf/0/properties/autoCollapse"
+                  },
+                  "showCollapse": {
+                    "$ref": "#/definitions/LayoutDoc/properties/sections/items/anyOf/0/properties/showCollapse"
+                  },
+                  "conditions": {
+                    "$ref": "#/definitions/LayoutDoc/properties/sections/items/anyOf/0/properties/conditions"
+                  },
+                  "type": {
+                    "type": "string",
+                    "const": "timeline"
+                  },
+                  "sources": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "web",
+                        "ads",
+                        "form",
+                        "email",
+                        "sms",
+                        "call",
+                        "ticket",
+                        "note",
+                        "score",
+                        "program",
+                        "file"
+                      ]
+                    },
+                    "default": [
+                      "web",
+                      "ads",
+                      "form",
+                      "email",
+                      "sms",
+                      "call",
+                      "ticket",
+                      "note",
+                      "score",
+                      "program",
+                      "file"
+                    ]
+                  },
+                  "limit": {
+                    "type": "integer",
+                    "exclusiveMinimum": 0,
+                    "default": 50
+                  },
+                  "showFilters": {
+                    "type": "boolean",
+                    "default": true
+                  }
+                },
+                "required": [
+                  "id",
+                  "type"
                 ],
                 "additionalProperties": false
               }
@@ -2898,25 +3038,35 @@ One section: content | table | kanban | table-kanban.
                     "default": {}
                   },
                   "orderBy": {
-                    "type": "object",
-                    "properties": {
-                      "field": {
-                        "type": "string",
-                        "minLength": 1
-                      },
-                      "direction": {
-                        "type": "string",
-                        "enum": [
-                          "asc",
-                          "desc"
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "direction": {
+                            "type": "string",
+                            "enum": [
+                              "asc",
+                              "desc"
+                            ],
+                            "default": "asc"
+                          }
+                        },
+                        "required": [
+                          "field"
                         ],
-                        "default": "asc"
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/definitions/SectionSpec/anyOf/1/properties/tables/items/properties/orderBy/anyOf/0"
+                        }
                       }
-                    },
-                    "required": [
-                      "field"
-                    ],
-                    "additionalProperties": false
+                    ]
                   },
                   "additionalWhere": {
                     "type": "object",
@@ -3082,7 +3232,7 @@ One section: content | table | kanban | table-kanban.
                     "additionalProperties": false
                   },
                   "defaultSort": {
-                    "$ref": "#/definitions/SectionSpec/anyOf/1/properties/tables/items/properties/orderBy"
+                    "$ref": "#/definitions/SectionSpec/anyOf/1/properties/tables/items/properties/orderBy/anyOf/0"
                   },
                   "filters": {
                     "type": "object",
@@ -3571,6 +3721,136 @@ One section: content | table | kanban | table-kanban.
             "type",
             "tables",
             "kanban"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "type": {
+              "type": "string",
+              "const": "widget"
+            },
+            "widgetId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "x": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 11
+            },
+            "y": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "w": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 12
+            },
+            "h": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 8
+            },
+            "title": {
+              "type": "string"
+            },
+            "settings": {
+              "type": "object",
+              "additionalProperties": {},
+              "default": {}
+            }
+          },
+          "required": [
+            "id",
+            "type",
+            "widgetId",
+            "x",
+            "y",
+            "w",
+            "h"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "id": {
+              "$ref": "#/definitions/SectionSpec/anyOf/0/properties/id"
+            },
+            "header": {
+              "$ref": "#/definitions/SectionSpec/anyOf/0/properties/header"
+            },
+            "editable": {
+              "$ref": "#/definitions/SectionSpec/anyOf/0/properties/editable"
+            },
+            "hideOnCreate": {
+              "$ref": "#/definitions/SectionSpec/anyOf/0/properties/hideOnCreate"
+            },
+            "autoCollapse": {
+              "$ref": "#/definitions/SectionSpec/anyOf/0/properties/autoCollapse"
+            },
+            "showCollapse": {
+              "$ref": "#/definitions/SectionSpec/anyOf/0/properties/showCollapse"
+            },
+            "conditions": {
+              "$ref": "#/definitions/SectionSpec/anyOf/0/properties/conditions"
+            },
+            "type": {
+              "type": "string",
+              "const": "timeline"
+            },
+            "sources": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "web",
+                  "ads",
+                  "form",
+                  "email",
+                  "sms",
+                  "call",
+                  "ticket",
+                  "note",
+                  "score",
+                  "program",
+                  "file"
+                ]
+              },
+              "default": [
+                "web",
+                "ads",
+                "form",
+                "email",
+                "sms",
+                "call",
+                "ticket",
+                "note",
+                "score",
+                "program",
+                "file"
+              ]
+            },
+            "limit": {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "default": 50
+            },
+            "showFilters": {
+              "type": "boolean",
+              "default": true
+            }
+          },
+          "required": [
+            "id",
+            "type"
           ],
           "additionalProperties": false
         }

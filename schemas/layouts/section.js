@@ -85,6 +85,22 @@ const KanbanSection = BaseSection.extend({
   kanban: KanbanConfigSpec,
 });
 
+// Activity feed section (people/company/opportunities detail pages) —
+// renders app1-api's GET /object/:id/activity merged feed as a vertical
+// timeline, not a table/kanban query. `sources` filters which item kinds
+// the feed requests; default is every kind the API can produce.
+export const TIMELINE_SOURCES = [
+  'web', 'ads', 'form', 'email', 'sms', 'call', 'ticket', 'note', 'score',
+  'program', 'file',
+];
+
+const TimelineSection = BaseSection.extend({
+  type: z.literal('timeline'),
+  sources: z.array(z.enum(TIMELINE_SOURCES)).default([...TIMELINE_SOURCES]),
+  limit: z.number().int().positive().default(50),
+  showFilters: z.boolean().default(true),
+});
+
 const TableKanbanSection = BaseSection.extend({
   type: z.literal('table-kanban'),
   defaultView: z.enum(['table', 'kanban']).default('table'),
@@ -102,4 +118,5 @@ const TableKanbanSection = BaseSection.extend({
 // function.
 export const SectionSpec = z.discriminatedUnion('type', [
   ContentSection, TableSection, KanbanSection, TableKanbanSection, WidgetSection,
+  TimelineSection,
 ]);

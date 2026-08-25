@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {
   LayoutDoc, CompactLayoutDoc, KanbanConfigSpec, RelatedListSpec, ActionSpec,
   JoinSpec, normalizeJoinSpec, validateLayoutDoc, migrateLayoutSchema, migrateV1toV2,
+  SectionSpec, TIMELINE_SOURCES,
 } from '../schemas/layouts/index.js';
 import { normalizeJoin } from '../schemas/layouts/migrations/normalizeJoin.js';
 import { promoteRelatedLists } from '../schemas/layouts/migrations/promoteRelatedLists.js';
@@ -78,6 +79,41 @@ describe('KanbanConfigSpec', () => {
       mode: 'simple', columnField: 'stage', compactLayoutId: 'compact-1',
       summaries: [{ type: 'sum', enabled: true }],
     });
+    assert.equal(result.success, false);
+  });
+});
+
+describe('TimelineSection (SectionSpec)', () => {
+  test('happy path: defaults fill in sources/limit/showFilters', () => {
+    const result = SectionSpec.safeParse({ id: 's1', type: 'timeline' });
+    assert.equal(result.success, true);
+    assert.deepEqual(result.data.sources, TIMELINE_SOURCES);
+    assert.equal(result.data.limit, 50);
+    assert.equal(result.data.showFilters, true);
+  });
+
+  test('accepts an explicit sources subset + limit + showFilters:false', () => {
+    const result = SectionSpec.safeParse({
+      id: 's1', type: 'timeline',
+      sources: ['email', 'call', 'note'],
+      limit: 20,
+      showFilters: false,
+    });
+    assert.equal(result.success, true);
+    assert.deepEqual(result.data.sources, ['email', 'call', 'note']);
+    assert.equal(result.data.limit, 20);
+    assert.equal(result.data.showFilters, false);
+  });
+
+  test('rejects an unknown source', () => {
+    const result = SectionSpec.safeParse({
+      id: 's1', type: 'timeline', sources: ['carrier-pigeon'],
+    });
+    assert.equal(result.success, false);
+  });
+
+  test('rejects a non-positive limit', () => {
+    const result = SectionSpec.safeParse({ id: 's1', type: 'timeline', limit: 0 });
     assert.equal(result.success, false);
   });
 });

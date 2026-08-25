@@ -1136,14 +1136,33 @@ export class ObjectsService {
   /**
    * Record activity feed for a single record.
    * @param {string} recordId
+   * @param {object} [options]
+   * @param {string[]} [options.sources] - item kinds to include (see
+   *   TIMELINE_SOURCES in schemas/layouts/section.js); omit for all.
+   * @param {number} [options.limit]
    * @returns {Promise<{results: object[]}>}
    */
-  async getActivity(recordId) {
+  async getActivity(recordId, { sources, limit } = {}) {
     this.sdk.validateParams(
       { recordId },
       { recordId: { type: 'string', required: true } },
     );
-    return internalRequest(this.sdk, `/object/${recordId}/activity`, 'GET');
+    // Repeated `sources=a&sources=b` keys, not `sources=a,b` — some
+    // environments' ingress/WAF blocks literal/encoded commas in query
+    // strings, so this is built by hand (bypassing internalRequest's
+    // generic `query` object, which would join array values with `,` via
+    // URLSearchParams) rather than the usual query param shape.
+    const params = new URLSearchParams();
+    if (Array.isArray(sources) && sources.length) {
+      for (const source of sources) params.append('sources', source);
+    }
+    if (limit) params.append('limit', String(limit));
+    const qs = params.toString();
+    return internalRequest(
+      this.sdk,
+      `/object/${recordId}/activity${qs ? `?${qs}` : ''}`,
+      'GET',
+    );
   }
 
   /**

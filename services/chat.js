@@ -1,4 +1,4 @@
-import { internalRequest } from '../base.js';
+import { internalRequest } from "../base.js";
 /**
  * ChatService — channels, DMs, membership, unreads, DND, messages, search,
  * webhooks, card actions, reports, admin review, admin export, record feeds,
@@ -26,11 +26,11 @@ export class ChatService {
     this.sdk.validateParams(
       { name, topic, kind, settings, groupIds },
       {
-        name: { type: 'string', required: true },
-        topic: { type: 'string', required: false },
-        kind: { type: 'string', required: false },
-        settings: { type: 'object', required: false },
-        groupIds: { type: 'array', required: false },
+        name: { type: "string", required: true },
+        topic: { type: "string", required: false },
+        kind: { type: "string", required: false },
+        settings: { type: "object", required: false },
+        groupIds: { type: "array", required: false },
       },
     );
 
@@ -40,7 +40,7 @@ export class ChatService {
     if (settings !== undefined) body.settings = settings;
     if (groupIds !== undefined) body.groupIds = groupIds;
 
-    return internalRequest(this.sdk, '/chat/channels', 'POST', { body });
+    return internalRequest(this.sdk, "/chat/channels", "POST", { body });
   }
 
   /**
@@ -48,7 +48,7 @@ export class ChatService {
    * @returns {Promise<Object>}
    */
   async listChannels() {
-    return internalRequest(this.sdk, '/chat/channels', 'GET');
+    return internalRequest(this.sdk, "/chat/channels", "GET");
   }
 
   /**
@@ -56,7 +56,7 @@ export class ChatService {
    * @returns {Promise<Object>}
    */
   async browseChannels() {
-    return internalRequest(this.sdk, '/chat/channels/browse', 'GET');
+    return internalRequest(this.sdk, "/chat/channels/browse", "GET");
   }
 
   /**
@@ -65,8 +65,8 @@ export class ChatService {
    * @returns {Promise<Object>}
    */
   async getChannel(id) {
-    this.sdk.validateParams({ id }, { id: { type: 'string', required: true } });
-    return internalRequest(this.sdk, `/chat/channels/${id}`, 'GET');
+    this.sdk.validateParams({ id }, { id: { type: "string", required: true } });
+    return internalRequest(this.sdk, `/chat/channels/${id}`, "GET");
   }
 
   /**
@@ -82,11 +82,11 @@ export class ChatService {
     this.sdk.validateParams(
       { id, name, topic, settings, kind },
       {
-        id: { type: 'string', required: true },
-        name: { type: 'string', required: false },
-        topic: { type: 'string', required: false },
-        settings: { type: 'object', required: false },
-        kind: { type: 'string', required: false },
+        id: { type: "string", required: true },
+        name: { type: "string", required: false },
+        topic: { type: "string", required: false },
+        settings: { type: "object", required: false },
+        kind: { type: "string", required: false },
       },
     );
 
@@ -96,7 +96,7 @@ export class ChatService {
     if (settings !== undefined) body.settings = settings;
     if (kind !== undefined) body.kind = kind;
 
-    return internalRequest(this.sdk, `/chat/channels/${id}`, 'PATCH', { body });
+    return internalRequest(this.sdk, `/chat/channels/${id}`, "PATCH", { body });
   }
 
   /**
@@ -105,8 +105,8 @@ export class ChatService {
    * @returns {Promise<Object>}
    */
   async archiveChannel(id) {
-    this.sdk.validateParams({ id }, { id: { type: 'string', required: true } });
-    return internalRequest(this.sdk, `/chat/channels/${id}/archive`, 'POST', {
+    this.sdk.validateParams({ id }, { id: { type: "string", required: true } });
+    return internalRequest(this.sdk, `/chat/channels/${id}/archive`, "POST", {
       body: {},
     });
   }
@@ -117,8 +117,8 @@ export class ChatService {
    * @returns {Promise<Object>}
    */
   async unarchiveChannel(id) {
-    this.sdk.validateParams({ id }, { id: { type: 'string', required: true } });
-    return internalRequest(this.sdk, `/chat/channels/${id}/unarchive`, 'POST', {
+    this.sdk.validateParams({ id }, { id: { type: "string", required: true } });
+    return internalRequest(this.sdk, `/chat/channels/${id}/unarchive`, "POST", {
       body: {},
     });
   }
@@ -129,8 +129,10 @@ export class ChatService {
    * @returns {Promise<Object>}
    */
   async joinChannel(id) {
-    this.sdk.validateParams({ id }, { id: { type: 'string', required: true } });
-    return internalRequest(this.sdk, `/chat/channels/${id}/join`, 'POST', { body: {} });
+    this.sdk.validateParams({ id }, { id: { type: "string", required: true } });
+    return internalRequest(this.sdk, `/chat/channels/${id}/join`, "POST", {
+      body: {},
+    });
   }
 
   /**
@@ -139,8 +141,10 @@ export class ChatService {
    * @returns {Promise<Object>}
    */
   async leaveChannel(id) {
-    this.sdk.validateParams({ id }, { id: { type: 'string', required: true } });
-    return internalRequest(this.sdk, `/chat/channels/${id}/leave`, 'POST', { body: {} });
+    this.sdk.validateParams({ id }, { id: { type: "string", required: true } });
+    return internalRequest(this.sdk, `/chat/channels/${id}/leave`, "POST", {
+      body: {},
+    });
   }
 
   /**
@@ -149,8 +153,8 @@ export class ChatService {
    * @returns {Promise<Object>}
    */
   async listMembers(id) {
-    this.sdk.validateParams({ id }, { id: { type: 'string', required: true } });
-    return internalRequest(this.sdk, `/chat/channels/${id}/members`, 'GET');
+    this.sdk.validateParams({ id }, { id: { type: "string", required: true } });
+    return internalRequest(this.sdk, `/chat/channels/${id}/members`, "GET");
   }
 
   /**
@@ -165,16 +169,18 @@ export class ChatService {
     this.sdk.validateParams(
       { id, userId, role },
       {
-        id: { type: 'string', required: true },
-        userId: { type: 'string', required: true },
-        role: { type: 'string', required: false },
+        id: { type: "string", required: true },
+        userId: { type: "string", required: true },
+        role: { type: "string", required: false },
       },
     );
 
     const body = { userId };
     if (role !== undefined) body.role = role;
 
-    return internalRequest(this.sdk, `/chat/channels/${id}/members`, 'POST', { body });
+    return internalRequest(this.sdk, `/chat/channels/${id}/members`, "POST", {
+      body,
+    });
   }
 
   /**
@@ -187,11 +193,15 @@ export class ChatService {
     this.sdk.validateParams(
       { id, userId },
       {
-        id: { type: 'string', required: true },
-        userId: { type: 'string', required: true },
+        id: { type: "string", required: true },
+        userId: { type: "string", required: true },
       },
     );
-    return internalRequest(this.sdk, `/chat/channels/${id}/members/${userId}`, 'DELETE');
+    return internalRequest(
+      this.sdk,
+      `/chat/channels/${id}/members/${userId}`,
+      "DELETE",
+    );
   }
 
   /**
@@ -200,8 +210,12 @@ export class ChatService {
    * @returns {Promise<Object>}
    */
   async getGroupDefaults(id) {
-    this.sdk.validateParams({ id }, { id: { type: 'string', required: true } });
-    return internalRequest(this.sdk, `/chat/channels/${id}/group-defaults`, 'GET');
+    this.sdk.validateParams({ id }, { id: { type: "string", required: true } });
+    return internalRequest(
+      this.sdk,
+      `/chat/channels/${id}/group-defaults`,
+      "GET",
+    );
   }
 
   /**
@@ -215,13 +229,18 @@ export class ChatService {
     this.sdk.validateParams(
       { id, groupIds },
       {
-        id: { type: 'string', required: true },
-        groupIds: { type: 'array', required: true },
+        id: { type: "string", required: true },
+        groupIds: { type: "array", required: true },
       },
     );
-    return internalRequest(this.sdk, `/chat/channels/${id}/group-defaults`, 'PUT', {
-      body: { groupIds },
-    });
+    return internalRequest(
+      this.sdk,
+      `/chat/channels/${id}/group-defaults`,
+      "PUT",
+      {
+        body: { groupIds },
+      },
+    );
   }
 
   /**
@@ -234,9 +253,11 @@ export class ChatService {
   async openDm({ userIds }) {
     this.sdk.validateParams(
       { userIds },
-      { userIds: { type: 'array', required: true } },
+      { userIds: { type: "array", required: true } },
     );
-    return internalRequest(this.sdk, '/chat/dms', 'POST', { body: { userIds } });
+    return internalRequest(this.sdk, "/chat/dms", "POST", {
+      body: { userIds },
+    });
   }
 
   /**
@@ -244,7 +265,7 @@ export class ChatService {
    * @returns {Promise<Object>}
    */
   async getUnreads() {
-    return internalRequest(this.sdk, '/chat/unreads', 'GET');
+    return internalRequest(this.sdk, "/chat/unreads", "GET");
   }
 
   /**
@@ -252,7 +273,7 @@ export class ChatService {
    * @returns {Promise<Object>}
    */
   async getDnd() {
-    return internalRequest(this.sdk, '/chat/dnd', 'GET');
+    return internalRequest(this.sdk, "/chat/dnd", "GET");
   }
 
   /**
@@ -264,9 +285,11 @@ export class ChatService {
   async setDnd({ enabled } = {}) {
     this.sdk.validateParams(
       { enabled },
-      { enabled: { type: 'boolean', required: true } },
+      { enabled: { type: "boolean", required: true } },
     );
-    return internalRequest(this.sdk, '/chat/dnd', 'PATCH', { body: { enabled } });
+    return internalRequest(this.sdk, "/chat/dnd", "PATCH", {
+      body: { enabled },
+    });
   }
 
   /**
@@ -274,7 +297,7 @@ export class ChatService {
    * @returns {Promise<Object>}
    */
   async getEmojiFavorites() {
-    return internalRequest(this.sdk, '/chat/emoji-favorites', 'GET');
+    return internalRequest(this.sdk, "/chat/emoji-favorites", "GET");
   }
 
   /**
@@ -286,9 +309,9 @@ export class ChatService {
   async setEmojiFavorites({ emojis } = {}) {
     this.sdk.validateParams(
       { emojis },
-      { emojis: { type: 'array', required: true } },
+      { emojis: { type: "array", required: true } },
     );
-    return internalRequest(this.sdk, '/chat/emoji-favorites', 'PATCH', {
+    return internalRequest(this.sdk, "/chat/emoji-favorites", "PATCH", {
       body: { emojis },
     });
   }
@@ -303,13 +326,18 @@ export class ChatService {
     this.sdk.validateParams(
       { channelId, messageId },
       {
-        channelId: { type: 'string', required: true },
-        messageId: { type: 'string', required: true },
+        channelId: { type: "string", required: true },
+        messageId: { type: "string", required: true },
       },
     );
-    return internalRequest(this.sdk, `/chat/channels/${channelId}/read`, 'POST', {
-      body: { messageId },
-    });
+    return internalRequest(
+      this.sdk,
+      `/chat/channels/${channelId}/read`,
+      "POST",
+      {
+        body: { messageId },
+      },
+    );
   }
 
   /**
@@ -322,13 +350,18 @@ export class ChatService {
     this.sdk.validateParams(
       { channelId, messageId },
       {
-        channelId: { type: 'string', required: true },
-        messageId: { type: 'string', required: true },
+        channelId: { type: "string", required: true },
+        messageId: { type: "string", required: true },
       },
     );
-    return internalRequest(this.sdk, `/chat/channels/${channelId}/unread`, 'POST', {
-      body: { messageId },
-    });
+    return internalRequest(
+      this.sdk,
+      `/chat/channels/${channelId}/unread`,
+      "POST",
+      {
+        body: { messageId },
+      },
+    );
   }
 
   /**
@@ -342,13 +375,18 @@ export class ChatService {
     this.sdk.validateParams(
       { groupId, userId },
       {
-        groupId: { type: 'string', required: true },
-        userId: { type: 'string', required: true },
+        groupId: { type: "string", required: true },
+        userId: { type: "string", required: true },
       },
     );
-    return internalRequest(this.sdk, `/chat/groups/${groupId}/linked-channels`, 'GET', {
-      query: { userId },
-    });
+    return internalRequest(
+      this.sdk,
+      `/chat/groups/${groupId}/linked-channels`,
+      "GET",
+      {
+        query: { userId },
+      },
+    );
   }
 
   /**
@@ -364,10 +402,10 @@ export class ChatService {
     this.sdk.validateParams(
       { channelId, before, after, limit },
       {
-        channelId: { type: 'string', required: true },
-        before: { type: 'string', required: false },
-        after: { type: 'string', required: false },
-        limit: { type: 'number', required: false },
+        channelId: { type: "string", required: true },
+        before: { type: "string", required: false },
+        after: { type: "string", required: false },
+        limit: { type: "number", required: false },
       },
     );
 
@@ -376,9 +414,14 @@ export class ChatService {
     if (after !== undefined) query.after = after;
     if (limit !== undefined) query.limit = limit;
 
-    return internalRequest(this.sdk, `/chat/channels/${channelId}/messages`, 'GET', {
-      query,
-    });
+    return internalRequest(
+      this.sdk,
+      `/chat/channels/${channelId}/messages`,
+      "GET",
+      {
+        query,
+      },
+    );
   }
 
   /**
@@ -419,15 +462,15 @@ export class ChatService {
         toolConfig,
       },
       {
-        channelId: { type: 'string', required: true },
-        message: { type: 'object', required: true },
-        threadRootId: { type: 'string', required: false },
-        alsoSendToChannel: { type: 'boolean', required: false },
-        storageIds: { type: 'array', required: false },
-        suppressUnfurlUrls: { type: 'array', required: false },
-        unfurls: { type: 'array', required: false },
-        tools: { type: 'array', required: false },
-        toolConfig: { type: 'object', required: false },
+        channelId: { type: "string", required: true },
+        message: { type: "object", required: true },
+        threadRootId: { type: "string", required: false },
+        alsoSendToChannel: { type: "boolean", required: false },
+        storageIds: { type: "array", required: false },
+        suppressUnfurlUrls: { type: "array", required: false },
+        unfurls: { type: "array", required: false },
+        tools: { type: "array", required: false },
+        toolConfig: { type: "object", required: false },
       },
     );
 
@@ -444,9 +487,14 @@ export class ChatService {
     if (tools !== undefined) body.tools = tools;
     if (toolConfig !== undefined) body.toolConfig = toolConfig;
 
-    return internalRequest(this.sdk, `/chat/channels/${channelId}/messages`, 'POST', {
-      body,
-    });
+    return internalRequest(
+      this.sdk,
+      `/chat/channels/${channelId}/messages`,
+      "POST",
+      {
+        body,
+      },
+    );
   }
 
   /**
@@ -460,11 +508,11 @@ export class ChatService {
     this.sdk.validateParams(
       { id, message },
       {
-        id: { type: 'string', required: true },
-        message: { type: 'object', required: true },
+        id: { type: "string", required: true },
+        message: { type: "object", required: true },
       },
     );
-    return internalRequest(this.sdk, `/chat/messages/${id}`, 'PATCH', {
+    return internalRequest(this.sdk, `/chat/messages/${id}`, "PATCH", {
       body: { message },
     });
   }
@@ -476,11 +524,14 @@ export class ChatService {
    * @returns {Promise<Object>}
    */
   async previewLink({ url } = {}) {
-    this.sdk.validateParams({ url }, { url: { type: 'string', required: true } });
+    this.sdk.validateParams(
+      { url },
+      { url: { type: "string", required: true } },
+    );
     return internalRequest(
       this.sdk,
       `/chat/link-preview?url=${encodeURIComponent(url)}`,
-      'GET',
+      "GET",
     );
   }
 
@@ -495,14 +546,14 @@ export class ChatService {
     this.sdk.validateParams(
       { id, url },
       {
-        id: { type: 'string', required: true },
-        url: { type: 'string', required: true },
+        id: { type: "string", required: true },
+        url: { type: "string", required: true },
       },
     );
     return internalRequest(
       this.sdk,
       `/chat/messages/${id}/unfurls/hide`,
-      'POST',
+      "POST",
       { body: { url } },
     );
   }
@@ -513,8 +564,8 @@ export class ChatService {
    * @returns {Promise<Object>}
    */
   async deleteMessage(id) {
-    this.sdk.validateParams({ id }, { id: { type: 'string', required: true } });
-    return internalRequest(this.sdk, `/chat/messages/${id}`, 'DELETE');
+    this.sdk.validateParams({ id }, { id: { type: "string", required: true } });
+    return internalRequest(this.sdk, `/chat/messages/${id}`, "DELETE");
   }
 
   /**
@@ -528,11 +579,11 @@ export class ChatService {
     this.sdk.validateParams(
       { id, emoji },
       {
-        id: { type: 'string', required: true },
-        emoji: { type: 'string', required: true },
+        id: { type: "string", required: true },
+        emoji: { type: "string", required: true },
       },
     );
-    return internalRequest(this.sdk, `/chat/messages/${id}/reactions`, 'POST', {
+    return internalRequest(this.sdk, `/chat/messages/${id}/reactions`, "POST", {
       body: { emoji },
     });
   }
@@ -548,13 +599,18 @@ export class ChatService {
     this.sdk.validateParams(
       { id, emoji },
       {
-        id: { type: 'string', required: true },
-        emoji: { type: 'string', required: true },
+        id: { type: "string", required: true },
+        emoji: { type: "string", required: true },
       },
     );
-    return internalRequest(this.sdk, `/chat/messages/${id}/reactions`, 'DELETE', {
-      body: { emoji },
-    });
+    return internalRequest(
+      this.sdk,
+      `/chat/messages/${id}/reactions`,
+      "DELETE",
+      {
+        body: { emoji },
+      },
+    );
   }
 
   /**
@@ -567,13 +623,14 @@ export class ChatService {
     this.sdk.validateParams(
       { channelId, rootId },
       {
-        channelId: { type: 'string', required: true },
-        rootId: { type: 'string', required: true },
+        channelId: { type: "string", required: true },
+        rootId: { type: "string", required: true },
       },
     );
-    return internalRequest(this.sdk, 
+    return internalRequest(
+      this.sdk,
       `/chat/channels/${channelId}/messages/${rootId}/thread`,
-      'GET',
+      "GET",
     );
   }
 
@@ -603,14 +660,14 @@ export class ChatService {
     this.sdk.validateParams(
       { q, channelId, fromUserId, before, after, kind, nextId, limit },
       {
-        q: { type: 'string', required: true },
-        channelId: { type: 'string', required: false },
-        fromUserId: { type: 'string', required: false },
-        before: { type: 'string', required: false },
-        after: { type: 'string', required: false },
-        kind: { type: 'string', required: false },
-        nextId: { type: 'string', required: false },
-        limit: { type: 'number', required: false },
+        q: { type: "string", required: true },
+        channelId: { type: "string", required: false },
+        fromUserId: { type: "string", required: false },
+        before: { type: "string", required: false },
+        after: { type: "string", required: false },
+        kind: { type: "string", required: false },
+        nextId: { type: "string", required: false },
+        limit: { type: "number", required: false },
       },
     );
 
@@ -623,7 +680,7 @@ export class ChatService {
     if (nextId !== undefined) query.nextId = nextId;
     if (limit !== undefined) query.limit = limit;
 
-    return internalRequest(this.sdk, '/chat/search', 'GET', { query });
+    return internalRequest(this.sdk, "/chat/search", "GET", { query });
   }
 
   /**
@@ -640,10 +697,10 @@ export class ChatService {
     this.sdk.validateParams(
       { channelId, name, avatar, callbackUrl },
       {
-        channelId: { type: 'string', required: true },
-        name: { type: 'string', required: true },
-        avatar: { type: 'string', required: false },
-        callbackUrl: { type: 'string', required: false },
+        channelId: { type: "string", required: true },
+        name: { type: "string", required: true },
+        avatar: { type: "string", required: false },
+        callbackUrl: { type: "string", required: false },
       },
     );
 
@@ -651,9 +708,14 @@ export class ChatService {
     if (avatar !== undefined) body.avatar = avatar;
     if (callbackUrl !== undefined) body.callbackUrl = callbackUrl;
 
-    return internalRequest(this.sdk, `/chat/channels/${channelId}/webhooks`, 'POST', {
-      body,
-    });
+    return internalRequest(
+      this.sdk,
+      `/chat/channels/${channelId}/webhooks`,
+      "POST",
+      {
+        body,
+      },
+    );
   }
 
   /**
@@ -664,9 +726,13 @@ export class ChatService {
   async listWebhooks(channelId) {
     this.sdk.validateParams(
       { channelId },
-      { channelId: { type: 'string', required: true } },
+      { channelId: { type: "string", required: true } },
     );
-    return internalRequest(this.sdk, `/chat/channels/${channelId}/webhooks`, 'GET');
+    return internalRequest(
+      this.sdk,
+      `/chat/channels/${channelId}/webhooks`,
+      "GET",
+    );
   }
 
   /**
@@ -679,13 +745,14 @@ export class ChatService {
     this.sdk.validateParams(
       { channelId, webhookId },
       {
-        channelId: { type: 'string', required: true },
-        webhookId: { type: 'string', required: true },
+        channelId: { type: "string", required: true },
+        webhookId: { type: "string", required: true },
       },
     );
-    return internalRequest(this.sdk, 
+    return internalRequest(
+      this.sdk,
       `/chat/channels/${channelId}/webhooks/${webhookId}`,
-      'DELETE',
+      "DELETE",
     );
   }
 
@@ -701,18 +768,23 @@ export class ChatService {
     this.sdk.validateParams(
       { messageId, actionId, value },
       {
-        messageId: { type: 'string', required: true },
-        actionId: { type: 'string', required: true },
-        value: { type: 'string', required: false },
+        messageId: { type: "string", required: true },
+        actionId: { type: "string", required: true },
+        value: { type: "string", required: false },
       },
     );
 
     const body = { actionId };
     if (value !== undefined) body.value = value;
 
-    return internalRequest(this.sdk, `/chat/messages/${messageId}/actions`, 'POST', {
-      body,
-    });
+    return internalRequest(
+      this.sdk,
+      `/chat/messages/${messageId}/actions`,
+      "POST",
+      {
+        body,
+      },
+    );
   }
 
   /**
@@ -726,11 +798,11 @@ export class ChatService {
     this.sdk.validateParams(
       { id, reason },
       {
-        id: { type: 'string', required: true },
-        reason: { type: 'string', required: true },
+        id: { type: "string", required: true },
+        reason: { type: "string", required: true },
       },
     );
-    return internalRequest(this.sdk, `/chat/messages/${id}/report`, 'POST', {
+    return internalRequest(this.sdk, `/chat/messages/${id}/report`, "POST", {
       body: { reason },
     });
   }
@@ -746,8 +818,8 @@ export class ChatService {
     this.sdk.validateParams(
       { q, kind },
       {
-        q: { type: 'string', required: false },
-        kind: { type: 'string', required: false },
+        q: { type: "string", required: false },
+        kind: { type: "string", required: false },
       },
     );
 
@@ -755,7 +827,7 @@ export class ChatService {
     if (q !== undefined) query.q = q;
     if (kind !== undefined) query.kind = kind;
 
-    return internalRequest(this.sdk, '/chat/admin/channels', 'GET', { query });
+    return internalRequest(this.sdk, "/chat/admin/channels", "GET", { query });
   }
 
   /**
@@ -764,8 +836,8 @@ export class ChatService {
    * @returns {Promise<Object>}
    */
   async adminGetChannel(id) {
-    this.sdk.validateParams({ id }, { id: { type: 'string', required: true } });
-    return internalRequest(this.sdk, `/chat/admin/channels/${id}`, 'GET');
+    this.sdk.validateParams({ id }, { id: { type: "string", required: true } });
+    return internalRequest(this.sdk, `/chat/admin/channels/${id}`, "GET");
   }
 
   /**
@@ -774,8 +846,12 @@ export class ChatService {
    * @returns {Promise<Object>}
    */
   async adminExportChannel(id) {
-    this.sdk.validateParams({ id }, { id: { type: 'string', required: true } });
-    return internalRequest(this.sdk, `/chat/admin/channels/${id}/export`, 'GET');
+    this.sdk.validateParams({ id }, { id: { type: "string", required: true } });
+    return internalRequest(
+      this.sdk,
+      `/chat/admin/channels/${id}/export`,
+      "GET",
+    );
   }
 
   /**
@@ -787,13 +863,13 @@ export class ChatService {
   async adminListReports({ status } = {}) {
     this.sdk.validateParams(
       { status },
-      { status: { type: 'string', required: false } },
+      { status: { type: "string", required: false } },
     );
 
     const query = {};
     if (status !== undefined) query.status = status;
 
-    return internalRequest(this.sdk, '/chat/admin/reports', 'GET', { query });
+    return internalRequest(this.sdk, "/chat/admin/reports", "GET", { query });
   }
 
   /**
@@ -807,11 +883,11 @@ export class ChatService {
     this.sdk.validateParams(
       { id, status },
       {
-        id: { type: 'string', required: true },
-        status: { type: 'string', required: true },
+        id: { type: "string", required: true },
+        status: { type: "string", required: true },
       },
     );
-    return internalRequest(this.sdk, `/chat/admin/reports/${id}`, 'POST', {
+    return internalRequest(this.sdk, `/chat/admin/reports/${id}`, "POST", {
       body: { status },
     });
   }
@@ -819,11 +895,23 @@ export class ChatService {
   /**
    * Admin: delete a message (moderation).
    * @param {string} id
+   * @param {Object} [params]
+   * @param {string} [params.reason]
    * @returns {Promise<Object>}
    */
-  async adminDeleteMessage(id) {
-    this.sdk.validateParams({ id }, { id: { type: 'string', required: true } });
-    return internalRequest(this.sdk, `/chat/admin/messages/${id}`, 'DELETE');
+  async adminDeleteMessage(id, { reason } = {}) {
+    this.sdk.validateParams(
+      { id, reason },
+      {
+        id: { type: "string", required: true },
+        reason: { type: "string", required: false },
+      },
+    );
+    const query = {};
+    if (reason !== undefined) query.reason = reason;
+    return internalRequest(this.sdk, `/chat/admin/messages/${id}`, "DELETE", {
+      query,
+    });
   }
 
   /**
@@ -831,7 +919,325 @@ export class ChatService {
    * @returns {Promise<Object>}
    */
   async adminAudit() {
-    return internalRequest(this.sdk, '/chat/admin/audit', 'GET');
+    return internalRequest(this.sdk, "/chat/admin/audit", "GET");
+  }
+
+  /**
+   * Admin: full-account message search (no membership ACL).
+   * @param {Object} [params]
+   * @param {string} [params.q] Boolean-mode fulltext; quoted phrases pass through
+   * @param {string[]} [params.userIds]
+   * @param {string[]} [params.channelIds] Empty/omitted = all channels
+   * @param {string[]} [params.kinds]
+   * @param {string} [params.from] ISO date/datetime
+   * @param {string} [params.to] ISO date/datetime
+   * @param {boolean} [params.includeDeleted] Default true server-side
+   * @param {string} [params.nextId] Pagination cursor (message id)
+   * @param {number} [params.limit]
+   * @returns {Promise<Object>} `{results: [{message, channel}], nextId}`
+   */
+  async adminSearch({
+    q,
+    userIds,
+    channelIds,
+    kinds,
+    from,
+    to,
+    includeDeleted,
+    nextId,
+    limit,
+  } = {}) {
+    this.sdk.validateParams(
+      {
+        q,
+        userIds,
+        channelIds,
+        kinds,
+        from,
+        to,
+        includeDeleted,
+        nextId,
+        limit,
+      },
+      {
+        q: { type: "string", required: false },
+        userIds: { type: "array", required: false },
+        channelIds: { type: "array", required: false },
+        kinds: { type: "array", required: false },
+        from: { type: "string", required: false },
+        to: { type: "string", required: false },
+        includeDeleted: { type: "boolean", required: false },
+        nextId: { type: "string", required: false },
+        limit: { type: "number", required: false },
+      },
+    );
+
+    // Array params use bracket notation (`userIds[]=a&userIds[]=b`) so the
+    // API's qs parser always yields an array, even for a single value.
+    const query = [];
+    if (q !== undefined) query.push(["q", q]);
+    for (const v of userIds || []) query.push(["userIds[]", v]);
+    for (const v of channelIds || []) query.push(["channelIds[]", v]);
+    for (const v of kinds || []) query.push(["kinds[]", v]);
+    if (from !== undefined) query.push(["from", from]);
+    if (to !== undefined) query.push(["to", to]);
+    if (includeDeleted !== undefined) {
+      query.push(["includeDeleted", includeDeleted ? "1" : "0"]);
+    }
+    if (nextId !== undefined) query.push(["nextId", nextId]);
+    if (limit !== undefined) query.push(["limit", String(limit)]);
+
+    return internalRequest(this.sdk, "/chat/admin/search", "GET", { query });
+  }
+
+  /**
+   * Admin: get a message (any channel) with its channel and pre-edit original.
+   * @param {string} id
+   * @returns {Promise<Object>} `{message, channel, original}`
+   */
+  async adminGetMessage(id) {
+    this.sdk.validateParams({ id }, { id: { type: "string", required: true } });
+    return internalRequest(this.sdk, `/chat/admin/messages/${id}`, "GET");
+  }
+
+  /**
+   * Admin: free-form edit of a message; reason required, no edit window.
+   * @param {string} id
+   * @param {Object} params
+   * @param {Object} params.message Message doc
+   * @param {string} params.reason
+   * @returns {Promise<Object>} Updated message
+   */
+  async adminEditMessage(id, { message, reason } = {}) {
+    this.sdk.validateParams(
+      { id, message, reason },
+      {
+        id: { type: "string", required: true },
+        message: { type: "object", required: true },
+        reason: { type: "string", required: true },
+      },
+    );
+    return internalRequest(this.sdk, `/chat/admin/messages/${id}`, "PATCH", {
+      body: { message, reason },
+    });
+  }
+
+  /**
+   * Admin: get a message report with its message and channel.
+   * @param {string} id
+   * @returns {Promise<Object>}
+   */
+  async adminGetReport(id) {
+    this.sdk.validateParams({ id }, { id: { type: "string", required: true } });
+    return internalRequest(this.sdk, `/chat/admin/reports/${id}`, "GET");
+  }
+
+  /**
+   * Admin: list audit events.
+   * @param {Object} [params]
+   * @param {string} [params.type]
+   * @param {string} [params.actorId]
+   * @param {string} [params.channelId]
+   * @param {string} [params.from]
+   * @param {string} [params.to]
+   * @param {string} [params.nextId]
+   * @param {number} [params.limit]
+   * @returns {Promise<Object>} `{results, nextId}`
+   */
+  async adminListAudit({
+    type,
+    actorId,
+    channelId,
+    from,
+    to,
+    nextId,
+    limit,
+  } = {}) {
+    this.sdk.validateParams(
+      { type, actorId, channelId, from, to, nextId, limit },
+      {
+        type: { type: "string", required: false },
+        actorId: { type: "string", required: false },
+        channelId: { type: "string", required: false },
+        from: { type: "string", required: false },
+        to: { type: "string", required: false },
+        nextId: { type: "string", required: false },
+        limit: { type: "number", required: false },
+      },
+    );
+
+    const query = {};
+    if (type !== undefined) query.type = type;
+    if (actorId !== undefined) query.actorId = actorId;
+    if (channelId !== undefined) query.channelId = channelId;
+    if (from !== undefined) query.from = from;
+    if (to !== undefined) query.to = to;
+    if (nextId !== undefined) query.nextId = nextId;
+    if (limit !== undefined) query.limit = limit;
+
+    return internalRequest(this.sdk, "/chat/admin/audit", "GET", { query });
+  }
+
+  /**
+   * Admin: list per-group default channels.
+   * @returns {Promise<Object>} `{results: [{group, channels}]}`
+   */
+  async adminListDefaults() {
+    return internalRequest(this.sdk, "/chat/admin/defaults", "GET");
+  }
+
+  /**
+   * Admin: list all webhooks across channels.
+   * @returns {Promise<Object>} `{results}`
+   */
+  async adminListWebhooks() {
+    return internalRequest(this.sdk, "/chat/admin/webhooks", "GET");
+  }
+
+  /**
+   * Admin: list retention policies (account default + per-kind overrides).
+   * @returns {Promise<Object>} `{results}`
+   */
+  async adminGetRetention() {
+    return internalRequest(this.sdk, "/chat/admin/retention", "GET");
+  }
+
+  /**
+   * Admin: upsert retention policies.
+   * @param {Object[]} policies
+   * @param {'account'|'kind'} policies[].scope
+   * @param {string} [policies[].kind]
+   * @param {number|null} [policies[].purgeDeletedAfterDays]
+   * @param {boolean} [policies[].enabled]
+   * @returns {Promise<Object>} `{results}`
+   */
+  async adminPutRetention(policies) {
+    this.sdk.validateParams(
+      { policies },
+      { policies: { type: "array", required: true } },
+    );
+    return internalRequest(this.sdk, "/chat/admin/retention", "PUT", {
+      body: { policies },
+    });
+  }
+
+  /**
+   * Admin: preview counts that would purge now, per retention policy.
+   * @returns {Promise<Object>} `{results, heldSearchCount, heldMessageCount}`
+   *   `heldSearchCount` is the number of saved searches currently on legal
+   *   hold; `heldMessageCount` is how many otherwise-purgeable messages are
+   *   protected by those holds (across all policies).
+   */
+  async adminRetentionPreview() {
+    return internalRequest(this.sdk, "/chat/admin/retention/preview", "GET");
+  }
+
+  /**
+   * Admin: set or release legal hold on a channel.
+   * @param {string} id
+   * @param {Object} params
+   * @param {boolean} params.hold
+   * @returns {Promise<Object>} Updated channel
+   */
+  async adminSetLegalHold(id, { hold } = {}) {
+    this.sdk.validateParams(
+      { id, hold },
+      {
+        id: { type: "string", required: true },
+        hold: { type: "boolean", required: true },
+      },
+    );
+    return internalRequest(
+      this.sdk,
+      `/chat/admin/channels/${id}/legal-hold`,
+      "POST",
+      { body: { hold } },
+    );
+  }
+
+  /**
+   * Admin: list saved searches (own + shared with chat:admin:review).
+   * @returns {Promise<Object>} `{results}`
+   */
+  async adminListSavedSearches() {
+    return internalRequest(this.sdk, "/chat/admin/saved-searches", "GET");
+  }
+
+  /**
+   * Admin: create a saved search.
+   * @param {Object} params
+   * @param {string} params.name
+   * @param {Object} params.criteria Search criteria (same shape as adminSearch params)
+   * @param {boolean} [params.shared] Shared with everyone holding chat:admin:review
+   * @param {Object} [params.hold] Legal hold — `{enabled, reason}`. `reason` is
+   *   required (max 500 chars) when `enabled` is true. Freezes every message
+   *   matching `criteria` against retention purge until released.
+   * @returns {Promise<Object>} `{id}`
+   */
+  async adminCreateSavedSearch({ name, criteria, shared, hold } = {}) {
+    this.sdk.validateParams(
+      { name, criteria, shared, hold },
+      {
+        name: { type: "string", required: true },
+        criteria: { type: "object", required: true },
+        shared: { type: "boolean", required: false },
+        hold: { type: "object", required: false },
+      },
+    );
+    const body = { name, criteria };
+    if (shared !== undefined) body.shared = shared;
+    if (hold !== undefined) body.hold = hold;
+    return internalRequest(this.sdk, "/chat/admin/saved-searches", "POST", {
+      body,
+    });
+  }
+
+  /**
+   * Admin: update a saved search (owner only).
+   * @param {string} id
+   * @param {Object} [patch]
+   * @param {string} [patch.name]
+   * @param {Object} [patch.criteria]
+   * @param {boolean} [patch.shared]
+   * @param {Object} [patch.hold] `{enabled, reason}` — set `enabled: false`
+   *   to release an active hold; `reason` required when enabling.
+   * @returns {Promise<Object>} Updated saved search — includes
+   *   `hold: {enabled, reason, by, at} | null`
+   */
+  async adminUpdateSavedSearch(id, { name, criteria, shared, hold } = {}) {
+    this.sdk.validateParams(
+      { id, hold },
+      {
+        id: { type: "string", required: true },
+        hold: { type: "object", required: false },
+      },
+    );
+    const body = {};
+    if (name !== undefined) body.name = name;
+    if (criteria !== undefined) body.criteria = criteria;
+    if (shared !== undefined) body.shared = shared;
+    if (hold !== undefined) body.hold = hold;
+    return internalRequest(
+      this.sdk,
+      `/chat/admin/saved-searches/${id}`,
+      "PATCH",
+      { body },
+    );
+  }
+
+  /**
+   * Admin: delete a saved search (owner only). Refused (400) while the
+   * saved search has an active legal hold — release it first.
+   * @param {string} id
+   * @returns {Promise<Object>} `{id}`
+   */
+  async adminDeleteSavedSearch(id) {
+    this.sdk.validateParams({ id }, { id: { type: "string", required: true } });
+    return internalRequest(
+      this.sdk,
+      `/chat/admin/saved-searches/${id}`,
+      "DELETE",
+    );
   }
 
   /**
@@ -845,11 +1251,11 @@ export class ChatService {
     this.sdk.validateParams(
       { relatedId, recordTypeId },
       {
-        relatedId: { type: 'string', required: true },
-        recordTypeId: { type: 'string', required: true },
+        relatedId: { type: "string", required: true },
+        recordTypeId: { type: "string", required: true },
       },
     );
-    return internalRequest(this.sdk, `/chat/records/${relatedId}`, 'GET', {
+    return internalRequest(this.sdk, `/chat/records/${relatedId}`, "GET", {
       query: { recordTypeId },
     });
   }
@@ -866,14 +1272,19 @@ export class ChatService {
     this.sdk.validateParams(
       { relatedId, message, recordTypeId },
       {
-        relatedId: { type: 'string', required: true },
-        message: { type: 'object', required: true },
-        recordTypeId: { type: 'string', required: true },
+        relatedId: { type: "string", required: true },
+        message: { type: "object", required: true },
+        recordTypeId: { type: "string", required: true },
       },
     );
-    return internalRequest(this.sdk, `/chat/records/${relatedId}/messages`, 'POST', {
-      body: { message, recordTypeId },
-    });
+    return internalRequest(
+      this.sdk,
+      `/chat/records/${relatedId}/messages`,
+      "POST",
+      {
+        body: { message, recordTypeId },
+      },
+    );
   }
 
   /**
@@ -884,9 +1295,9 @@ export class ChatService {
   async getChannelMeet(channelId) {
     this.sdk.validateParams(
       { channelId },
-      { channelId: { type: 'string', required: true } },
+      { channelId: { type: "string", required: true } },
     );
-    return internalRequest(this.sdk, `/chat/channels/${channelId}/meet`, 'GET');
+    return internalRequest(this.sdk, `/chat/channels/${channelId}/meet`, "GET");
   }
 
   /**
@@ -894,7 +1305,7 @@ export class ChatService {
    * @returns {Promise<Object>}
    */
   async getVapidPublicKey() {
-    return internalRequest(this.sdk, '/chat/push/vapidPublicKey', 'GET');
+    return internalRequest(this.sdk, "/chat/push/vapidPublicKey", "GET");
   }
 
   /**
@@ -908,11 +1319,11 @@ export class ChatService {
     this.sdk.validateParams(
       { kind, subscription },
       {
-        kind: { type: 'string', required: true },
-        subscription: { type: 'object', required: true },
+        kind: { type: "string", required: true },
+        subscription: { type: "object", required: true },
       },
     );
-    return internalRequest(this.sdk, '/chat/push/devices', 'POST', {
+    return internalRequest(this.sdk, "/chat/push/devices", "POST", {
       body: { kind, subscription },
     });
   }
@@ -923,8 +1334,8 @@ export class ChatService {
    * @returns {Promise<Object>}
    */
   async unregisterPushDevice(id) {
-    this.sdk.validateParams({ id }, { id: { type: 'string', required: true } });
-    return internalRequest(this.sdk, `/chat/push/devices/${id}`, 'DELETE');
+    this.sdk.validateParams({ id }, { id: { type: "string", required: true } });
+    return internalRequest(this.sdk, `/chat/push/devices/${id}`, "DELETE");
   }
 
   /**
@@ -938,13 +1349,18 @@ export class ChatService {
     this.sdk.validateParams(
       { channelId, notifyLevel },
       {
-        channelId: { type: 'string', required: true },
-        notifyLevel: { type: 'string', required: true },
+        channelId: { type: "string", required: true },
+        notifyLevel: { type: "string", required: true },
       },
     );
-    return internalRequest(this.sdk, `/chat/channels/${channelId}/notify`, 'PATCH', {
-      body: { notifyLevel },
-    });
+    return internalRequest(
+      this.sdk,
+      `/chat/channels/${channelId}/notify`,
+      "PATCH",
+      {
+        body: { notifyLevel },
+      },
+    );
   }
 
   /**
@@ -952,7 +1368,7 @@ export class ChatService {
    * @returns {Promise<Object>}
    */
   async listPins() {
-    return internalRequest(this.sdk, '/chat/pins', 'GET');
+    return internalRequest(this.sdk, "/chat/pins", "GET");
   }
 
   /**
@@ -968,18 +1384,18 @@ export class ChatService {
     this.sdk.validateParams(
       { kind, channelId, relatedId, relatedRecordTypeId },
       {
-        kind: { type: 'string', required: true },
-        channelId: { type: 'string', required: false },
-        relatedId: { type: 'string', required: false },
-        relatedRecordTypeId: { type: 'string', required: false },
+        kind: { type: "string", required: true },
+        channelId: { type: "string", required: false },
+        relatedId: { type: "string", required: false },
+        relatedRecordTypeId: { type: "string", required: false },
       },
     );
     const body = { kind };
     if (channelId !== undefined) body.channelId = channelId;
     if (relatedId !== undefined) body.relatedId = relatedId;
-    if (relatedRecordTypeId !== undefined) body.relatedRecordTypeId =
-      relatedRecordTypeId;
-    return internalRequest(this.sdk, '/chat/pins', 'POST', { body });
+    if (relatedRecordTypeId !== undefined)
+      body.relatedRecordTypeId = relatedRecordTypeId;
+    return internalRequest(this.sdk, "/chat/pins", "POST", { body });
   }
 
   /**
@@ -988,8 +1404,8 @@ export class ChatService {
    * @returns {Promise<Object>}
    */
   async unpinItem(id) {
-    this.sdk.validateParams({ id }, { id: { type: 'string', required: true } });
-    return internalRequest(this.sdk, `/chat/pins/${id}`, 'DELETE');
+    this.sdk.validateParams({ id }, { id: { type: "string", required: true } });
+    return internalRequest(this.sdk, `/chat/pins/${id}`, "DELETE");
   }
 
   /**
@@ -1003,14 +1419,14 @@ export class ChatService {
     this.sdk.validateParams(
       { channelId, messageId },
       {
-        channelId: { type: 'string', required: true },
-        messageId: { type: 'string', required: true },
+        channelId: { type: "string", required: true },
+        messageId: { type: "string", required: true },
       },
     );
     return internalRequest(
       this.sdk,
       `/chat/channels/${channelId}/pinned-message`,
-      'PUT',
+      "PUT",
       { body: { messageId } },
     );
   }
@@ -1023,12 +1439,12 @@ export class ChatService {
   async unpinMessage(channelId) {
     this.sdk.validateParams(
       { channelId },
-      { channelId: { type: 'string', required: true } },
+      { channelId: { type: "string", required: true } },
     );
     return internalRequest(
       this.sdk,
       `/chat/channels/${channelId}/pinned-message`,
-      'DELETE',
+      "DELETE",
     );
   }
 
@@ -1043,7 +1459,7 @@ export class ChatService {
     const query = {};
     if (kind) query.kind = kind;
     if (limit != null) query.limit = limit;
-    return internalRequest(this.sdk, '/chat/mentions', 'GET', { query });
+    return internalRequest(this.sdk, "/chat/mentions", "GET", { query });
   }
 
   /**
@@ -1057,7 +1473,7 @@ export class ChatService {
     const query = {};
     if (kind) query.kind = kind;
     if (limit != null) query.limit = limit;
-    return internalRequest(this.sdk, '/chat/threads', 'GET', { query });
+    return internalRequest(this.sdk, "/chat/threads", "GET", { query });
   }
 
   /**
@@ -1068,12 +1484,12 @@ export class ChatService {
   async getGroupDefaultChannels(groupId) {
     this.sdk.validateParams(
       { groupId },
-      { groupId: { type: 'string', required: true } },
+      { groupId: { type: "string", required: true } },
     );
     return internalRequest(
       this.sdk,
       `/chat/groups/${groupId}/default-channels`,
-      'GET',
+      "GET",
     );
   }
 
@@ -1088,14 +1504,14 @@ export class ChatService {
     this.sdk.validateParams(
       { groupId, channelIds },
       {
-        groupId: { type: 'string', required: true },
-        channelIds: { type: 'array', required: false },
+        groupId: { type: "string", required: true },
+        channelIds: { type: "array", required: false },
       },
     );
     return internalRequest(
       this.sdk,
       `/chat/groups/${groupId}/default-channels`,
-      'PUT',
+      "PUT",
       { body: { channelIds } },
     );
   }
@@ -1108,12 +1524,12 @@ export class ChatService {
   async createChannelMeet(channelId) {
     this.sdk.validateParams(
       { channelId },
-      { channelId: { type: 'string', required: true } },
+      { channelId: { type: "string", required: true } },
     );
     return internalRequest(
       this.sdk,
       `/chat/channels/${channelId}/meet`,
-      'POST',
+      "POST",
       { body: {} },
     );
   }
@@ -1133,23 +1549,23 @@ export class ChatService {
   async updateChannelMeet(channelId, patch = {}) {
     this.sdk.validateParams(
       { channelId },
-      { channelId: { type: 'string', required: true } },
+      { channelId: { type: "string", required: true } },
     );
     const body = {};
     for (const key of [
-      'slug',
-      'password',
-      'guestsCanStart',
-      'startRecordingOn',
-      'startTranscribingOn',
-      'endMeetingWithoutHostTimeLimit',
+      "slug",
+      "password",
+      "guestsCanStart",
+      "startRecordingOn",
+      "startTranscribingOn",
+      "endMeetingWithoutHostTimeLimit",
     ]) {
       if (patch[key] !== undefined) body[key] = patch[key];
     }
     return internalRequest(
       this.sdk,
       `/chat/channels/${channelId}/meet`,
-      'PATCH',
+      "PATCH",
       { body },
     );
   }
@@ -1164,14 +1580,14 @@ export class ChatService {
     this.sdk.validateParams(
       { channelId, slug },
       {
-        channelId: { type: 'string', required: true },
-        slug: { type: 'string', required: true },
+        channelId: { type: "string", required: true },
+        slug: { type: "string", required: true },
       },
     );
     return internalRequest(
       this.sdk,
       `/chat/channels/${channelId}/meet/slug-available`,
-      'GET',
+      "GET",
       { query: { slug } },
     );
   }
@@ -1184,12 +1600,12 @@ export class ChatService {
   async regenerateChannelMeetPassword(channelId) {
     this.sdk.validateParams(
       { channelId },
-      { channelId: { type: 'string', required: true } },
+      { channelId: { type: "string", required: true } },
     );
     return internalRequest(
       this.sdk,
       `/chat/channels/${channelId}/meet/regenerate-password`,
-      'POST',
+      "POST",
       { body: {} },
     );
   }
@@ -1199,7 +1615,7 @@ export class ChatService {
    * @returns {Promise<Object>}
    */
   async listBots() {
-    return internalRequest(this.sdk, '/chat/bots', 'GET');
+    return internalRequest(this.sdk, "/chat/bots", "GET");
   }
 
   /**
@@ -1213,11 +1629,11 @@ export class ChatService {
     this.sdk.validateParams(
       { id, name },
       {
-        id: { type: 'string', required: true },
-        name: { type: 'string', required: false },
+        id: { type: "string", required: true },
+        name: { type: "string", required: false },
       },
     );
-    return internalRequest(this.sdk, `/chat/bots/${id}`, 'PATCH', {
+    return internalRequest(this.sdk, `/chat/bots/${id}`, "PATCH", {
       body: { name },
     });
   }
@@ -1230,12 +1646,12 @@ export class ChatService {
   async getBotMemory(channelId) {
     this.sdk.validateParams(
       { channelId },
-      { channelId: { type: 'string', required: true } },
+      { channelId: { type: "string", required: true } },
     );
     return internalRequest(
       this.sdk,
       `/chat/channels/${channelId}/bot-memory`,
-      'GET',
+      "GET",
     );
   }
 
@@ -1247,12 +1663,12 @@ export class ChatService {
   async resetBotMemory(channelId) {
     this.sdk.validateParams(
       { channelId },
-      { channelId: { type: 'string', required: true } },
+      { channelId: { type: "string", required: true } },
     );
     return internalRequest(
       this.sdk,
       `/chat/channels/${channelId}/bot-memory/reset`,
-      'POST',
+      "POST",
       { body: {} },
     );
   }
@@ -1265,12 +1681,12 @@ export class ChatService {
   async compactBotMemory(channelId) {
     this.sdk.validateParams(
       { channelId },
-      { channelId: { type: 'string', required: true } },
+      { channelId: { type: "string", required: true } },
     );
     return internalRequest(
       this.sdk,
       `/chat/channels/${channelId}/bot-memory/compact`,
-      'POST',
+      "POST",
       { body: {} },
     );
   }
@@ -1287,8 +1703,11 @@ export class ChatService {
     return this.adminListReports(query);
   }
 
-  async listAdminAudit() {
-    return this.adminAudit();
+  async listAdminAudit(query) {
+    // legacy callers passed a bare channelId string
+    return this.adminListAudit(
+      typeof query === "string" ? { channelId: query } : query,
+    );
   }
 
   async listAdminMessages(channelId, query) {
@@ -1296,12 +1715,92 @@ export class ChatService {
   }
 
   async dismissAdminReport(id) {
-    return this.adminReviewReport(id, { status: 'dismissed' });
+    return this.adminReviewReport(id, { status: "dismissed" });
   }
 
   async actionAdminReport(id, body = {}) {
     return this.adminReviewReport(id, {
-      status: body.status || 'actioned',
+      status: body.status || "actioned",
+    });
+  }
+
+  async getAdminReport(id) {
+    return this.adminGetReport(id);
+  }
+
+  async getOriginalMessage(id) {
+    return this.adminGetMessage(id);
+  }
+
+  async listAdminDefaults() {
+    return this.adminListDefaults();
+  }
+
+  async listAdminWebhooks() {
+    return this.adminListWebhooks();
+  }
+
+  /**
+   * Get the chat channel that receives status updates for a source
+   * (campaign, port, etc.). Returns `{ subscription: null }` if none.
+   * @param {Object} params
+   * @param {string} params.sourceType
+   * @param {string} params.sourceId
+   * @returns {Promise<{ subscription: Object|null }>}
+   */
+  async getAlertSubscription({ sourceType, sourceId }) {
+    this.sdk.validateParams(
+      { sourceType, sourceId },
+      {
+        sourceType: { type: "string", required: true },
+        sourceId: { type: "string", required: true },
+      },
+    );
+    return internalRequest(this.sdk, "/chat/alert-subscriptions", "GET", {
+      query: { sourceType, sourceId },
+    });
+  }
+
+  /**
+   * Post status updates for a source to a chat channel.
+   * Pass the caller's You channel (`openDm({ userIds: [] })`) as the default.
+   * @param {Object} params
+   * @param {string} params.sourceType
+   * @param {string} params.sourceId
+   * @param {string} params.channelId
+   * @returns {Promise<{ subscription: Object }>}
+   */
+  async setAlertSubscription({ sourceType, sourceId, channelId }) {
+    this.sdk.validateParams(
+      { sourceType, sourceId, channelId },
+      {
+        sourceType: { type: "string", required: true },
+        sourceId: { type: "string", required: true },
+        channelId: { type: "string", required: true },
+      },
+    );
+    return internalRequest(this.sdk, "/chat/alert-subscriptions", "PUT", {
+      body: { sourceType, sourceId, channelId },
+    });
+  }
+
+  /**
+   * Stop posting status updates for a source.
+   * @param {Object} params
+   * @param {string} params.sourceType
+   * @param {string} params.sourceId
+   * @returns {Promise<Object>}
+   */
+  async deleteAlertSubscription({ sourceType, sourceId }) {
+    this.sdk.validateParams(
+      { sourceType, sourceId },
+      {
+        sourceType: { type: "string", required: true },
+        sourceId: { type: "string", required: true },
+      },
+    );
+    return internalRequest(this.sdk, "/chat/alert-subscriptions", "DELETE", {
+      query: { sourceType, sourceId },
     });
   }
 }
