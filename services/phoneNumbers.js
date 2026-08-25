@@ -774,6 +774,34 @@ export class PhoneNumbersService {
   }
 
   /**
+   * Mark a porting-order exception as resolved after the user has updated
+   * the order (documents, account number, etc.). Syncs with the carrier
+   * so local status picks up the next Telnyx state.
+   * @param {string} id - Porting order ID
+   * @param {string} exceptionId - Exception ID
+   * @param {Object} [options]
+   * @param {string} [options.resolution]
+   * @returns {Promise<Object>} Updated exception
+   */
+  async resolvePortingException(id, exceptionId, { resolution } = {}) {
+    this.sdk.validateParams(
+      { id, exceptionId },
+      {
+        id: { type: 'string', required: true },
+        exceptionId: { type: 'string', required: true },
+      },
+    );
+    const body = {};
+    if (resolution) body.resolution = resolution;
+    return internalRequest(
+      this.sdk,
+      `/phoneNumbers/porting/orders/${id}/exceptions/${exceptionId}/resolve`,
+      'POST',
+      { body },
+    );
+  }
+
+  /**
    * Get comments for a porting order
    * @param {string} id - Porting order ID
    * @param {Object} [options] - Query options

@@ -788,22 +788,68 @@ export class ChatService {
   }
 
   /**
-   * Report a message.
+   * Report a message. Refused (403) if reporting is disabled for the
+   * account, the message is the caller's own, a system message, or
+   * already deleted.
    * @param {string} id
    * @param {Object} params
-   * @param {string} params.reason
+   * @param {string} [params.reason] - One of the account's reportReasons
+   * @param {string} [params.note] - Optional free-text detail (max 500 chars)
    * @returns {Promise<Object>}
    */
-  async reportMessage(id, { reason } = {}) {
+  async reportMessage(id, { reason, note } = {}) {
     this.sdk.validateParams(
-      { id, reason },
+      { id, reason, note },
       {
         id: { type: "string", required: true },
-        reason: { type: "string", required: true },
+        reason: { type: "string", required: false },
+        note: { type: "string", required: false },
       },
     );
+    const body = {};
+    if (reason !== undefined) body.reason = reason;
+    if (note !== undefined) body.note = note;
     return internalRequest(this.sdk, `/chat/messages/${id}/report`, "POST", {
-      body: { reason },
+      body,
+    });
+  }
+
+  /**
+   * Get chat settings relevant to the caller (e.g. whether message
+   * reporting is enabled for the account).
+   * @returns {Promise<Object>} `{allowReports, reportReasons}`
+   */
+  async getSettings() {
+    return internalRequest(this.sdk, "/chat/settings", "GET");
+  }
+
+  /**
+   * Admin: get account-level chat settings.
+   * @returns {Promise<Object>} `{allowReports, reportReasons}`
+   */
+  async adminGetSettings() {
+    return internalRequest(this.sdk, "/chat/admin/settings", "GET");
+  }
+
+  /**
+   * Admin: update account-level chat settings.
+   * @param {Object} params
+   * @param {boolean} params.allowReports
+   * @param {string[]} [params.reportReasons]
+   * @returns {Promise<Object>} `{allowReports, reportReasons}`
+   */
+  async adminPutSettings({ allowReports, reportReasons } = {}) {
+    this.sdk.validateParams(
+      { allowReports, reportReasons },
+      {
+        allowReports: { type: "boolean", required: true },
+        reportReasons: { type: "array", required: false },
+      },
+    );
+    const body = { allowReports };
+    if (reportReasons !== undefined) body.reportReasons = reportReasons;
+    return internalRequest(this.sdk, "/chat/admin/settings", "PUT", {
+      body,
     });
   }
 
