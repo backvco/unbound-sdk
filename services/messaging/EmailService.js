@@ -5,6 +5,7 @@ import { EmailMailboxesService } from './EmailMailboxesService.js';
 import { EmailAnalyticsService } from './EmailAnalyticsService.js';
 import { EmailQueueService } from './EmailQueueService.js';
 import { EmailSuppressionService } from './EmailSuppressionService.js';
+import { EmailAccountSettingsService } from './EmailAccountSettingsService.js';
 
 import { internalRequest } from '../../base.js';
 export class EmailService {
@@ -17,6 +18,27 @@ export class EmailService {
     this.analytics = new EmailAnalyticsService(sdk);
     this.queue = new EmailQueueService(sdk);
     this.suppression = new EmailSuppressionService(sdk);
+    // Account-level email settings (plan §3.3).
+    this.settings = new EmailAccountSettingsService(sdk);
+  }
+
+  /**
+   * Assign (or unassign) an email message to a user — shared-inbox "claim" (plan §2b/§4)
+   * @param {string} messageId - Email message ID
+   * @param {string|null} userId - User ID to assign to, or null to unassign
+   * @returns {Promise<Object>} { id, assignedUserId, assignedAt, message }
+   * @example
+   * await sdk.messaging.email.assign('emailId123', 'user456');
+   * await sdk.messaging.email.assign('emailId123', null); // unassign
+   */
+  async assign(messageId, userId = null) {
+    this.sdk.validateParams(
+      { messageId },
+      { messageId: { type: 'string', required: true } },
+    );
+    return internalRequest(this.sdk, `/messaging/email/${messageId}/assign`, 'PUT', {
+      body: { userId },
+    });
   }
 
   /**
@@ -538,6 +560,7 @@ export class EmailService {
    * @param {string} [filters.sortOrder='desc'] - Sort order: 'asc', 'desc'
    * @param {number} [filters.limit=25] - Number of results per page (max 200)
    * @param {number} [filters.offset=0] - Offset for pagination
+   * @param {string} [filters.assignedUserId] - Filter by assignment: 'me', 'none', or a specific user ID (plan §2b)
    * @returns {Promise<Object>} List of email messages with their threads
    * @example
    * // Returns messages with nested threads for Gmail-like UI:
@@ -577,6 +600,7 @@ export class EmailService {
       sortOrder = 'desc',
       limit = 25,
       offset = 0,
+      assignedUserId,
     } = {},
   ) {
     this.sdk.validateParams(
@@ -589,6 +613,7 @@ export class EmailService {
         sortOrder,
         limit,
         offset,
+        assignedUserId,
       },
       {
         mailboxId: { type: 'string', required: true },
@@ -599,11 +624,13 @@ export class EmailService {
         sortOrder: { type: 'string', required: false },
         limit: { type: 'number', required: false },
         offset: { type: 'number', required: false },
+        assignedUserId: { type: 'string', required: false },
       },
     );
 
     const query = { folder, includeDrafts, sortBy, sortOrder, limit, offset };
     if (search) query.search = search;
+    if (assignedUserId) query.assignedUserId = assignedUserId;
 
     const params = {
       query,
