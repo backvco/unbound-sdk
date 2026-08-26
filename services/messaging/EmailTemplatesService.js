@@ -216,6 +216,23 @@ export class EmailTemplatesService {
   }
 
   /**
+   * Restore a system account template (ticketAutoReply, ticketReply, …)
+   * to the platform default design. User templates cannot be reset.
+   * @param {string} id - Template ID (required)
+   */
+  async reset(id) {
+    this.sdk.validateParams(
+      { id },
+      { id: { type: 'string', required: true } },
+    );
+    return internalRequest(
+      this.sdk,
+      `/messaging/email/template/${id}/reset`,
+      'POST',
+    );
+  }
+
+  /**
    * Get email template by ID
    * @param {string} id - Template ID (required)
    * @returns {Promise<Object>} Template details
@@ -241,10 +258,16 @@ export class EmailTemplatesService {
    * @param {string} [filters.appearance] - `client` or `marketing`
    * @param {boolean} [filters.allowOneOff]
    * @param {boolean} [filters.allowCampaign]
+   * @param {string} [filters.scope] - `user` (default), `system`, or `all`
    * @returns {Promise<Array>} List of email templates
    */
-  async list({ appearance, allowOneOff, allowCampaign } = {}) {
-    const query = pickDefined({ appearance, allowOneOff, allowCampaign });
+  async list({ appearance, allowOneOff, allowCampaign, scope } = {}) {
+    const query = pickDefined({
+      appearance,
+      allowOneOff,
+      allowCampaign,
+      scope,
+    });
     const options = Object.keys(query).length ? { query } : {};
     const result = await internalRequest(
       this.sdk,

@@ -1,3 +1,8 @@
+## 4.13.4
+
+- feat: `sdk.messaging.email.templates.list({ scope })` — `user` (default) / `system` / `all`
+- feat: `sdk.messaging.email.templates.reset(id)` — restore a system account template to the platform default
+
 ## 4.13.3
 
 - feat: `sdk.storage` account/record settings (`getAccountSettings`, `updateAccountSettings`, `listRecordSettings`, `getRecordSettings`, `updateRecordSettings`, `getRecordGoogleFolder`); upload/`createFolder` accept `objectName`
