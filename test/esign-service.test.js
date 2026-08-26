@@ -197,6 +197,7 @@ describe('EsignPublicService.get', () => {
 
     assert.equal(calls[0].endpoint, '/esign/public/tok');
     assert.equal(calls[0].method, 'GET');
+    assert.equal(calls[0].forceFetch, true);
   });
 });
 
@@ -226,6 +227,7 @@ describe('EsignPublicService.consent', () => {
 
     assert.equal(calls[0].endpoint, '/esign/public/tok/consent');
     assert.equal(calls[0].method, 'POST');
+    assert.equal(calls[0].forceFetch, true);
     assert.deepEqual(calls[0].params.body, {
       accepted: true,
       disclosureSha256: 'abc',
@@ -240,6 +242,7 @@ describe('EsignPublicService.save', () => {
     await esign(fakeSdk).public.save({ token: 'tok', values: { n: '1' } });
 
     assert.equal(calls[0].endpoint, '/esign/public/tok/save');
+    assert.equal(calls[0].forceFetch, true);
     assert.deepEqual(calls[0].params.body, { values: { n: '1' } });
   });
 });
@@ -257,6 +260,7 @@ describe('EsignPublicService.complete', () => {
 
     assert.equal(calls[0].endpoint, '/esign/public/tok/complete');
     assert.equal(calls[0].method, 'POST');
+    assert.equal(calls[0].forceFetch, true);
     assert.deepEqual(calls[0].params.body, {
       values: { n: '1' },
       method: 'click_to_adopt',
@@ -272,6 +276,7 @@ describe('EsignPublicService.sign', () => {
     await esign(fakeSdk).public.sign({ token: 'tok', values: {} });
 
     assert.equal(calls[0].endpoint, '/esign/public/tok/complete');
+    assert.equal(calls[0].forceFetch, true);
   });
 });
 
@@ -282,6 +287,7 @@ describe('EsignPublicService.decline', () => {
     await esign(fakeSdk).public.decline({ token: 'tok', reason: 'no' });
 
     assert.equal(calls[0].endpoint, '/esign/public/tok/decline');
+    assert.equal(calls[0].forceFetch, true);
     assert.deepEqual(calls[0].params.body, { reason: 'no' });
   });
 });

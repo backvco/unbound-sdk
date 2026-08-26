@@ -2,7 +2,8 @@ import { internalRequest } from '../base.js';
 
 /**
  * Public (tokenized) signing session. `sdk.esign.public.*`.
- * No tenant cookie; tenant is resolved from Host.
+ * No tenant cookie; tenant is resolved from Host. All methods force HTTP
+ * so Present (Socket.IO SDK) does not NATS a Host-less request.
  */
 export class EsignPublicService {
   constructor(sdk) {
@@ -20,7 +21,7 @@ export class EsignPublicService {
       { token },
       { token: { type: 'string', required: true } },
     );
-    return internalRequest(this.sdk, `/esign/public/${token}`, 'GET');
+    return internalRequest(this.sdk, `/esign/public/${token}`, 'GET', {}, true);
   }
 
   /**
@@ -66,9 +67,13 @@ export class EsignPublicService {
         disclosureSha256: { type: 'string', required: true },
       },
     );
-    return internalRequest(this.sdk, `/esign/public/${token}/consent`, 'POST', {
-      body: { accepted, disclosureSha256 },
-    });
+    return internalRequest(
+      this.sdk,
+      `/esign/public/${token}/consent`,
+      'POST',
+      { body: { accepted, disclosureSha256 } },
+      true,
+    );
   }
 
   /**
@@ -86,9 +91,13 @@ export class EsignPublicService {
         values: { type: 'object', required: true },
       },
     );
-    return internalRequest(this.sdk, `/esign/public/${token}/save`, 'POST', {
-      body: { values },
-    });
+    return internalRequest(
+      this.sdk,
+      `/esign/public/${token}/save`,
+      'POST',
+      { body: { values } },
+      true,
+    );
   }
 
   /**
@@ -122,6 +131,7 @@ export class EsignPublicService {
       `/esign/public/${token}/complete`,
       'POST',
       { body },
+      true,
     );
   }
 
@@ -147,9 +157,13 @@ export class EsignPublicService {
     );
     const body = {};
     if (reason !== undefined) body.reason = reason;
-    return internalRequest(this.sdk, `/esign/public/${token}/decline`, 'POST', {
-      body,
-    });
+    return internalRequest(
+      this.sdk,
+      `/esign/public/${token}/decline`,
+      'POST',
+      { body },
+      true,
+    );
   }
 }
 
