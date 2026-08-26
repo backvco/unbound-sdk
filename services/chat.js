@@ -825,7 +825,9 @@ export class ChatService {
 
   /**
    * Admin: get account-level chat settings.
-   * @returns {Promise<Object>} `{allowReports, reportReasons}`
+   * @returns {Promise<Object>} `{allowReports, reportReasons, reportNotifications}`
+   *   `reportNotifications[]` items are `{channelId, channelName, channelKind, reasons}` —
+   *   `reasons` is `null` when the rule notifies for every reason.
    */
   async adminGetSettings() {
     return internalRequest(this.sdk, "/chat/admin/settings", "GET");
@@ -836,18 +838,26 @@ export class ChatService {
    * @param {Object} params
    * @param {boolean} params.allowReports
    * @param {string[]} [params.reportReasons]
-   * @returns {Promise<Object>} `{allowReports, reportReasons}`
+   * @param {Object[]} [params.reportNotifications] - Channels to post a
+   *   "message reported" card to. Each item: `{channelId: string, reasons:
+   *   string[]|null}` — `reasons` null/empty means "notify for every
+   *   reason"; channel must be a non-archived public/private channel.
+   * @returns {Promise<Object>} `{allowReports, reportReasons, reportNotifications}`
    */
-  async adminPutSettings({ allowReports, reportReasons } = {}) {
+  async adminPutSettings({ allowReports, reportReasons, reportNotifications } = {}) {
     this.sdk.validateParams(
-      { allowReports, reportReasons },
+      { allowReports, reportReasons, reportNotifications },
       {
         allowReports: { type: "boolean", required: true },
         reportReasons: { type: "array", required: false },
+        reportNotifications: { type: "array", required: false },
       },
     );
     const body = { allowReports };
     if (reportReasons !== undefined) body.reportReasons = reportReasons;
+    if (reportNotifications !== undefined) {
+      body.reportNotifications = reportNotifications;
+    }
     return internalRequest(this.sdk, "/chat/admin/settings", "PUT", {
       body,
     });

@@ -228,4 +228,25 @@ export class DriveService {
     );
     return result;
   }
+
+  /**
+   * Walk/create a Drive folder path. Path is already interpolated.
+   * @param {Object} options
+   * @param {string} options.path - e.g. unbound/people/Ada Lovelace
+   * @param {string} [options.sharedDriveId]
+   * @param {boolean} [options.create]
+   */
+  async resolvePath({ path, sharedDriveId, create } = {}) {
+    this.sdk.validateParams(
+      { path, sharedDriveId },
+      {
+        path: { type: 'string', required: true },
+        sharedDriveId: { type: 'string', required: false },
+      },
+    );
+    const body = { path };
+    if (sharedDriveId !== undefined) body.sharedDriveId = sharedDriveId;
+    if (create !== undefined) body.create = create;
+    return internalRequest(this.sdk, '/drive/resolvePath', 'POST', { body });
+  }
 }

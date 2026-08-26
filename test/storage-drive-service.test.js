@@ -231,3 +231,26 @@ describe('DriveService.browserToken', () => {
     assert.equal(calls[0].method, 'POST');
   });
 });
+
+describe('DriveService.resolvePath', () => {
+  test('POSTs /drive/resolvePath with path and sharedDriveId', async () => {
+    const { fakeSdk, calls } = buildFakeSdk();
+    const svc = new DriveService(fakeSdk);
+
+    await svc.resolvePath({
+      path: 'unbound/people/Ada',
+      sharedDriveId: 'drive-1',
+      create: true,
+    });
+
+    assert.equal(calls[0].endpoint, '/drive/resolvePath');
+    assert.equal(calls[0].method, 'POST');
+    assert.deepEqual(calls[0].params, {
+      body: {
+        path: 'unbound/people/Ada',
+        sharedDriveId: 'drive-1',
+        create: true,
+      },
+    });
+  });
+});
