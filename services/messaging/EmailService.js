@@ -709,10 +709,40 @@ export class EmailService {
       },
     );
 
-    const result = await internalRequest(this.sdk, 
+    const result = await internalRequest(this.sdk,
       `/messaging/email/message/${emailId}`,
       'DELETE',
     );
     return result;
+  }
+
+  /**
+   * Re-queue an email that failed to send (Errored folder) for another send attempt
+   * @param {string} messageId - Email message ID
+   * @returns {Promise<Object>} { id, folder, isError, message }
+   * @example
+   * await sdk.messaging.email.retry('emailId123');
+   */
+  async retry(messageId) {
+    this.sdk.validateParams(
+      { messageId },
+      { messageId: { type: 'string', required: true } },
+    );
+    return internalRequest(this.sdk, `/messaging/email/${messageId}/retry`, 'POST');
+  }
+
+  /**
+   * Cancel a queued/retrying outbound email send, moving it back to Drafts
+   * @param {string} messageId - Email message ID
+   * @returns {Promise<Object>} { id, folder: 'drafts' }
+   * @example
+   * await sdk.messaging.email.cancel('emailId123');
+   */
+  async cancel(messageId) {
+    this.sdk.validateParams(
+      { messageId },
+      { messageId: { type: 'string', required: true } },
+    );
+    return internalRequest(this.sdk, `/messaging/email/${messageId}/cancel`, 'POST');
   }
 }
