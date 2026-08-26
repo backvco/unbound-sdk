@@ -532,6 +532,17 @@ export class EmailMailboxesService {
     );
   }
 
+  /**
+   * Unread counts across every mailbox the caller can access, for the nav
+   * bar badge.
+   * @returns {Promise<Object>} { count, mailboxes: [{ mailboxId, unread }] }
+   * @example
+   * const { count } = await sdk.messaging.email.mailboxes.badge();
+   */
+  async badge() {
+    return internalRequest(this.sdk, '/messaging/email/mailbox/badge', 'GET');
+  }
+
   async deleteFolder(mailboxId, { name } = {}) {
     this.sdk.validateParams(
       { mailboxId, name },

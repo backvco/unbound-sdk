@@ -53,4 +53,24 @@ export class EmailMailboxUserService {
       { body },
     );
   }
+
+  /**
+   * List every OTHER mailbox a user can reach — via a direct grant or via a
+   * group they belong to — excluding their own dedicated mailbox.
+   * @param {string} userId - User ID
+   * @returns {Promise<Object>} { mailboxes: [{ id, name, mailbox, type, systemAddress?, role, via: 'user'|'group', groupId?, groupName?, notifyMode, notifyPush, notifyBadge, notifySound }] }
+   * @example
+   * const { mailboxes } = await sdk.messaging.email.mailboxes.forUser.listAccess('user123');
+   */
+  async listAccess(userId) {
+    this.sdk.validateParams(
+      { userId },
+      { userId: { type: 'string', required: true } },
+    );
+    return internalRequest(
+      this.sdk,
+      `/messaging/email/mailbox/for-user/${userId}/access`,
+      'GET',
+    );
+  }
 }
