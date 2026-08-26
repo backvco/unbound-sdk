@@ -1,3 +1,7 @@
+## 4.13.2
+
+- feat: `sdk.phoneNumbers.generateLoa` takes `mode` (`send`|`present`) and optional `signerEmail` / `signerTitle`; returns the signing package (`presentUrl` on present)
+
 ## 4.13.0
 
 - feat: `sdk.ai.email` — `generate`, `rewrite`, `subjects`, `altText`

@@ -651,35 +651,45 @@ export class PhoneNumbersService {
   }
 
   /**
-   * Generate Letter of Authorization (LOA) for a porting order
-   *
-   * Automatically generates a PDF LOA document using template data from the porting order,
-   * uploads it to storage, and attaches it to the order as an LOA document.
+   * Start e-sign for a porting LOA (`send` emails the signer, `present` returns a URL).
    *
    * @param {Object} params
-   * @param {string} params.portingOrderId - Porting order ID to generate LOA for
-   * @param {string} params.signerName - Full name of person signing the LOA
-   * @param {string} params.signerTitle - Job title of person signing the LOA
-   * @returns {Promise<Object>} Generation result with document ID and storage information
+   * @param {string} params.portingOrderId
+   * @param {string} params.signerName
+   * @param {string} params.mode - `send` or `present`
+   * @param {string} [params.signerTitle]
+   * @param {string} [params.signerEmail] - required when mode is send
+   * @returns {Promise<Object>} `{ packageId, status, signers, presentUrl?, presentExpiresAt? }`
    */
-  async generateLoa({ portingOrderId, signerName, signerTitle }) {
+  async generateLoa({
+    portingOrderId,
+    signerName,
+    signerTitle,
+    signerEmail,
+    mode,
+  }) {
     this.sdk.validateParams(
-      { portingOrderId, signerName, signerTitle },
+      { portingOrderId, signerName, mode },
       {
         portingOrderId: { type: 'string', required: true },
         signerName: { type: 'string', required: true },
-        signerTitle: { type: 'string', required: true },
+        mode: { type: 'string', required: true },
+        signerTitle: { type: 'string', required: false },
+        signerEmail: { type: 'string', required: false },
       },
     );
 
-    const result = await internalRequest(this.sdk, 
+    const body = { signerName, mode };
+    if (signerTitle !== undefined) body.signerTitle = signerTitle;
+    if (signerEmail !== undefined) body.signerEmail = signerEmail;
+
+    const result = await internalRequest(
+      this.sdk,
       `/phoneNumbers/porting/orders/${encodeURIComponent(
         portingOrderId,
       )}/generate-loa`,
       'POST',
-      {
-        body: { signerName, signerTitle },
-      },
+      { body },
     );
     return result;
   }
