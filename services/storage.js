@@ -480,6 +480,7 @@ Response:
     country = 'US',
     expireAfter,
     relatedId,
+    objectName,
     folderId,
     createAccessKey = false,
     accessKeyExpiresIn,
@@ -498,6 +499,7 @@ Response:
         country,
         expireAfter,
         relatedId,
+        objectName,
         folderId,
         createAccessKey,
         accessKeyExpiresIn,
@@ -513,6 +515,7 @@ Response:
         country: { type: 'string', required: false },
         expireAfter: { type: 'string', required: false },
         relatedId: { type: 'string', required: false },
+        objectName: { type: 'string', required: false },
         folderId: { type: 'string', required: false },
         createAccessKey: { type: 'boolean', required: false },
         accessKeyExpiresIn: { type: 'number', required: false },
@@ -530,6 +533,7 @@ Response:
     if (country) formFields.push(['country', country]);
     if (expireAfter) formFields.push(['expireAfter', expireAfter]);
     if (relatedId) formFields.push(['relatedId', relatedId]);
+    if (objectName) formFields.push(['objectName', objectName]);
     if (folderId) formFields.push(['folderId', folderId]);
     if (createAccessKey !== undefined)
       formFields.push(['createAccessKey', createAccessKey.toString()]);
@@ -910,18 +914,20 @@ Response:
    * @param {string} options.name
    * @returns {Promise<Object>}
    */
-  async createFolder({ relatedId, parentId, name } = {}) {
+  async createFolder({ relatedId, parentId, name, objectName } = {}) {
     this.sdk.validateParams(
-      { relatedId, parentId, name },
+      { relatedId, parentId, name, objectName },
       {
         relatedId: { type: 'string', required: true },
         parentId: { type: 'string', required: false },
         name: { type: 'string', required: true },
+        objectName: { type: 'string', required: false },
       },
     );
 
     const body = { relatedId, name };
     if (parentId !== undefined) body.parentId = parentId;
+    if (objectName !== undefined) body.objectName = objectName;
 
     const result = await internalRequest(this.sdk, '/storage/folders', 'POST', {
       body,
@@ -1181,6 +1187,58 @@ Response:
       'DELETE',
     );
     return result;
+  }
+
+  async getAccountSettings() {
+    return internalRequest(this.sdk, '/storage/account-settings', 'GET');
+  }
+
+  async updateAccountSettings(body = {}) {
+    return internalRequest(this.sdk, '/storage/account-settings', 'PUT', {
+      body,
+    });
+  }
+
+  async listRecordSettings() {
+    return internalRequest(this.sdk, '/storage/record-settings', 'GET');
+  }
+
+  async getRecordSettings(objectName) {
+    this.sdk.validateParams(
+      { objectName },
+      { objectName: { type: 'string', required: true } },
+    );
+    return internalRequest(
+      this.sdk,
+      `/storage/record-settings/${objectName}`,
+      'GET',
+    );
+  }
+
+  async updateRecordSettings(objectName, body = {}) {
+    this.sdk.validateParams(
+      { objectName },
+      { objectName: { type: 'string', required: true } },
+    );
+    return internalRequest(
+      this.sdk,
+      `/storage/record-settings/${objectName}`,
+      'PUT',
+      { body },
+    );
+  }
+
+  async getRecordGoogleFolder({ objectName, relatedId } = {}) {
+    this.sdk.validateParams(
+      { objectName, relatedId },
+      {
+        objectName: { type: 'string', required: true },
+        relatedId: { type: 'string', required: true },
+      },
+    );
+    return internalRequest(this.sdk, '/storage/record-google-folders', 'GET', {
+      query: { objectName, relatedId },
+    });
   }
 
   /**

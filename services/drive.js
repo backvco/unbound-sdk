@@ -11,6 +11,10 @@ export class DriveService {
     return result;
   }
 
+  async listDrives() {
+    return internalRequest(this.sdk, '/drive/drives', 'GET');
+  }
+
   /**
    * List Google Drive files and folders.
    * @param {Object} [options]
@@ -236,17 +240,27 @@ export class DriveService {
    * @param {string} [options.sharedDriveId]
    * @param {boolean} [options.create]
    */
-  async resolvePath({ path, sharedDriveId, create } = {}) {
+  async resolvePath({
+    path,
+    sharedDriveId,
+    create,
+    objectName,
+    relatedId,
+  } = {}) {
     this.sdk.validateParams(
-      { path, sharedDriveId },
+      { path, sharedDriveId, objectName, relatedId },
       {
         path: { type: 'string', required: true },
         sharedDriveId: { type: 'string', required: false },
+        objectName: { type: 'string', required: false },
+        relatedId: { type: 'string', required: false },
       },
     );
     const body = { path };
     if (sharedDriveId !== undefined) body.sharedDriveId = sharedDriveId;
     if (create !== undefined) body.create = create;
+    if (objectName !== undefined) body.objectName = objectName;
+    if (relatedId !== undefined) body.relatedId = relatedId;
     return internalRequest(this.sdk, '/drive/resolvePath', 'POST', { body });
   }
 }

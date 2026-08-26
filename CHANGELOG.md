@@ -1,3 +1,8 @@
+## 4.13.3
+
+- feat: `sdk.storage` account/record settings (`getAccountSettings`, `updateAccountSettings`, `listRecordSettings`, `getRecordSettings`, `updateRecordSettings`, `getRecordGoogleFolder`); upload/`createFolder` accept `objectName`
+- feat: `sdk.drive.listDrives`; `resolvePath` accepts `objectName` / `relatedId`
+
 ## 4.13.2
 
 - feat: `sdk.phoneNumbers.generateLoa` takes `mode` (`send`|`present`) and optional `signerEmail` / `signerTitle`; returns the signing package (`presentUrl` on present)

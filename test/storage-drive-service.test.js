@@ -232,6 +232,37 @@ describe('DriveService.browserToken', () => {
   });
 });
 
+describe('StorageService.account and record settings', () => {
+  test('GETs /storage/account-settings', async () => {
+    const { fakeSdk, calls } = buildFakeSdk();
+    const svc = new StorageService(fakeSdk);
+    await svc.getAccountSettings();
+    assert.equal(calls[0].endpoint, '/storage/account-settings');
+    assert.equal(calls[0].method, 'GET');
+  });
+
+  test('PUTs /storage/record-settings/:objectName', async () => {
+    const { fakeSdk, calls } = buildFakeSdk();
+    const svc = new StorageService(fakeSdk);
+    await svc.updateRecordSettings('people', {
+      googleEnabled: true,
+      googleFolderPath: '/people/{{fullName__g}}',
+    });
+    assert.equal(calls[0].endpoint, '/storage/record-settings/people');
+    assert.equal(calls[0].method, 'PUT');
+  });
+});
+
+describe('DriveService.listDrives', () => {
+  test('GETs /drive/drives', async () => {
+    const { fakeSdk, calls } = buildFakeSdk();
+    const svc = new DriveService(fakeSdk);
+    await svc.listDrives();
+    assert.equal(calls[0].endpoint, '/drive/drives');
+    assert.equal(calls[0].method, 'GET');
+  });
+});
+
 describe('DriveService.resolvePath', () => {
   test('POSTs /drive/resolvePath with path and sharedDriveId', async () => {
     const { fakeSdk, calls } = buildFakeSdk();
