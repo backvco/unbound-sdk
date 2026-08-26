@@ -163,4 +163,81 @@ export class EmailTemplatesService {
     const result = await internalRequest(this.sdk, '/messaging/email/template', 'GET');
     return result;
   }
+
+  /**
+   * Render a template (saved or draft fields) with sample variables for
+   * preview, without sending or saving.
+   * @param {string} id - Template ID (required)
+   * @param {Object} [body] - Draft fields to render
+   * @param {string} [body.subject] - Draft subject
+   * @param {string} [body.html] - Draft HTML body
+   * @param {string} [body.text] - Draft plain-text body
+   * @param {Object} [body.variables] - Variable substitution values
+   * @returns {Promise<Object>} Rendered preview
+   * @example
+   * const preview = await sdk.messaging.email.templates.preview('tpl_123', {
+   *   subject: 'Welcome {{firstName}}',
+   *   html: '<p>Hello {{firstName}}</p>',
+   *   variables: { firstName: 'Jane' },
+   * });
+   */
+  async preview(id, { subject, html, text, variables } = {}) {
+    this.sdk.validateParams(
+      { id },
+      {
+        id: { type: 'string', required: true },
+      },
+    );
+
+    const previewData = {};
+    if (subject !== undefined) previewData.subject = subject;
+    if (html !== undefined) previewData.html = html;
+    if (text !== undefined) previewData.text = text;
+    if (variables !== undefined) previewData.variables = variables;
+
+    const options = {
+      body: previewData,
+    };
+
+    const result = await internalRequest(this.sdk, 
+      `/messaging/email/template/${id}/preview`,
+      'POST',
+      options,
+    );
+    return result;
+  }
+
+  /**
+   * Send a test email of a template to an address.
+   * @param {string} id - Template ID (required)
+   * @param {string} to - Destination email address (required)
+   * @param {Object} [body] - Optional overrides (from, subject, html, text, variables)
+   * @returns {Promise<Object>} Send confirmation
+   * @example
+   * await sdk.messaging.email.templates.sendTest('tpl_123', 'a@b.com');
+   * await sdk.messaging.email.templates.sendTest('tpl_123', 'a@b.com', {
+   *   from: 'noreply@example.com',
+   *   subject: 'Test subject',
+   * });
+   */
+  async sendTest(id, to, body = {}) {
+    this.sdk.validateParams(
+      { id, to },
+      {
+        id: { type: 'string', required: true },
+        to: { type: 'string', required: true },
+      },
+    );
+
+    const options = {
+      body: { to, ...body },
+    };
+
+    const result = await internalRequest(this.sdk, 
+      `/messaging/email/template/${id}/test`,
+      'POST',
+      options,
+    );
+    return result;
+  }
 }

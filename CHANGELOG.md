@@ -1,3 +1,7 @@
+## 4.11.0
+
+- feat: `sdk.messaging.email.templates.preview(id, body)` and `.sendTest(id, to, body?)`
+
 ## 4.10.2
 
 - fix: storage/drive PATCH goes over socket/NATS again (revert HTTP forceFetch)
