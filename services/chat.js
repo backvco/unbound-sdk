@@ -1016,15 +1016,16 @@ export class ChatService {
   }
 
   /**
-   * Admin: list moderation cases (permanent hide/disposition history).
+   * Admin: list moderation dispositions (permanent per-message
+   * hide/disposition history — one row per message).
    * @param {Object} [params]
    * @param {'open'|'closed'|'all'} [params.status]
    * @param {string} [params.authorId]
-   * @param {string} [params.nextId] Pagination cursor (case id)
+   * @param {string} [params.nextId] Pagination cursor (disposition id)
    * @param {number} [params.limit]
    * @returns {Promise<Object>} `{results, hasMore, nextId}`
    */
-  async adminListCases({ status, authorId, nextId, limit } = {}) {
+  async adminListDispositions({ status, authorId, nextId, limit } = {}) {
     this.sdk.validateParams(
       { status, authorId, nextId, limit },
       {
@@ -1039,18 +1040,256 @@ export class ChatService {
     if (authorId !== undefined) query.authorId = authorId;
     if (nextId !== undefined) query.nextId = nextId;
     if (limit !== undefined) query.limit = limit;
+    return internalRequest(this.sdk, "/chat/admin/dispositions", "GET", {
+      query,
+    });
+  }
+
+  /**
+   * Admin: get one moderation disposition — hydrated with its message
+   * (content per the usual rules) and reports.
+   * @param {string} id
+   * @returns {Promise<Object>}
+   */
+  async adminGetDisposition(id) {
+    this.sdk.validateParams({ id }, { id: { type: "string", required: true } });
+    return internalRequest(this.sdk, `/chat/admin/dispositions/${id}`, "GET");
+  }
+
+  /**
+   * Admin: list chat cases (multi-message investigations — distinct from
+   * the per-message disposition ledger above).
+   * @param {Object} [params]
+   * @param {'open'|'in_review'|'closed'|'all'} [params.status]
+   * @param {string} [params.category]
+   * @param {string} [params.ownerId]
+   * @param {string} [params.q] Substring match on title
+   * @param {string} [params.nextId] Pagination cursor (case id)
+   * @param {number} [params.limit]
+   * @returns {Promise<Object>} `{results, hasMore, nextId}` — each result
+   *   includes `itemCount`, `noteCount`, `lastActivityAt`
+   */
+  async adminListCases({ status, category, ownerId, q, nextId, limit } = {}) {
+    this.sdk.validateParams(
+      { status, category, ownerId, q, nextId, limit },
+      {
+        status: { type: "string", required: false },
+        category: { type: "string", required: false },
+        ownerId: { type: "string", required: false },
+        q: { type: "string", required: false },
+        nextId: { type: "string", required: false },
+        limit: { type: "number", required: false },
+      },
+    );
+    const query = {};
+    if (status !== undefined) query.status = status;
+    if (category !== undefined) query.category = category;
+    if (ownerId !== undefined) query.ownerId = ownerId;
+    if (q !== undefined) query.q = q;
+    if (nextId !== undefined) query.nextId = nextId;
+    if (limit !== undefined) query.limit = limit;
     return internalRequest(this.sdk, "/chat/admin/cases", "GET", { query });
   }
 
   /**
-   * Admin: get one moderation case — hydrated with its message (content
-   * per the usual rules) and reports.
+   * Admin: create a chat case, optionally seeding it with messages
+   * (report ids on those messages are auto-attached to the created item).
+   * @param {Object} params
+   * @param {string} params.title
+   * @param {string} [params.category]
+   * @param {string} [params.description]
+   * @param {string} [params.ownerId]
+   * @param {string[]} [params.messageIds]
+   * @returns {Promise<Object>} the case, plus `items`/`notes`
+   */
+  async adminCreateCase({ title, category, description, ownerId, messageIds }) {
+    this.sdk.validateParams(
+      { title, category, description, ownerId, messageIds },
+      {
+        title: { type: "string", required: true },
+        category: { type: "string", required: false },
+        description: { type: "string", required: false },
+        ownerId: { type: "string", required: false },
+        messageIds: { type: "array", required: false },
+      },
+    );
+    const body = { title };
+    if (category !== undefined) body.category = category;
+    if (description !== undefined) body.description = description;
+    if (ownerId !== undefined) body.ownerId = ownerId;
+    if (messageIds !== undefined) body.messageIds = messageIds;
+    return internalRequest(this.sdk, "/chat/admin/cases", "POST", { body });
+  }
+
+  /**
+   * Admin: get one chat case — hydrated with its items (each with
+   * message/channel/reports/disposition) and its note trail.
    * @param {string} id
    * @returns {Promise<Object>}
    */
   async adminGetCase(id) {
     this.sdk.validateParams({ id }, { id: { type: "string", required: true } });
     return internalRequest(this.sdk, `/chat/admin/cases/${id}`, "GET");
+  }
+
+  /**
+   * Admin: update a chat case's fields. `status` may only move between
+   * 'open' and 'in_review' here — use adminCloseCase/adminReopenCase to
+   * close or reopen.
+   * @param {string} id
+   * @param {Object} params
+   * @param {string} [params.title]
+   * @param {string} [params.category]
+   * @param {string} [params.description]
+   * @param {string} [params.ownerId]
+   * @param {'open'|'in_review'} [params.status]
+   * @returns {Promise<Object>}
+   */
+  async adminUpdateCase(id, { title, category, description, ownerId, status } = {}) {
+    this.sdk.validateParams(
+      { id, title, category, description, ownerId, status },
+      {
+        id: { type: "string", required: true },
+        title: { type: "string", required: false },
+        category: { type: "string", required: false },
+        description: { type: "string", required: false },
+        ownerId: { type: "string", required: false },
+        status: { type: "string", required: false },
+      },
+    );
+    const body = {};
+    if (title !== undefined) body.title = title;
+    if (category !== undefined) body.category = category;
+    if (description !== undefined) body.description = description;
+    if (ownerId !== undefined) body.ownerId = ownerId;
+    if (status !== undefined) body.status = status;
+    return internalRequest(this.sdk, `/chat/admin/cases/${id}`, "PATCH", {
+      body,
+    });
+  }
+
+  /**
+   * Admin: attach messages to a case (reportIds auto-filled from each
+   * message's open reports). Messages already on the case are skipped.
+   * @param {string} id
+   * @param {Object} params
+   * @param {string[]} params.messageIds
+   * @returns {Promise<Object>}
+   */
+  async adminAddCaseItems(id, { messageIds }) {
+    this.sdk.validateParams(
+      { id, messageIds },
+      {
+        id: { type: "string", required: true },
+        messageIds: { type: "array", required: true },
+      },
+    );
+    return internalRequest(this.sdk, `/chat/admin/cases/${id}/items`, "POST", {
+      body: { messageIds },
+    });
+  }
+
+  /**
+   * Admin: remove one message from a case.
+   * @param {string} id
+   * @param {string} messageId
+   * @returns {Promise<Object>}
+   */
+  async adminRemoveCaseItem(id, messageId) {
+    this.sdk.validateParams(
+      { id, messageId },
+      {
+        id: { type: "string", required: true },
+        messageId: { type: "string", required: true },
+      },
+    );
+    return internalRequest(
+      this.sdk,
+      `/chat/admin/cases/${id}/items/${messageId}`,
+      "DELETE",
+    );
+  }
+
+  /**
+   * Admin: add a note to a case.
+   * @param {string} id
+   * @param {Object} params
+   * @param {string} params.body
+   * @returns {Promise<Object>}
+   */
+  async adminAddCaseNote(id, { body }) {
+    this.sdk.validateParams(
+      { id, body },
+      {
+        id: { type: "string", required: true },
+        body: { type: "string", required: true },
+      },
+    );
+    return internalRequest(this.sdk, `/chat/admin/cases/${id}/notes`, "POST", {
+      body: { body },
+    });
+  }
+
+  /**
+   * Admin: close a case with a required outcome and note. Appends a
+   * system note to the case.
+   * @param {string} id
+   * @param {Object} params
+   * @param {'no_action'|'warned'|'escalated_hr'|'content_removed'|'other'} params.outcome
+   * @param {string} params.note
+   * @returns {Promise<Object>}
+   */
+  async adminCloseCase(id, { outcome, note }) {
+    this.sdk.validateParams(
+      { id, outcome, note },
+      {
+        id: { type: "string", required: true },
+        outcome: { type: "string", required: true },
+        note: { type: "string", required: true },
+      },
+    );
+    return internalRequest(this.sdk, `/chat/admin/cases/${id}/close`, "POST", {
+      body: { outcome, note },
+    });
+  }
+
+  /**
+   * Admin: reopen a closed case with a required reason. Clears
+   * outcome/closedAt/closedBy/closeNote and appends a system note.
+   * @param {string} id
+   * @param {Object} params
+   * @param {string} params.reason
+   * @returns {Promise<Object>}
+   */
+  async adminReopenCase(id, { reason }) {
+    this.sdk.validateParams(
+      { id, reason },
+      {
+        id: { type: "string", required: true },
+        reason: { type: "string", required: true },
+      },
+    );
+    return internalRequest(this.sdk, `/chat/admin/cases/${id}/reopen`, "POST", {
+      body: { reason },
+    });
+  }
+
+  /**
+   * Admin: list the chat cases a message is linked to (for a report/
+   * flagged-message "Add to case" affordance).
+   * @param {string} messageId
+   * @returns {Promise<Object>} `{results}`
+   */
+  async adminListMessageCases(messageId) {
+    this.sdk.validateParams(
+      { messageId },
+      { messageId: { type: "string", required: true } },
+    );
+    return internalRequest(
+      this.sdk,
+      `/chat/admin/messages/${messageId}/cases`,
+      "GET",
+    );
   }
 
   /**
