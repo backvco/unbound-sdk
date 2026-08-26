@@ -971,6 +971,89 @@ export class ChatService {
   }
 
   /**
+   * Admin: hide a reported message from user-facing chat (reversible).
+   * Content stays visible to admins. Creates/updates the permanent
+   * moderation case for the message.
+   * @param {string} id
+   * @returns {Promise<Object>} the hidden message, plus `caseId`
+   */
+  async adminHideMessage(id) {
+    this.sdk.validateParams({ id }, { id: { type: "string", required: true } });
+    return internalRequest(this.sdk, `/chat/admin/messages/${id}/hide`, "POST");
+  }
+
+  /**
+   * Admin: apply the final disposition to a hidden (or never-hidden)
+   * message — restore it, delete it (stays hidden, content retained
+   * subject to retention), or purge it (content expunged everywhere now).
+   * Also closes every open report on the message.
+   * @param {string} id
+   * @param {Object} params
+   * @param {'restore'|'delete'|'purge'} params.action
+   * @param {string} params.reason Free text, at least 3 characters
+   * @param {string} [params.description] Required (>= 3 chars) for `purge` —
+   *   describes what the content was, since the content itself is removed
+   * @returns {Promise<Object>} the updated message, plus `caseId`/`caseAction`
+   */
+  async adminDispositionMessage(id, { action, reason, description } = {}) {
+    this.sdk.validateParams(
+      { id, action, reason, description },
+      {
+        id: { type: "string", required: true },
+        action: { type: "string", required: true },
+        reason: { type: "string", required: true },
+        description: { type: "string", required: false },
+      },
+    );
+    const body = { action, reason };
+    if (description !== undefined) body.description = description;
+    return internalRequest(
+      this.sdk,
+      `/chat/admin/messages/${id}/disposition`,
+      "POST",
+      { body },
+    );
+  }
+
+  /**
+   * Admin: list moderation cases (permanent hide/disposition history).
+   * @param {Object} [params]
+   * @param {'open'|'closed'|'all'} [params.status]
+   * @param {string} [params.authorId]
+   * @param {string} [params.nextId] Pagination cursor (case id)
+   * @param {number} [params.limit]
+   * @returns {Promise<Object>} `{results, hasMore, nextId}`
+   */
+  async adminListCases({ status, authorId, nextId, limit } = {}) {
+    this.sdk.validateParams(
+      { status, authorId, nextId, limit },
+      {
+        status: { type: "string", required: false },
+        authorId: { type: "string", required: false },
+        nextId: { type: "string", required: false },
+        limit: { type: "number", required: false },
+      },
+    );
+    const query = {};
+    if (status !== undefined) query.status = status;
+    if (authorId !== undefined) query.authorId = authorId;
+    if (nextId !== undefined) query.nextId = nextId;
+    if (limit !== undefined) query.limit = limit;
+    return internalRequest(this.sdk, "/chat/admin/cases", "GET", { query });
+  }
+
+  /**
+   * Admin: get one moderation case — hydrated with its message (content
+   * per the usual rules) and reports.
+   * @param {string} id
+   * @returns {Promise<Object>}
+   */
+  async adminGetCase(id) {
+    this.sdk.validateParams({ id }, { id: { type: "string", required: true } });
+    return internalRequest(this.sdk, `/chat/admin/cases/${id}`, "GET");
+  }
+
+  /**
    * Admin: audit log of review actions.
    * @returns {Promise<Object>}
    */
