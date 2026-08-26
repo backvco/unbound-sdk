@@ -1,6 +1,7 @@
 import { internalRequest } from '../base.js';
 import { PlaybooksService } from './ai/playbooks.js';
 import { VocabularyService } from './ai/vocabulary.js';
+import { EmailService } from './ai/email.js';
 import { translate as translateItems } from './ai/translate.js';
 import {
   getSettings as getAiSettings,
@@ -16,6 +17,7 @@ export class AIService {
     this.extract = new ExtractService(sdk);
     this.playbooks = new PlaybooksService(sdk);
     this.vocabulary = new VocabularyService(sdk);
+    this.email = new EmailService(sdk);
   }
 
   /**

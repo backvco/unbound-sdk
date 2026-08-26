@@ -1,3 +1,8 @@
+## 4.13.0
+
+- feat: `sdk.ai.email` — `generate`, `rewrite`, `subjects`, `altText`
+  (`POST /ai/email/{generate,rewrite,subjects,alt-text}`)
+
 ## 4.12.0
 
 - feat: `sdk.messaging.email.templates` v2 — `autosave`, `listVersions`,
