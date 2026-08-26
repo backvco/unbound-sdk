@@ -16,6 +16,7 @@ import { NotesService } from './services/notes.js';
 import { StorageService } from './services/storage.js';
 import { BrandingService } from './services/branding.js';
 import { BrandService } from './services/brand.js';
+import { ContentService } from './services/content.js';
 import { VerificationService } from './services/verification.js';
 import { PortalsService } from './services/portals.js';
 import { SipEndpointsService } from './services/sipEndpoints.js';
@@ -95,6 +96,7 @@ class UnboundSDK extends BaseSDK {
     this.storage = new StorageService(this);
     this.branding = new BrandingService(this);
     this.brand = new BrandService(this);
+    this.content = new ContentService(this);
     this.verification = new VerificationService(this);
     this.portals = new PortalsService(this);
     this.sipEndpoints = new SipEndpointsService(this);
@@ -278,6 +280,12 @@ export { NotesService } from './services/notes.js';
 export { StorageService } from './services/storage.js';
 export { BrandingService, BrandingEmailTemplatesService } from './services/branding.js';
 export { BrandService, BrandKitsService } from './services/brand.js';
+export {
+  ContentService,
+  ContentBlocksService,
+  ContentLibraryService,
+  ContentStockService,
+} from './services/content.js';
 export { VerificationService } from './services/verification.js';
 export { PortalsService } from './services/portals.js';
 export { SipEndpointsService } from './services/sipEndpoints.js';

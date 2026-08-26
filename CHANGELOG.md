@@ -4,6 +4,8 @@
   `restoreVersion`; `create`/`update`/`list` accept `design`, `appearance`,
   usage flags; `preview` may return `unresolvedTags`
 - feat: `sdk.brand.kits` — CRUD, `get`, `setDefault`, URL `extract`
+- feat: `sdk.content.blocks` CRUD; `sdk.content.library` list/get/create;
+  `sdk.content.stock` unsplash/pexels/giphy search + import
 
 ## 4.11.0
 
