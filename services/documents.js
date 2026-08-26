@@ -186,6 +186,7 @@ export class DocumentsService {
    * @param {string} [params.versionId]
    * @param {Object} [params.options]
    * @param {string} [params.options.filename]
+   * @param {boolean} [params.options.includeRecipientFieldMap] - Persist recipient field geometry for esign
    * @param {Object} [params.source]
    * @param {string} [params.source.type]
    * @param {string} [params.source.id]
