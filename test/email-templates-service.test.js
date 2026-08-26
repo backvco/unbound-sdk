@@ -24,6 +24,24 @@ function buildFakeSdk() {
 }
 
 describe('EmailTemplatesService.preview', () => {
+	test('returns whatever the API sends, including unresolvedTags', async () => {
+		const { fakeSdk } = buildFakeSdk();
+		fakeSdk[Symbol.for('unbound.sdk.request')] = async () => ({
+			subject: 'Hi Jane',
+			html: '<p>Hello Jane</p>',
+			text: 'Hello Jane',
+			unresolvedTags: ['companyName'],
+		});
+		const svc = new EmailTemplatesService(fakeSdk);
+
+		const preview = await svc.preview('tpl-1', {
+			subject: 'Hi {{firstName}}',
+			variables: { firstName: 'Jane' },
+		});
+
+		assert.deepEqual(preview.unresolvedTags, ['companyName']);
+	});
+
 	test('POSTs /messaging/email/template/:id/preview with the body', async () => {
 		const { fakeSdk, calls } = buildFakeSdk();
 		const svc = new EmailTemplatesService(fakeSdk);
@@ -108,3 +126,156 @@ describe('EmailTemplatesService.sendTest', () => {
 		assert.equal(calls[0].params.body.to, 'a@b.com');
 	});
 });
+
+describe('EmailTemplatesService.autosave', () => {
+	test('POSTs /messaging/email/template/:id/autosave with { design }', async () => {
+		const { fakeSdk, calls } = buildFakeSdk();
+		const svc = new EmailTemplatesService(fakeSdk);
+		const design = { type: 'email', children: [] };
+
+		await svc.autosave('tpl-1', { design });
+
+		assert.equal(calls.length, 1);
+		assert.equal(calls[0].endpoint, '/messaging/email/template/tpl-1/autosave');
+		assert.equal(calls[0].method, 'POST');
+		assert.deepEqual(calls[0].params, { body: { design } });
+	});
+});
+
+describe('EmailTemplatesService.listVersions', () => {
+	test('GETs /messaging/email/template/:id/versions', async () => {
+		const { fakeSdk, calls } = buildFakeSdk();
+		const svc = new EmailTemplatesService(fakeSdk);
+
+		await svc.listVersions('tpl-1');
+
+		assert.equal(calls[0].endpoint, '/messaging/email/template/tpl-1/versions');
+		assert.equal(calls[0].method, 'GET');
+	});
+});
+
+describe('EmailTemplatesService.restoreVersion', () => {
+	test('POSTs /messaging/email/template/:id/versions/:version/restore', async () => {
+		const { fakeSdk, calls } = buildFakeSdk();
+		const svc = new EmailTemplatesService(fakeSdk);
+
+		await svc.restoreVersion('tpl-1', 3);
+
+		assert.equal(
+			calls[0].endpoint,
+			'/messaging/email/template/tpl-1/versions/3/restore',
+		);
+		assert.equal(calls[0].method, 'POST');
+	});
+});
+
+describe('EmailTemplatesService.update', () => {
+	test('PUTs defined fields including false usage flags; omits appearance', async () => {
+		const { fakeSdk, calls } = buildFakeSdk();
+		const svc = new EmailTemplatesService(fakeSdk);
+		const design = { type: 'email', children: [] };
+
+		await svc.update('tpl-1', {
+			design,
+			allowOneOff: false,
+			allowCampaign: true,
+			html: '<p>Hi</p>',
+			text: 'Hi',
+			subject: 'Hello',
+			name: 'Welcome',
+			brandKitId: 'kit-1',
+			category: 'welcome',
+			variables: [{ key: 'firstName', label: 'First', type: 'text' }],
+		});
+
+		assert.equal(calls[0].endpoint, '/messaging/email/template/tpl-1');
+		assert.equal(calls[0].method, 'PUT');
+		assert.deepEqual(calls[0].params.body, {
+			name: 'Welcome',
+			subject: 'Hello',
+			html: '<p>Hi</p>',
+			text: 'Hi',
+			variables: [{ key: 'firstName', label: 'First', type: 'text' }],
+			design,
+			allowOneOff: false,
+			allowCampaign: true,
+			brandKitId: 'kit-1',
+			category: 'welcome',
+		});
+		assert.equal('appearance' in calls[0].params.body, false);
+	});
+
+	test('includes appearance when it is defined', async () => {
+		const { fakeSdk, calls } = buildFakeSdk();
+		const svc = new EmailTemplatesService(fakeSdk);
+
+		await svc.update('tpl-1', { appearance: 'client' });
+
+		assert.deepEqual(calls[0].params.body, { appearance: 'client' });
+	});
+});
+
+describe('EmailTemplatesService.create', () => {
+	test('POSTs appearance, usage flags, and design with existing fields', async () => {
+		const { fakeSdk, calls } = buildFakeSdk();
+		const svc = new EmailTemplatesService(fakeSdk);
+		const design = { type: 'email', children: [] };
+
+		await svc.create({
+			name: 'Welcome',
+			subject: 'Hi {{firstName}}',
+			appearance: 'marketing',
+			allowOneOff: true,
+			allowCampaign: false,
+			design,
+			html: '<p>Hi</p>',
+			text: 'Hi',
+		});
+
+		assert.equal(calls[0].endpoint, '/messaging/email/template');
+		assert.equal(calls[0].method, 'POST');
+		assert.deepEqual(calls[0].params.body, {
+			name: 'Welcome',
+			subject: 'Hi {{firstName}}',
+			html: '<p>Hi</p>',
+			text: 'Hi',
+			design,
+			appearance: 'marketing',
+			allowOneOff: true,
+			allowCampaign: false,
+		});
+	});
+});
+
+describe('EmailTemplatesService.list', () => {
+	test('GETs /messaging/email/template with no query when unfiltered', async () => {
+		const { fakeSdk, calls } = buildFakeSdk();
+		const svc = new EmailTemplatesService(fakeSdk);
+
+		await svc.list();
+
+		assert.equal(calls[0].endpoint, '/messaging/email/template');
+		assert.equal(calls[0].method, 'GET');
+		assert.equal(calls[0].params.query, undefined);
+	});
+
+	test('GETs with appearance / usage flag query string', async () => {
+		const { fakeSdk, calls } = buildFakeSdk();
+		const svc = new EmailTemplatesService(fakeSdk);
+
+		await svc.list({
+			appearance: 'client',
+			allowOneOff: true,
+			allowCampaign: false,
+		});
+
+		assert.equal(calls[0].endpoint, '/messaging/email/template');
+		assert.equal(calls[0].method, 'GET');
+		assert.deepEqual(calls[0].params.query, {
+			appearance: 'client',
+			allowOneOff: true,
+			allowCampaign: false,
+		});
+	});
+});
+

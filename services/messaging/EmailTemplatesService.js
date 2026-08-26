@@ -1,4 +1,13 @@
 import { internalRequest } from '../../base.js';
+
+function pickDefined(fields) {
+  const body = {};
+  for (const [key, value] of Object.entries(fields)) {
+    if (value !== undefined) body[key] = value;
+  }
+  return body;
+}
+
 export class EmailTemplatesService {
   constructor(sdk) {
     this.sdk = sdk;
@@ -11,6 +20,12 @@ export class EmailTemplatesService {
    * @param {string} params.subject - Template subject (required)
    * @param {string} [params.html] - HTML template body
    * @param {string} [params.text] - Plain text template body
+   * @param {Object} [params.design] - Block-tree design JSON (compiled server-side)
+   * @param {string} [params.appearance] - `client` or `marketing` (immutable after create)
+   * @param {boolean} [params.allowOneOff] - Usable as a one-off / compose send
+   * @param {boolean} [params.allowCampaign] - Usable in campaigns / journeys
+   * @param {string} [params.brandKitId] - Brand kit to apply
+   * @param {string} [params.category] - Template category
    * @param {Array<Object>} [params.variables] - Variable metadata definitions
    * @param {string} params.variables[].key - Variable key (unique, alphanumeric + underscores)
    * @param {string} params.variables[].label - Human-readable display name
@@ -22,6 +37,10 @@ export class EmailTemplatesService {
    * const template = await sdk.messaging.email.templates.create({
    *   name: 'Welcome Email',
    *   subject: 'Welcome {{firstName}}!',
+   *   appearance: 'marketing',
+   *   allowOneOff: true,
+   *   allowCampaign: true,
+   *   design: { type: 'email', children: [] },
    *   html: '<h1>Hello {{firstName}}</h1><p>{{body}}</p>',
    *   text: 'Hello {{firstName}}',
    *   variables: [
@@ -30,7 +49,19 @@ export class EmailTemplatesService {
    *   ],
    * });
    */
-  async create({ name, subject, html, text, variables }) {
+  async create({
+    name,
+    subject,
+    html,
+    text,
+    variables,
+    design,
+    appearance,
+    allowOneOff,
+    allowCampaign,
+    brandKitId,
+    category,
+  }) {
     this.sdk.validateParams(
       { name, subject },
       {
@@ -39,16 +70,29 @@ export class EmailTemplatesService {
         html: { type: 'string', required: false },
         text: { type: 'string', required: false },
         variables: { type: 'array', required: false },
+        design: { type: 'object', required: false },
+        appearance: { type: 'string', required: false },
+        allowOneOff: { type: 'boolean', required: false },
+        allowCampaign: { type: 'boolean', required: false },
+        brandKitId: { type: 'string', required: false },
+        category: { type: 'string', required: false },
       },
     );
 
-    const templateData = { name, subject };
-    if (html) templateData.html = html;
-    if (text) templateData.text = text;
-    if (variables) templateData.variables = variables;
-
     const options = {
-      body: templateData,
+      body: pickDefined({
+        name,
+        subject,
+        html,
+        text,
+        variables,
+        design,
+        appearance,
+        allowOneOff,
+        allowCampaign,
+        brandKitId,
+        category,
+      }),
     };
 
     const result = await internalRequest(this.sdk, 
@@ -60,13 +104,20 @@ export class EmailTemplatesService {
   }
 
   /**
-   * Update email template
+   * Update email template. Only defined fields are sent. Appearance is
+   * immutable after create and should usually be omitted.
    * @param {string} id - Template ID (required)
    * @param {Object} params - Update parameters
    * @param {string} [params.name] - Template name
    * @param {string} [params.subject] - Template subject
    * @param {string} [params.html] - HTML template body
    * @param {string} [params.text] - Plain text template body
+   * @param {Object} [params.design] - Block-tree design JSON (compiled server-side)
+   * @param {string} [params.appearance] - Usually omit; immutable after create
+   * @param {boolean} [params.allowOneOff] - Usable as a one-off / compose send
+   * @param {boolean} [params.allowCampaign] - Usable in campaigns / journeys
+   * @param {string} [params.brandKitId] - Brand kit to apply
+   * @param {string} [params.category] - Template category
    * @param {Array<Object>} [params.variables] - Variable metadata definitions
    * @param {string} params.variables[].key - Variable key (unique, alphanumeric + underscores)
    * @param {string} params.variables[].label - Human-readable display name
@@ -77,13 +128,31 @@ export class EmailTemplatesService {
    * @example
    * const updated = await sdk.messaging.email.templates.update('tpl_123', {
    *   subject: 'Hi {{firstName}}, welcome to {{companyName}}!',
+   *   allowOneOff: true,
+   *   allowCampaign: false,
+   *   design: { type: 'email', children: [] },
    *   variables: [
    *     { key: 'firstName', label: 'First Name', type: 'text', required: true },
    *     { key: 'companyName', label: 'Company Name', type: 'text' },
    *   ],
    * });
    */
-  async update(id, { name, subject, html, text, variables }) {
+  async update(
+    id,
+    {
+      name,
+      subject,
+      html,
+      text,
+      variables,
+      design,
+      appearance,
+      allowOneOff,
+      allowCampaign,
+      brandKitId,
+      category,
+    },
+  ) {
     this.sdk.validateParams(
       { id },
       {
@@ -93,18 +162,29 @@ export class EmailTemplatesService {
         html: { type: 'string', required: false },
         text: { type: 'string', required: false },
         variables: { type: 'array', required: false },
+        design: { type: 'object', required: false },
+        appearance: { type: 'string', required: false },
+        allowOneOff: { type: 'boolean', required: false },
+        allowCampaign: { type: 'boolean', required: false },
+        brandKitId: { type: 'string', required: false },
+        category: { type: 'string', required: false },
       },
     );
 
-    const updateData = {};
-    if (name) updateData.name = name;
-    if (subject) updateData.subject = subject;
-    if (html) updateData.html = html;
-    if (text) updateData.text = text;
-    if (variables) updateData.variables = variables;
-
     const options = {
-      body: updateData,
+      body: pickDefined({
+        name,
+        subject,
+        html,
+        text,
+        variables,
+        design,
+        appearance,
+        allowOneOff,
+        allowCampaign,
+        brandKitId,
+        category,
+      }),
     };
 
     const result = await internalRequest(this.sdk, 
@@ -156,11 +236,22 @@ export class EmailTemplatesService {
   }
 
   /**
-   * List all email templates
+   * List email templates, optionally filtered by appearance / usage flags.
+   * @param {Object} [filters]
+   * @param {string} [filters.appearance] - `client` or `marketing`
+   * @param {boolean} [filters.allowOneOff]
+   * @param {boolean} [filters.allowCampaign]
    * @returns {Promise<Array>} List of email templates
    */
-  async list() {
-    const result = await internalRequest(this.sdk, '/messaging/email/template', 'GET');
+  async list({ appearance, allowOneOff, allowCampaign } = {}) {
+    const query = pickDefined({ appearance, allowOneOff, allowCampaign });
+    const options = Object.keys(query).length ? { query } : {};
+    const result = await internalRequest(
+      this.sdk,
+      '/messaging/email/template',
+      'GET',
+      options,
+    );
     return result;
   }
 
@@ -173,13 +264,15 @@ export class EmailTemplatesService {
    * @param {string} [body.html] - Draft HTML body
    * @param {string} [body.text] - Draft plain-text body
    * @param {Object} [body.variables] - Variable substitution values
-   * @returns {Promise<Object>} Rendered preview
+   * @returns {Promise<Object>} Rendered preview. May include `unresolvedTags`
+   *   (string[]) for merge tags that were not substituted.
    * @example
    * const preview = await sdk.messaging.email.templates.preview('tpl_123', {
    *   subject: 'Welcome {{firstName}}',
    *   html: '<p>Hello {{firstName}}</p>',
    *   variables: { firstName: 'Jane' },
    * });
+   * // preview.unresolvedTags → [] or ['companyName', ...]
    */
   async preview(id, { subject, html, text, variables } = {}) {
     this.sdk.validateParams(
@@ -237,6 +330,74 @@ export class EmailTemplatesService {
       `/messaging/email/template/${id}/test`,
       'POST',
       options,
+    );
+    return result;
+  }
+
+  /**
+   * Autosave a draft design tree without compiling or snapshotting a version.
+   * @param {string} id - Template ID (required)
+   * @param {Object} body
+   * @param {Object} body.design - Block-tree design JSON (required)
+   * @returns {Promise<Object>} `{ id, draftDesignStorageId }`
+   */
+  async autosave(id, { design } = {}) {
+    this.sdk.validateParams(
+      { id, design },
+      {
+        id: { type: 'string', required: true },
+        design: { type: 'object', required: true },
+      },
+    );
+
+    const result = await internalRequest(this.sdk, 
+      `/messaging/email/template/${id}/autosave`,
+      'POST',
+      { body: { design } },
+    );
+    return result;
+  }
+
+  /**
+   * List saved versions of a template.
+   * @param {string} id - Template ID (required)
+   * @returns {Promise<Array>} Version rows
+   */
+  async listVersions(id) {
+    this.sdk.validateParams(
+      { id },
+      {
+        id: { type: 'string', required: true },
+      },
+    );
+
+    const result = await internalRequest(this.sdk, 
+      `/messaging/email/template/${id}/versions`,
+      'GET',
+    );
+    return result;
+  }
+
+  /**
+   * Restore a previously saved version as the current template.
+   * @param {string} id - Template ID (required)
+   * @param {number|string} version - Version number (required)
+   * @returns {Promise<Object>} Restored template
+   */
+  async restoreVersion(id, version) {
+    this.sdk.validateParams(
+      { id },
+      {
+        id: { type: 'string', required: true },
+      },
+    );
+    if (version === undefined || version === null || version === '') {
+      throw new Error('Missing required parameter version');
+    }
+
+    const result = await internalRequest(this.sdk, 
+      `/messaging/email/template/${id}/versions/${version}/restore`,
+      'POST',
     );
     return result;
   }

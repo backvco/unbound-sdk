@@ -1,3 +1,10 @@
+## 4.12.0
+
+- feat: `sdk.messaging.email.templates` v2 — `autosave`, `listVersions`,
+  `restoreVersion`; `create`/`update`/`list` accept `design`, `appearance`,
+  usage flags; `preview` may return `unresolvedTags`
+- feat: `sdk.brand.kits` — CRUD, `get`, `setDefault`, URL `extract`
+
 ## 4.11.0
 
 - feat: `sdk.messaging.email.templates.preview(id, body)` and `.sendTest(id, to, body?)`
