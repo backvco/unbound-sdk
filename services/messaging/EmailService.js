@@ -56,7 +56,9 @@ export class EmailService {
    * @param {Array} [params.storageId] - Array of storage IDs for attachments
    * @param {string} [params.replyTo] - Reply-to email address
    * @param {string} [params.replyToEmailId] - ID of email this is replying to
-   * @param {string} [params.relatedId] - Related record ID
+   * @param {string} [params.relatedId] - Related record ID (e.g. opportunity)
+   * @param {string} [params.peopleId] - Person record ID to link the email to
+   * @param {string} [params.companyId] - Company record ID to link the email to
    * @param {string} [params.emailType='marketing'] - Email type: 'marketing' or 'transactional'
    * @param {boolean} [params.tracking=true] - Enable email tracking (opens, clicks)
    * @param {string} [params.mailboxId] - Specific mailbox to send from
@@ -77,6 +79,8 @@ export class EmailService {
     replyTo,
     replyToEmailId,
     relatedId,
+    peopleId,
+    companyId,
     emailType,
     tracking,
     mailboxId,
@@ -107,6 +111,8 @@ export class EmailService {
         replyTo,
         replyToEmailId,
         relatedId,
+        peopleId,
+        companyId,
         emailType,
         tracking,
         mailboxId,
@@ -122,6 +128,8 @@ export class EmailService {
         replyTo: { type: 'string', required: false },
         replyToEmailId: { type: 'string', required: false },
         relatedId: { type: 'string', required: false },
+        peopleId: { type: 'string', required: false },
+        companyId: { type: 'string', required: false },
         emailType: { type: 'string', required: false },
         tracking: { type: 'boolean', required: false },
         mailboxId: { type: 'string', required: false },
@@ -145,6 +153,8 @@ export class EmailService {
     if (replyTo) emailData.replyTo = replyTo;
     if (replyToEmailId) emailData.replyToEmailId = replyToEmailId;
     if (relatedId) emailData.relatedId = relatedId;
+    if (peopleId) emailData.peopleId = peopleId;
+    if (companyId) emailData.companyId = companyId;
     if (emailType) emailData.emailType = emailType;
     if (tracking !== undefined) emailData.tracking = tracking;
     if (mailboxId) emailData.mailboxId = mailboxId;
@@ -250,7 +260,9 @@ export class EmailService {
    * @param {Array} [params.storageId] - Array of storage IDs for attachments
    * @param {string} [params.replyTo] - Reply-to email address
    * @param {string} [params.replyToEmailId] - ID of email this is replying to
-   * @param {string} [params.relatedId] - Related record ID
+   * @param {string} [params.relatedId] - Related record ID (e.g. opportunity)
+   * @param {string} [params.peopleId] - Person record ID to link the draft to
+   * @param {string} [params.companyId] - Company record ID to link the draft to
    * @param {string} [params.emailType='marketing'] - Email type: 'marketing' or 'transactional'
    * @param {boolean} [params.tracking=true] - Enable email tracking (opens, clicks)
    * @param {string} [params.mailboxId] - Specific mailbox for the draft
@@ -272,6 +284,8 @@ export class EmailService {
     replyTo,
     replyToEmailId,
     relatedId,
+    peopleId,
+    companyId,
     emailType,
     tracking,
     mailboxId,
@@ -293,6 +307,8 @@ export class EmailService {
         replyTo,
         replyToEmailId,
         relatedId,
+        peopleId,
+        companyId,
         emailType,
         tracking,
         mailboxId,
@@ -310,6 +326,8 @@ export class EmailService {
         replyTo: { type: 'string', required: false },
         replyToEmailId: { type: 'string', required: false },
         relatedId: { type: 'string', required: false },
+        peopleId: { type: 'string', required: false },
+        companyId: { type: 'string', required: false },
         emailType: { type: 'string', required: false },
         tracking: { type: 'boolean', required: false },
         mailboxId: { type: 'string', required: false },
@@ -333,6 +351,8 @@ export class EmailService {
     if (replyTo) draftData.replyTo = replyTo;
     if (replyToEmailId) draftData.replyToEmailId = replyToEmailId;
     if (relatedId) draftData.relatedId = relatedId;
+    if (peopleId) draftData.peopleId = peopleId;
+    if (companyId) draftData.companyId = companyId;
     if (emailType) draftData.emailType = emailType;
     if (tracking !== undefined) draftData.tracking = tracking;
     if (mailboxId) draftData.mailboxId = mailboxId;
@@ -367,6 +387,9 @@ export class EmailService {
    * @param {Object} [params.variables] - Template variables for substitution
    * @param {Array} [params.storageId] - Array of storage IDs for attachments
    * @param {string} [params.replyTo] - Reply-to email address
+   * @param {string} [params.relatedId] - Related record ID (e.g. opportunity)
+   * @param {string} [params.peopleId] - Person record ID to link the draft to
+   * @param {string} [params.companyId] - Company record ID to link the draft to
    * @param {string} [params.emailType] - Email type: 'marketing' or 'transactional'
    * @param {boolean} [params.tracking] - Enable email tracking (opens, clicks)
    * @param {string} [params.mailboxId] - Specific mailbox for the draft
@@ -387,6 +410,9 @@ export class EmailService {
       variables,
       storageId,
       replyTo,
+      relatedId,
+      peopleId,
+      companyId,
       emailType,
       tracking,
       mailboxId,
@@ -407,6 +433,9 @@ export class EmailService {
         variables,
         storageId,
         replyTo,
+        relatedId,
+        peopleId,
+        companyId,
         emailType,
         tracking,
         mailboxId,
@@ -422,6 +451,9 @@ export class EmailService {
         variables: { type: 'object', required: false },
         storageId: { type: 'array', required: false },
         replyTo: { type: 'string', required: false },
+        relatedId: { type: 'string', required: false },
+        peopleId: { type: 'string', required: false },
+        companyId: { type: 'string', required: false },
         emailType: { type: 'string', required: false },
         tracking: { type: 'boolean', required: false },
         mailboxId: { type: 'string', required: false },
@@ -442,6 +474,9 @@ export class EmailService {
     if (variables !== undefined) updateData.variables = variables;
     if (storageId !== undefined) updateData.storageId = storageId;
     if (replyTo !== undefined) updateData.replyTo = replyTo;
+    if (relatedId !== undefined) updateData.relatedId = relatedId;
+    if (peopleId !== undefined) updateData.peopleId = peopleId;
+    if (companyId !== undefined) updateData.companyId = companyId;
     if (emailType !== undefined) updateData.emailType = emailType;
     if (tracking !== undefined) updateData.tracking = tracking;
     if (mailboxId !== undefined) updateData.mailboxId = mailboxId;

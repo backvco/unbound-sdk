@@ -1166,6 +1166,35 @@ export class ObjectsService {
   }
 
   /**
+   * Thread-grouped, record-scoped emails for a single record (person,
+   * company, or opportunity) — filtered mailbox view used by the `email`
+   * layout section (see schemas/layouts/section.js).
+   * @param {string} recordId
+   * @param {object} [options]
+   * @param {number} [options.limit]
+   * @param {number} [options.offset]
+   * @param {string} [options.search]
+   * @param {string} [options.mailboxId]
+   * @param {boolean} [options.unreadOnly]
+   * @returns {Promise<{threads: object[], total: number, unreadCount: number, mailboxes: object[]}>}
+   */
+  async getRecordEmails(recordId, { limit, offset, search, mailboxId, unreadOnly } = {}) {
+    this.sdk.validateParams(
+      { recordId },
+      { recordId: { type: 'string', required: true } },
+    );
+    const query = {};
+    if (limit) query.limit = limit;
+    if (offset) query.offset = offset;
+    if (search) query.search = search;
+    if (mailboxId) query.mailboxId = mailboxId;
+    if (unreadOnly) query.unreadOnly = unreadOnly;
+    return internalRequest(this.sdk, `/object/${recordId}/emails`, 'GET', {
+      query,
+    });
+  }
+
+  /**
    * Marketing programs dashboard (programs + totals).
    * @returns {Promise<object>}
    */

@@ -101,6 +101,18 @@ const TimelineSection = BaseSection.extend({
   showFilters: z.boolean().default(true),
 });
 
+// Email section (people/company/opportunities detail pages) — renders a
+// record-scoped, filtered view over app1-api's GET /object/:id/emails
+// (thread-grouped mailbox data), not a table/kanban query.
+const EmailSection = BaseSection.extend({
+  type: z.literal('email'),
+  limit: z.number().int().positive().default(25),
+  showSearch: z.boolean().default(true),
+  showMailboxFilter: z.boolean().default(true),
+  showCompose: z.boolean().default(true),
+  hideWhenEmpty: z.boolean().default(true),
+});
+
 const TableKanbanSection = BaseSection.extend({
   type: z.literal('table-kanban'),
   defaultView: z.enum(['table', 'kanban']).default('table'),
@@ -118,5 +130,5 @@ const TableKanbanSection = BaseSection.extend({
 // function.
 export const SectionSpec = z.discriminatedUnion('type', [
   ContentSection, TableSection, KanbanSection, TableKanbanSection, WidgetSection,
-  TimelineSection,
+  TimelineSection, EmailSection,
 ]);
