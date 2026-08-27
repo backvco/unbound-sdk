@@ -844,4 +844,25 @@ export class TaskService {
     const result = await internalRequest(this.sdk, '/taskRouter/tasks/', 'PUT', params);
     return result;
   }
+
+  /**
+   * Get the voice transcript for a task, keyed by the media-manager
+   * bridgeId (not sipCallId) so it works across requeue/transfer.
+   *
+   * @param {string} taskId - The task ID to fetch a transcript for
+   * @returns {Promise<Object>} { bridgeId, messages } — bridgeId is null
+   *   and messages is [] for chat/email tasks or tasks with no bridge yet.
+   */
+  async getTranscript(taskId) {
+    this.sdk.validateParams(
+      { taskId },
+      { taskId: { type: 'string', required: true } },
+    );
+    return await internalRequest(
+      this.sdk,
+      `/taskRouter/tasks/${taskId}/transcript`,
+      'GET',
+      {},
+    );
+  }
 }
