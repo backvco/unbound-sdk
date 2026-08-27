@@ -17,6 +17,7 @@ export const LayoutDoc = z.object({
   sections: z.array(SectionSpec).default([]),
   feeds: ToggleSpec.optional(),
   notes: ToggleSpec.optional(),
+  email: ToggleSpec.optional(),
   aiInsights: ToggleSpec.optional(),
   aiGoals: ToggleSpec.optional(),
   googleDrive: z.object({
