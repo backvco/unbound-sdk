@@ -223,10 +223,9 @@ export class PortalsService {
       },
     );
 
-    const result = await internalRequest(this.sdk, 
-      `/portals/${portalId}/verify-dns`,
-      'POST',
-    );
+    const result = await internalRequest(this.sdk, '/portals/dns/verify', 'GET', {
+      query: { id: portalId },
+    });
     return result;
   }
 }
