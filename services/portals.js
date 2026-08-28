@@ -1,4 +1,4 @@
-import { internalRequest } from "../base.js";
+import { internalRequest } from '../base.js';
 export class PortalsService {
   constructor(sdk) {
     this.sdk = sdk;
@@ -44,16 +44,16 @@ export class PortalsService {
     this.sdk.validateParams(
       { name, kind, domain, slug },
       {
-        name: { type: "string", required: true },
-        kind: { type: "string", required: false },
-        domain: { type: "string", required: false },
-        slug: { type: "string", required: false },
-        settings: { type: "object", required: false },
-        isPublic: { type: "boolean", required: false },
-        customCss: { type: "string", required: false },
-        customJs: { type: "string", required: false },
-        favicon: { type: "string", required: false },
-        logo: { type: "string", required: false },
+        name: { type: 'string', required: true },
+        kind: { type: 'string', required: false },
+        domain: { type: 'string', required: false },
+        slug: { type: 'string', required: false },
+        settings: { type: 'object', required: false },
+        isPublic: { type: 'boolean', required: false },
+        customCss: { type: 'string', required: false },
+        customJs: { type: 'string', required: false },
+        favicon: { type: 'string', required: false },
+        logo: { type: 'string', required: false },
       },
     );
 
@@ -72,7 +72,7 @@ export class PortalsService {
       body: portalData,
     };
 
-    const result = await internalRequest(this.sdk, "/portals", "POST", params);
+    const result = await internalRequest(this.sdk, '/portals', 'POST', params);
     return result;
   }
 
@@ -106,15 +106,15 @@ export class PortalsService {
     this.sdk.validateParams(
       { portalId },
       {
-        portalId: { type: "string", required: true },
-        name: { type: "string", required: false },
-        domain: { type: "string", required: false },
-        settings: { type: "object", required: false },
-        isPublic: { type: "boolean", required: false },
-        customCss: { type: "string", required: false },
-        customJs: { type: "string", required: false },
-        favicon: { type: "string", required: false },
-        logo: { type: "string", required: false },
+        portalId: { type: 'string', required: true },
+        name: { type: 'string', required: false },
+        domain: { type: 'string', required: false },
+        settings: { type: 'object', required: false },
+        isPublic: { type: 'boolean', required: false },
+        customCss: { type: 'string', required: false },
+        customJs: { type: 'string', required: false },
+        favicon: { type: 'string', required: false },
+        logo: { type: 'string', required: false },
       },
     );
 
@@ -132,12 +132,7 @@ export class PortalsService {
       body: updateData,
     };
 
-    const result = await internalRequest(
-      this.sdk,
-      `/portals/${portalId}`,
-      "PUT",
-      params,
-    );
+    const result = await internalRequest(this.sdk, `/portals/${portalId}`, 'PUT', params);
     return result;
   }
 
@@ -151,15 +146,11 @@ export class PortalsService {
     this.sdk.validateParams(
       { portalId },
       {
-        portalId: { type: "string", required: true },
+        portalId: { type: 'string', required: true },
       },
     );
 
-    const result = await internalRequest(
-      this.sdk,
-      `/portals/${portalId}`,
-      "DELETE",
-    );
+    const result = await internalRequest(this.sdk, `/portals/${portalId}`, 'DELETE');
     return result;
   }
 
@@ -173,15 +164,11 @@ export class PortalsService {
     this.sdk.validateParams(
       { portalId },
       {
-        portalId: { type: "string", required: true },
+        portalId: { type: 'string', required: true },
       },
     );
 
-    const result = await internalRequest(
-      this.sdk,
-      `/portals/${portalId}`,
-      "GET",
-    );
+    const result = await internalRequest(this.sdk, `/portals/${portalId}`, 'GET');
     return result;
   }
 
@@ -200,7 +187,7 @@ export class PortalsService {
     this.sdk.validateParams(
       { domain },
       {
-        domain: { type: "string", required: true },
+        domain: { type: 'string', required: true },
       },
     );
 
@@ -208,12 +195,7 @@ export class PortalsService {
       query: { domain },
     };
 
-    const result = await internalRequest(
-      this.sdk,
-      "/portals/public",
-      "GET",
-      params,
-    );
+    const result = await internalRequest(this.sdk, '/portals/public', 'GET', params);
     return result;
   }
 
@@ -223,7 +205,7 @@ export class PortalsService {
    * @returns {Promise<{ portals: object[] }>} An object containing an array of portal records.
    */
   async list() {
-    const result = await internalRequest(this.sdk, "/portals", "GET");
+    const result = await internalRequest(this.sdk, '/portals', 'GET');
     return result;
   }
 
@@ -247,18 +229,13 @@ export class PortalsService {
     this.sdk.validateParams(
       { portalId },
       {
-        portalId: { type: "string", required: true },
+        portalId: { type: 'string', required: true },
       },
     );
 
-    const result = await internalRequest(
-      this.sdk,
-      "/portals/dns/verify",
-      "GET",
-      {
-        query: { id: portalId },
-      },
-    );
+    const result = await internalRequest(this.sdk, '/portals/dns/verify', 'GET', {
+      query: { id: portalId },
+    });
     return result;
   }
 
@@ -272,11 +249,11 @@ export class PortalsService {
     this.sdk.validateParams(
       { portalId },
       {
-        portalId: { type: "string", required: true },
+        portalId: { type: 'string', required: true },
       },
     );
 
-    return internalRequest(this.sdk, `/portals/${portalId}/pages`, "GET");
+    return internalRequest(this.sdk, `/portals/${portalId}/pages`, 'GET');
   }
 
   /**
@@ -293,14 +270,14 @@ export class PortalsService {
     this.sdk.validateParams(
       { portalId, path, title, type },
       {
-        portalId: { type: "string", required: true },
-        path: { type: "string", required: true },
-        title: { type: "string", required: true },
-        type: { type: "string", required: true },
+        portalId: { type: 'string', required: true },
+        path: { type: 'string', required: true },
+        title: { type: 'string', required: true },
+        type: { type: 'string', required: true },
       },
     );
 
-    return internalRequest(this.sdk, `/portals/${portalId}/pages`, "POST", {
+    return internalRequest(this.sdk, `/portals/${portalId}/pages`, 'POST', {
       body: { path, title, type },
     });
   }
@@ -316,15 +293,15 @@ export class PortalsService {
     this.sdk.validateParams(
       { portalId, pageId },
       {
-        portalId: { type: "string", required: true },
-        pageId: { type: "string", required: true },
+        portalId: { type: 'string', required: true },
+        pageId: { type: 'string', required: true },
       },
     );
 
     return internalRequest(
       this.sdk,
       `/portals/${portalId}/pages/${pageId}`,
-      "GET",
+      'GET',
     );
   }
 
@@ -339,7 +316,14 @@ export class PortalsService {
   async updatePage(
     portalId,
     pageId,
-    { path, title, type, isPublished, publishedVersionId, draftVersionId } = {},
+    {
+      path,
+      title,
+      type,
+      isPublished,
+      publishedVersionId,
+      draftVersionId,
+    } = {},
   ) {
     this.sdk.validateParams(
       {
@@ -353,14 +337,14 @@ export class PortalsService {
         draftVersionId,
       },
       {
-        portalId: { type: "string", required: true },
-        pageId: { type: "string", required: true },
-        path: { type: "string", required: false },
-        title: { type: "string", required: false },
-        type: { type: "string", required: false },
-        isPublished: { type: "boolean", required: false },
-        publishedVersionId: { type: "string", required: false },
-        draftVersionId: { type: "string", required: false },
+        portalId: { type: 'string', required: true },
+        pageId: { type: 'string', required: true },
+        path: { type: 'string', required: false },
+        title: { type: 'string', required: false },
+        type: { type: 'string', required: false },
+        isPublished: { type: 'boolean', required: false },
+        publishedVersionId: { type: 'string', required: false },
+        draftVersionId: { type: 'string', required: false },
       },
     );
 
@@ -377,7 +361,7 @@ export class PortalsService {
     return internalRequest(
       this.sdk,
       `/portals/${portalId}/pages/${pageId}`,
-      "PUT",
+      'PUT',
       { body },
     );
   }
@@ -393,15 +377,15 @@ export class PortalsService {
     this.sdk.validateParams(
       { portalId, pageId },
       {
-        portalId: { type: "string", required: true },
-        pageId: { type: "string", required: true },
+        portalId: { type: 'string', required: true },
+        pageId: { type: 'string', required: true },
       },
     );
 
     return internalRequest(
       this.sdk,
       `/portals/${portalId}/pages/${pageId}`,
-      "DELETE",
+      'DELETE',
     );
   }
 
@@ -416,15 +400,15 @@ export class PortalsService {
     this.sdk.validateParams(
       { portalId, pageId },
       {
-        portalId: { type: "string", required: true },
-        pageId: { type: "string", required: true },
+        portalId: { type: 'string', required: true },
+        pageId: { type: 'string', required: true },
       },
     );
 
     return internalRequest(
       this.sdk,
       `/portals/${portalId}/pages/${pageId}/versions`,
-      "GET",
+      'GET',
     );
   }
 
@@ -451,12 +435,12 @@ export class PortalsService {
         objectName,
       },
       {
-        portalId: { type: "string", required: true },
-        pageId: { type: "string", required: true },
-        designStorageId: { type: "string", required: false },
-        htmlStorageId: { type: "string", required: false },
-        layoutId: { type: "string", required: false },
-        objectName: { type: "string", required: false },
+        portalId: { type: 'string', required: true },
+        pageId: { type: 'string', required: true },
+        designStorageId: { type: 'string', required: false },
+        htmlStorageId: { type: 'string', required: false },
+        layoutId: { type: 'string', required: false },
+        objectName: { type: 'string', required: false },
       },
     );
 
@@ -469,7 +453,7 @@ export class PortalsService {
     return internalRequest(
       this.sdk,
       `/portals/${portalId}/pages/${pageId}/versions`,
-      "POST",
+      'POST',
       { body },
     );
   }
@@ -487,16 +471,16 @@ export class PortalsService {
     this.sdk.validateParams(
       { portalId, pageId, tree },
       {
-        portalId: { type: "string", required: true },
-        pageId: { type: "string", required: true },
-        tree: { type: "object", required: true },
+        portalId: { type: 'string', required: true },
+        pageId: { type: 'string', required: true },
+        tree: { type: 'object', required: true },
       },
     );
 
     return internalRequest(
       this.sdk,
       `/portals/${portalId}/pages/${pageId}/draft`,
-      "PUT",
+      'PUT',
       { body: { tree } },
     );
   }
@@ -514,9 +498,9 @@ export class PortalsService {
     this.sdk.validateParams(
       { portalId, pageId, tree },
       {
-        portalId: { type: "string", required: true },
-        pageId: { type: "string", required: true },
-        tree: { type: "object", required: false },
+        portalId: { type: 'string', required: true },
+        pageId: { type: 'string', required: true },
+        tree: { type: 'object', required: false },
       },
     );
 
@@ -526,7 +510,7 @@ export class PortalsService {
     return internalRequest(
       this.sdk,
       `/portals/${portalId}/pages/${pageId}/publish`,
-      "POST",
+      'POST',
       { body },
     );
   }
