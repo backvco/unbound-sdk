@@ -326,7 +326,16 @@ export class PortalsService {
     } = {},
   ) {
     this.sdk.validateParams(
-      { portalId, pageId },
+      {
+        portalId,
+        pageId,
+        path,
+        title,
+        type,
+        isPublished,
+        publishedVersionId,
+        draftVersionId,
+      },
       {
         portalId: { type: 'string', required: true },
         pageId: { type: 'string', required: true },
@@ -417,7 +426,14 @@ export class PortalsService {
     { designStorageId, htmlStorageId, layoutId, objectName } = {},
   ) {
     this.sdk.validateParams(
-      { portalId, pageId },
+      {
+        portalId,
+        pageId,
+        designStorageId,
+        htmlStorageId,
+        layoutId,
+        objectName,
+      },
       {
         portalId: { type: 'string', required: true },
         pageId: { type: 'string', required: true },
