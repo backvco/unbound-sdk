@@ -9,8 +9,11 @@ export class PortalsService {
    *
    * @param {object} params
    * @param {string} params.name - Display name of the portal.
-   * @param {string} params.domain - Custom domain for the portal (e.g. `portal.example.com`).
+   * @param {string} [params.kind] - Portal kind (`marketing` | `support` | `partner`).
+   * @param {string} [params.domain] - Custom domain for the portal (e.g. `portal.example.com`).
    *   A CNAME DNS record pointing to the platform's portal host is required.
+   * @param {string} [params.slug] - Per-account preview slug (not a custom domain).
+   *   At least one of `domain` or `slug` is required by the API.
    * @param {object} [params.settings] - Optional portal configuration settings.
    * @param {boolean} [params.isPublic] - Whether the portal is publicly accessible without
    *   authentication. Defaults to private if omitted.
@@ -28,7 +31,9 @@ export class PortalsService {
    */
   async create({
     name,
+    kind,
     domain,
+    slug,
     settings,
     isPublic,
     customCss,
@@ -37,10 +42,12 @@ export class PortalsService {
     logo,
   }) {
     this.sdk.validateParams(
-      { name, domain },
+      { name, kind, domain, slug },
       {
         name: { type: 'string', required: true },
-        domain: { type: 'string', required: true },
+        kind: { type: 'string', required: false },
+        domain: { type: 'string', required: false },
+        slug: { type: 'string', required: false },
         settings: { type: 'object', required: false },
         isPublic: { type: 'boolean', required: false },
         customCss: { type: 'string', required: false },
@@ -50,7 +57,10 @@ export class PortalsService {
       },
     );
 
-    const portalData = { name, domain };
+    const portalData = { name };
+    if (kind) portalData.kind = kind;
+    if (domain) portalData.domain = domain;
+    if (slug) portalData.slug = slug;
     if (settings) portalData.settings = settings;
     if (isPublic !== undefined) portalData.isPublic = isPublic;
     if (customCss) portalData.customCss = customCss;
