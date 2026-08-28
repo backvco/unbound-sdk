@@ -13,6 +13,7 @@ export class DocumentTemplatesService {
    * @param {string[]} [params.uses] - Consumer surfaces (`fax`). Empty = all.
    * @param {'generative'|'overlay'} [params.engine='generative']
    * @param {string} [params.sourcePdfStorageId] - Required when engine is overlay
+   * @param {Object[]} [params.objects] - `[{objectName, recordTypeIds}]`. Empty/omitted = applies to every object.
    * @param {Object} [params.draftSchemaJson]
    * @param {Object} [params.draftLayoutJson]
    * @param {Object} [params.draftPageJson]
@@ -26,6 +27,7 @@ export class DocumentTemplatesService {
     uses,
     engine,
     sourcePdfStorageId,
+    objects,
     draftSchemaJson,
     draftLayoutJson,
     draftPageJson,
@@ -40,6 +42,7 @@ export class DocumentTemplatesService {
         uses: { type: 'object', required: false },
         engine: { type: 'string', required: false },
         sourcePdfStorageId: { type: 'string', required: false },
+        objects: { type: 'object', required: false },
         draftSchemaJson: { type: 'object', required: false },
         draftLayoutJson: { type: 'object', required: false },
         draftPageJson: { type: 'object', required: false },
@@ -55,6 +58,7 @@ export class DocumentTemplatesService {
     if (sourcePdfStorageId !== undefined) {
       body.sourcePdfStorageId = sourcePdfStorageId;
     }
+    if (objects !== undefined) body.objects = objects;
     if (draftSchemaJson !== undefined) body.draftSchemaJson = draftSchemaJson;
     if (draftLayoutJson !== undefined) body.draftLayoutJson = draftLayoutJson;
     if (draftPageJson !== undefined) body.draftPageJson = draftPageJson;
@@ -69,14 +73,18 @@ export class DocumentTemplatesService {
    * @param {string} [params.tag]
    * @param {string} [params.status]
    * @param {string} [params.use] - Consumer surface (`fax`). Empty uses match all.
+   * @param {string} [params.object] - Target object name (e.g. `people`). Filters to templates that apply to it.
+   * @param {string} [params.recordTypeId] - Record type within `object`; ignored without `object`.
    * @param {number} [params.limit]
    * @returns {Promise<{results: Object[]}>}
    */
-  async list({ tag, status, use, limit } = {}) {
+  async list({ tag, status, use, object, recordTypeId, limit } = {}) {
     const query = {};
     if (tag) query.tag = tag;
     if (status) query.status = status;
     if (use) query.use = use;
+    if (object) query.object = object;
+    if (recordTypeId) query.recordTypeId = recordTypeId;
     if (limit) query.limit = limit;
     return internalRequest(this.sdk, '/documents/templates', 'GET', { query });
   }
@@ -99,6 +107,7 @@ export class DocumentTemplatesService {
    * @param {string} [params.description]
    * @param {string} [params.tag]
    * @param {string[]} [params.uses]
+   * @param {Object[]} [params.objects] - `[{objectName, recordTypeIds}]`. Empty/omitted = applies to every object.
    * @param {Object} [params.draftSchemaJson]
    * @param {Object} [params.draftLayoutJson]
    * @param {Object} [params.draftPageJson]
@@ -113,6 +122,7 @@ export class DocumentTemplatesService {
       tag,
       uses,
       recordTypeId,
+      objects,
       draftSchemaJson,
       draftLayoutJson,
       draftPageJson,
@@ -128,6 +138,7 @@ export class DocumentTemplatesService {
         tag: { type: 'string', required: false },
         uses: { type: 'object', required: false },
         recordTypeId: { type: 'string', required: false },
+        objects: { type: 'object', required: false },
         draftSchemaJson: { type: 'object', required: false },
         draftLayoutJson: { type: 'object', required: false },
         draftPageJson: { type: 'object', required: false },
@@ -141,6 +152,7 @@ export class DocumentTemplatesService {
     if (tag !== undefined) body.tag = tag;
     if (uses !== undefined) body.uses = uses;
     if (recordTypeId !== undefined) body.recordTypeId = recordTypeId;
+    if (objects !== undefined) body.objects = objects;
     if (draftSchemaJson !== undefined) body.draftSchemaJson = draftSchemaJson;
     if (draftLayoutJson !== undefined) body.draftLayoutJson = draftLayoutJson;
     if (draftPageJson !== undefined) body.draftPageJson = draftPageJson;
