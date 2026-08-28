@@ -40,6 +40,10 @@ import { SearchService } from './services/search.js';
 import { DirectoryService } from './services/directory.js';
 import { ChatService } from './services/chat.js';
 import { DeveloperApisService } from './services/developerApis.js';
+import {
+  DataImportService,
+  DataExportService,
+} from './services/dataImport.js';
 
 class UnboundSDK extends BaseSDK {
   constructor(options = {}) {
@@ -121,6 +125,8 @@ class UnboundSDK extends BaseSDK {
     this.directory = new DirectoryService(this);
     this.chat = new ChatService(this);
     this.developerApis = new DeveloperApisService(this);
+    this.dataImport = new DataImportService(this);
+    this.dataExport = new DataExportService(this);
 
     // Add additional services that might be missing
     this._initializeAdditionalServices();
@@ -316,4 +322,8 @@ export { SearchService } from './services/search.js';
 export { DirectoryService } from './services/directory.js';
 export { ChatService } from './services/chat.js';
 export { DeveloperApisService } from './services/developerApis.js';
+export {
+  DataImportService,
+  DataExportService,
+} from './services/dataImport.js';
 export { BaseSDK } from './base.js';
