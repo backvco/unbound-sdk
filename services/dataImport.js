@@ -218,4 +218,16 @@ export class DataExportService {
       body: { ...body, mode: 'export' },
     });
   }
+
+  /**
+   * Get a signed download URL for a completed export job.
+   * @param {string} jobId
+   */
+  async download(jobId) {
+    this.sdk.validateParams(
+      { jobId },
+      { jobId: { type: 'string', required: true } },
+    );
+    return this.sdk._fetch(`/dataImport/jobs/${jobId}/download`, 'GET');
+  }
 }

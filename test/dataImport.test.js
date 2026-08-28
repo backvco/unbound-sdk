@@ -233,6 +233,16 @@ describe('DataExportService', () => {
     });
   });
 
+  test('download GETs /dataImport/jobs/:id/download', async () => {
+    const { fakeSdk, calls } = buildFakeSdk();
+    const svc = new DataExportService(fakeSdk);
+
+    await svc.download('job-1');
+
+    assert.equal(calls[0].endpoint, '/dataImport/jobs/job-1/download');
+    assert.equal(calls[0].method, 'GET');
+  });
+
   test('createJob forces mode=export over a caller value', async () => {
     const { fakeSdk, calls } = buildFakeSdk();
     const svc = new DataExportService(fakeSdk);
