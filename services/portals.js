@@ -238,4 +238,207 @@ export class PortalsService {
     });
     return result;
   }
+
+  /**
+   * Lists pages for a portal.
+   *
+   * @param {string} portalId
+   * @returns {Promise<{ pages: object[] }>}
+   */
+  async listPages(portalId) {
+    this.sdk.validateParams(
+      { portalId },
+      {
+        portalId: { type: 'string', required: true },
+      },
+    );
+
+    return internalRequest(this.sdk, `/portals/${portalId}/pages`, 'GET');
+  }
+
+  /**
+   * Creates a portal page.
+   *
+   * @param {string} portalId
+   * @param {object} params
+   * @param {string} params.path - `/` or a slash-prefixed path like `/spring-sale`.
+   * @param {string} params.title
+   * @param {string} params.type - landing|html|layout|kbHome|kbArticle|ticketList|ticketDetail|login|redirect
+   * @returns {Promise<object>}
+   */
+  async createPage(portalId, { path, title, type }) {
+    this.sdk.validateParams(
+      { portalId, path, title, type },
+      {
+        portalId: { type: 'string', required: true },
+        path: { type: 'string', required: true },
+        title: { type: 'string', required: true },
+        type: { type: 'string', required: true },
+      },
+    );
+
+    return internalRequest(this.sdk, `/portals/${portalId}/pages`, 'POST', {
+      body: { path, title, type },
+    });
+  }
+
+  /**
+   * Retrieves a portal page by ID.
+   *
+   * @param {string} portalId
+   * @param {string} pageId
+   * @returns {Promise<object>}
+   */
+  async getPage(portalId, pageId) {
+    this.sdk.validateParams(
+      { portalId, pageId },
+      {
+        portalId: { type: 'string', required: true },
+        pageId: { type: 'string', required: true },
+      },
+    );
+
+    return internalRequest(
+      this.sdk,
+      `/portals/${portalId}/pages/${pageId}`,
+      'GET',
+    );
+  }
+
+  /**
+   * Updates a portal page. Only provided fields are changed.
+   *
+   * @param {string} portalId
+   * @param {string} pageId
+   * @param {object} [updates]
+   * @returns {Promise<object>}
+   */
+  async updatePage(
+    portalId,
+    pageId,
+    {
+      path,
+      title,
+      type,
+      isPublished,
+      publishedVersionId,
+      draftVersionId,
+    } = {},
+  ) {
+    this.sdk.validateParams(
+      { portalId, pageId },
+      {
+        portalId: { type: 'string', required: true },
+        pageId: { type: 'string', required: true },
+        path: { type: 'string', required: false },
+        title: { type: 'string', required: false },
+        type: { type: 'string', required: false },
+        isPublished: { type: 'boolean', required: false },
+        publishedVersionId: { type: 'string', required: false },
+        draftVersionId: { type: 'string', required: false },
+      },
+    );
+
+    const body = {};
+    if (path !== undefined) body.path = path;
+    if (title !== undefined) body.title = title;
+    if (type !== undefined) body.type = type;
+    if (isPublished !== undefined) body.isPublished = isPublished;
+    if (publishedVersionId !== undefined) {
+      body.publishedVersionId = publishedVersionId;
+    }
+    if (draftVersionId !== undefined) body.draftVersionId = draftVersionId;
+
+    return internalRequest(
+      this.sdk,
+      `/portals/${portalId}/pages/${pageId}`,
+      'PUT',
+      { body },
+    );
+  }
+
+  /**
+   * Soft-deletes a portal page.
+   *
+   * @param {string} portalId
+   * @param {string} pageId
+   * @returns {Promise<{ message: string }>}
+   */
+  async deletePage(portalId, pageId) {
+    this.sdk.validateParams(
+      { portalId, pageId },
+      {
+        portalId: { type: 'string', required: true },
+        pageId: { type: 'string', required: true },
+      },
+    );
+
+    return internalRequest(
+      this.sdk,
+      `/portals/${portalId}/pages/${pageId}`,
+      'DELETE',
+    );
+  }
+
+  /**
+   * Lists versions for a portal page.
+   *
+   * @param {string} portalId
+   * @param {string} pageId
+   * @returns {Promise<{ versions: object[] }>}
+   */
+  async listPageVersions(portalId, pageId) {
+    this.sdk.validateParams(
+      { portalId, pageId },
+      {
+        portalId: { type: 'string', required: true },
+        pageId: { type: 'string', required: true },
+      },
+    );
+
+    return internalRequest(
+      this.sdk,
+      `/portals/${portalId}/pages/${pageId}/versions`,
+      'GET',
+    );
+  }
+
+  /**
+   * Creates a page version (S3 pointers / layout / object only; no HTML compile).
+   *
+   * @param {string} portalId
+   * @param {string} pageId
+   * @param {object} [params]
+   * @returns {Promise<object>}
+   */
+  async createPageVersion(
+    portalId,
+    pageId,
+    { designStorageId, htmlStorageId, layoutId, objectName } = {},
+  ) {
+    this.sdk.validateParams(
+      { portalId, pageId },
+      {
+        portalId: { type: 'string', required: true },
+        pageId: { type: 'string', required: true },
+        designStorageId: { type: 'string', required: false },
+        htmlStorageId: { type: 'string', required: false },
+        layoutId: { type: 'string', required: false },
+        objectName: { type: 'string', required: false },
+      },
+    );
+
+    const body = {};
+    if (designStorageId !== undefined) body.designStorageId = designStorageId;
+    if (htmlStorageId !== undefined) body.htmlStorageId = htmlStorageId;
+    if (layoutId !== undefined) body.layoutId = layoutId;
+    if (objectName !== undefined) body.objectName = objectName;
+
+    return internalRequest(
+      this.sdk,
+      `/portals/${portalId}/pages/${pageId}/versions`,
+      'POST',
+      { body },
+    );
+  }
 }
