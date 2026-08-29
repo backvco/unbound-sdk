@@ -1,3 +1,5 @@
+import { internalRequest } from '../base.js';
+
 export class DataImportService {
   constructor(sdk) {
     this.sdk = sdk;
@@ -8,7 +10,7 @@ export class DataImportService {
    * @param {Object} [body]
    */
   async createJob(body = {}) {
-    return this.sdk._fetch('/dataImport/jobs', 'POST', { body });
+    return internalRequest(this.sdk, '/dataImport/jobs', 'POST', { body });
   }
 
   /**
@@ -17,7 +19,7 @@ export class DataImportService {
    */
   async getJob(id) {
     this.sdk.validateParams({ id }, { id: { type: 'string', required: true } });
-    return this.sdk._fetch(`/dataImport/jobs/${id}`, 'GET');
+    return internalRequest(this.sdk, `/dataImport/jobs/${id}`, 'GET');
   }
 
   /**
@@ -26,9 +28,9 @@ export class DataImportService {
    */
   async listJobs(query) {
     if (query) {
-      return this.sdk._fetch('/dataImport/jobs', 'GET', { query });
+      return internalRequest(this.sdk, '/dataImport/jobs', 'GET', { query });
     }
-    return this.sdk._fetch('/dataImport/jobs', 'GET');
+    return internalRequest(this.sdk, '/dataImport/jobs', 'GET');
   }
 
   /**
@@ -41,7 +43,7 @@ export class DataImportService {
       { jobId },
       { jobId: { type: 'string', required: true } },
     );
-    return this.sdk._fetch(`/dataImport/jobs/${jobId}/sources`, 'POST', {
+    return internalRequest(this.sdk, `/dataImport/jobs/${jobId}/sources`, 'POST', {
       body,
     });
   }
@@ -56,7 +58,7 @@ export class DataImportService {
       { jobId },
       { jobId: { type: 'string', required: true } },
     );
-    return this.sdk._fetch(`/dataImport/jobs/${jobId}/preview`, 'POST', {
+    return internalRequest(this.sdk, `/dataImport/jobs/${jobId}/preview`, 'POST', {
       body,
     });
   }
@@ -72,11 +74,11 @@ export class DataImportService {
       { jobId: { type: 'string', required: true } },
     );
     if (body !== undefined) {
-      return this.sdk._fetch(`/dataImport/jobs/${jobId}/start`, 'POST', {
+      return internalRequest(this.sdk, `/dataImport/jobs/${jobId}/start`, 'POST', {
         body,
       });
     }
-    return this.sdk._fetch(`/dataImport/jobs/${jobId}/start`, 'POST');
+    return internalRequest(this.sdk, `/dataImport/jobs/${jobId}/start`, 'POST');
   }
 
   /**
@@ -88,7 +90,7 @@ export class DataImportService {
       { jobId },
       { jobId: { type: 'string', required: true } },
     );
-    return this.sdk._fetch(`/dataImport/jobs/${jobId}/pause`, 'POST');
+    return internalRequest(this.sdk, `/dataImport/jobs/${jobId}/pause`, 'POST');
   }
 
   /**
@@ -100,7 +102,7 @@ export class DataImportService {
       { jobId },
       { jobId: { type: 'string', required: true } },
     );
-    return this.sdk._fetch(`/dataImport/jobs/${jobId}/resume`, 'POST');
+    return internalRequest(this.sdk, `/dataImport/jobs/${jobId}/resume`, 'POST');
   }
 
   /**
@@ -112,7 +114,7 @@ export class DataImportService {
       { jobId },
       { jobId: { type: 'string', required: true } },
     );
-    return this.sdk._fetch(`/dataImport/jobs/${jobId}/cancel`, 'POST');
+    return internalRequest(this.sdk, `/dataImport/jobs/${jobId}/cancel`, 'POST');
   }
 
   /**
@@ -126,11 +128,11 @@ export class DataImportService {
       { jobId: { type: 'string', required: true } },
     );
     if (query) {
-      return this.sdk._fetch(`/dataImport/jobs/${jobId}/rows`, 'GET', {
+      return internalRequest(this.sdk, `/dataImport/jobs/${jobId}/rows`, 'GET', {
         query,
       });
     }
-    return this.sdk._fetch(`/dataImport/jobs/${jobId}/rows`, 'GET');
+    return internalRequest(this.sdk, `/dataImport/jobs/${jobId}/rows`, 'GET');
   }
 
   /**
@@ -147,7 +149,8 @@ export class DataImportService {
         rowId: { type: 'string', required: true },
       },
     );
-    return this.sdk._fetch(
+    return internalRequest(
+      this.sdk,
       `/dataImport/jobs/${jobId}/rows/${rowId}/resolve`,
       'POST',
       { body },
@@ -163,7 +166,11 @@ export class DataImportService {
       { jobId },
       { jobId: { type: 'string', required: true } },
     );
-    return this.sdk._fetch(`/dataImport/jobs/${jobId}/download`, 'GET');
+    return internalRequest(
+      this.sdk,
+      `/dataImport/jobs/${jobId}/download`,
+      'GET',
+    );
   }
 
   /**
@@ -171,14 +178,14 @@ export class DataImportService {
    * @param {Object} body
    */
   async createMapping(body = {}) {
-    return this.sdk._fetch('/dataImport/mappings', 'POST', { body });
+    return internalRequest(this.sdk, '/dataImport/mappings', 'POST', { body });
   }
 
   /**
    * List mapping templates.
    */
   async listMappings() {
-    return this.sdk._fetch('/dataImport/mappings', 'GET');
+    return internalRequest(this.sdk, '/dataImport/mappings', 'GET');
   }
 
   /**
@@ -187,7 +194,7 @@ export class DataImportService {
    */
   async getMapping(id) {
     this.sdk.validateParams({ id }, { id: { type: 'string', required: true } });
-    return this.sdk._fetch(`/dataImport/mappings/${id}`, 'GET');
+    return internalRequest(this.sdk, `/dataImport/mappings/${id}`, 'GET');
   }
 
   /**
@@ -197,7 +204,9 @@ export class DataImportService {
    */
   async updateMapping(id, body = {}) {
     this.sdk.validateParams({ id }, { id: { type: 'string', required: true } });
-    return this.sdk._fetch(`/dataImport/mappings/${id}`, 'PUT', { body });
+    return internalRequest(this.sdk, `/dataImport/mappings/${id}`, 'PUT', {
+      body,
+    });
   }
 }
 
@@ -214,7 +223,7 @@ export class DataExportService {
    * @param {Object} [body]
    */
   async createJob(body = {}) {
-    return this.sdk._fetch('/dataImport/jobs', 'POST', {
+    return internalRequest(this.sdk, '/dataImport/jobs', 'POST', {
       body: { ...body, mode: 'export' },
     });
   }
@@ -228,6 +237,10 @@ export class DataExportService {
       { jobId },
       { jobId: { type: 'string', required: true } },
     );
-    return this.sdk._fetch(`/dataImport/jobs/${jobId}/download`, 'GET');
+    return internalRequest(
+      this.sdk,
+      `/dataImport/jobs/${jobId}/download`,
+      'GET',
+    );
   }
 }

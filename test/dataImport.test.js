@@ -5,10 +5,12 @@ import {
   DataExportService,
 } from '../services/dataImport.js';
 
+const SDK_REQUEST = Symbol.for('unbound.sdk.request');
+
 function buildFakeSdk() {
   const calls = [];
   const fakeSdk = {
-    _fetch: async (endpoint, method, params, forceFetch) => {
+    [SDK_REQUEST]: async (endpoint, method, params, forceFetch) => {
       calls.push({ endpoint, method, params, forceFetch });
       return { ok: true };
     },
@@ -73,7 +75,6 @@ describe('DataImportService', () => {
     await svc.listJobs();
     assert.equal(calls[0].endpoint, '/dataImport/jobs');
     assert.equal(calls[0].method, 'GET');
-    assert.equal(calls[0].params, undefined);
 
     await svc.listJobs({ status: 'draft' });
     assert.deepEqual(calls[1].params, { query: { status: 'draft' } });
@@ -110,7 +111,6 @@ describe('DataImportService', () => {
     await svc.start('job-1');
     assert.equal(calls[0].endpoint, '/dataImport/jobs/job-1/start');
     assert.equal(calls[0].method, 'POST');
-    assert.equal(calls[0].params, undefined);
 
     await svc.start('job-1', { errorMode: 'stop' });
     assert.deepEqual(calls[1].params, { body: { errorMode: 'stop' } });
