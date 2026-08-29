@@ -468,53 +468,65 @@ export class PortalsService {
   }
 
   /**
-   * Autosave a landing-page block tree as a draft (design JSON only).
+   * Autosave a page draft. Landing pages pass a block `tree`; `html`-type
+   * pages (marketing portals only, P7.1) pass the raw full-document `html`
+   * string instead.
    *
    * @param {string} portalId
    * @param {string} pageId
    * @param {object} params
-   * @param {object|Array} params.tree - Block tree JSON.
+   * @param {object|Array} [params.tree] - Block tree JSON (landing pages).
+   * @param {string} [params.html] - Raw full-document HTML (html pages).
    * @returns {Promise<object>}
    */
-  async savePageDraft(portalId, pageId, { tree } = {}) {
+  async savePageDraft(portalId, pageId, { tree, html } = {}) {
     this.sdk.validateParams(
-      { portalId, pageId, tree },
-      {
-        portalId: { type: 'string', required: true },
-        pageId: { type: 'string', required: true },
-        tree: { type: 'object', required: true },
-      },
-    );
-
-    return internalRequest(
-      this.sdk,
-      `/portals/${portalId}/pages/${pageId}/draft`,
-      'PUT',
-      { body: { tree } },
-    );
-  }
-
-  /**
-   * Compile a landing-page draft (P1.4) and publish HTML.
-   *
-   * @param {string} portalId
-   * @param {string} pageId
-   * @param {object} [params]
-   * @param {object|Array} [params.tree] - Optional tree; otherwise the draft design is loaded.
-   * @returns {Promise<object>}
-   */
-  async publishPage(portalId, pageId, { tree } = {}) {
-    this.sdk.validateParams(
-      { portalId, pageId, tree },
+      { portalId, pageId, tree, html },
       {
         portalId: { type: 'string', required: true },
         pageId: { type: 'string', required: true },
         tree: { type: 'object', required: false },
+        html: { type: 'string', required: false },
       },
     );
 
     const body = {};
     if (tree !== undefined) body.tree = tree;
+    if (html !== undefined) body.html = html;
+
+    return internalRequest(
+      this.sdk,
+      `/portals/${portalId}/pages/${pageId}/draft`,
+      'PUT',
+      { body },
+    );
+  }
+
+  /**
+   * Compile a landing-page draft (P1.4) and publish HTML, or (for `html`-type
+   * pages, P7.1) store the raw document string verbatim.
+   *
+   * @param {string} portalId
+   * @param {string} pageId
+   * @param {object} [params]
+   * @param {object|Array} [params.tree] - Optional tree; otherwise the draft design is loaded.
+   * @param {string} [params.html] - Raw full-document HTML (html pages); otherwise the draft is loaded.
+   * @returns {Promise<object>}
+   */
+  async publishPage(portalId, pageId, { tree, html } = {}) {
+    this.sdk.validateParams(
+      { portalId, pageId, tree, html },
+      {
+        portalId: { type: 'string', required: true },
+        pageId: { type: 'string', required: true },
+        tree: { type: 'object', required: false },
+        html: { type: 'string', required: false },
+      },
+    );
+
+    const body = {};
+    if (tree !== undefined) body.tree = tree;
+    if (html !== undefined) body.html = html;
 
     return internalRequest(
       this.sdk,

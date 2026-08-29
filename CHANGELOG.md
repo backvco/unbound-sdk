@@ -2,6 +2,7 @@
 
 - feat: `sdk.portals.listTicketStatuses()` / `sdk.portals.updateTicketStatuses({ statuses })` — per-status customer-facing labels for engagement statuses (`GET`/`PUT /portals/ticket-statuses`)
 - feat: `sdk.portals.createPage`/`updatePage` accept `requiresLogin` (boolean) — gate a page behind a signed-in portal session
+- feat: `sdk.portals.savePageDraft`/`publishPage` accept `html` (string) alongside `tree` — `html`-type pages (marketing portals only) autosave/publish raw full-document HTML instead of a block tree
 
 ## 4.13.4
 
