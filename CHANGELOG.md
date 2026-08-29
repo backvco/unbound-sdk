@@ -1,3 +1,7 @@
+## Unreleased
+
+- feat: `sdk.portals.listTicketStatuses()` / `sdk.portals.updateTicketStatuses({ statuses })` — per-status customer-facing labels for engagement statuses (`GET`/`PUT /portals/ticket-statuses`)
+
 ## 4.13.4
 
 - feat: `sdk.messaging.email.templates.list({ scope })` — `user` (default) / `system` / `all`

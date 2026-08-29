@@ -568,4 +568,36 @@ export class PortalsService {
       'POST',
     );
   }
+
+  /**
+   * Lists the customer-facing labels configured for each engagement status.
+   *
+   * One entry per valid `engagementSessions.status` value; `customerLabel`
+   * is `null` when unset (P4.2: the portal hides statuses with no label).
+   *
+   * @returns {Promise<{ statuses: Array<{ status: string, customerLabel: string|null }> }>}
+   */
+  async listTicketStatuses() {
+    return internalRequest(this.sdk, '/portals/ticket-statuses', 'GET');
+  }
+
+  /**
+   * Upserts customer-facing labels for engagement statuses.
+   *
+   * @param {object} params
+   * @param {Array<{ status: string, customerLabel: string|null }>} params.statuses
+   * @returns {Promise<{ statuses: Array<{ status: string, customerLabel: string|null }> }>}
+   */
+  async updateTicketStatuses({ statuses }) {
+    this.sdk.validateParams(
+      { statuses },
+      {
+        statuses: { type: 'array', required: true },
+      },
+    );
+
+    return internalRequest(this.sdk, '/portals/ticket-statuses', 'PUT', {
+      body: { statuses },
+    });
+  }
 }
