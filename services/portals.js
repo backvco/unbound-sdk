@@ -621,4 +621,107 @@ export class PortalsService {
       body: { statuses },
     });
   }
+
+  /**
+   * Retrieves the single-sign-on (OIDC) connection configured for a portal.
+   *
+   * Never includes the client secret; `hasClientSecret` indicates whether
+   * one is on file.
+   *
+   * @param {string} portalId
+   * @returns {Promise<{ connection: {
+   *   id: string,
+   *   provider: string,
+   *   name: string,
+   *   issuer: string,
+   *   clientId: string,
+   *   tenant: string|null,
+   *   scopes: string,
+   *   status: string,
+   *   requireVerifiedEmail: boolean,
+   *   hasClientSecret: boolean,
+   *   redirectUri: string,
+   *   updatedAt: string
+   * } | null }>}
+   */
+  async getSsoConnection(portalId) {
+    this.sdk.validateParams(
+      { portalId },
+      {
+        portalId: { type: 'string', required: true },
+      },
+    );
+
+    return internalRequest(this.sdk, `/portals/${portalId}/sso`, 'GET');
+  }
+
+  /**
+   * Creates or updates a portal's single-sign-on (OIDC) connection.
+   *
+   * Only `support`/`partner` portals may have a connection. `clientSecret`
+   * is required when creating a connection and optional on update (omit it
+   * to keep the existing secret).
+   *
+   * @param {string} portalId
+   * @param {object} params
+   * @param {string} [params.name] - Display name shown to visitors (e.g. "Single sign-on").
+   * @param {string} params.issuer - OIDC issuer URL (https, no query/fragment).
+   * @param {string} params.clientId
+   * @param {string} [params.clientSecret] - Required to create; omit on update to keep existing.
+   * @param {string} [params.tenant] - Provider tenant hint (e.g. an Azure tenant id).
+   * @param {string} [params.scopes] - Space-separated scopes; must include `openid` and `email`.
+   * @param {string} [params.status] - `active` | `disabled`.
+   * @param {boolean} [params.requireVerifiedEmail]
+   * @returns {Promise<{ connection: object }>}
+   */
+  async upsertSsoConnection(
+    portalId,
+    { name, issuer, clientId, clientSecret, tenant, scopes, status, requireVerifiedEmail } = {},
+  ) {
+    this.sdk.validateParams(
+      { portalId, issuer, clientId },
+      {
+        portalId: { type: 'string', required: true },
+        issuer: { type: 'string', required: true },
+        clientId: { type: 'string', required: true },
+        name: { type: 'string', required: false },
+        clientSecret: { type: 'string', required: false },
+        tenant: { type: 'string', required: false },
+        scopes: { type: 'string', required: false },
+        status: { type: 'string', required: false },
+        requireVerifiedEmail: { type: 'boolean', required: false },
+      },
+    );
+
+    const body = { issuer, clientId };
+    if (name !== undefined) body.name = name;
+    if (clientSecret !== undefined) body.clientSecret = clientSecret;
+    if (tenant !== undefined) body.tenant = tenant;
+    if (scopes !== undefined) body.scopes = scopes;
+    if (status !== undefined) body.status = status;
+    if (requireVerifiedEmail !== undefined) {
+      body.requireVerifiedEmail = requireVerifiedEmail;
+    }
+
+    return internalRequest(this.sdk, `/portals/${portalId}/sso`, 'PUT', {
+      body,
+    });
+  }
+
+  /**
+   * Soft-deletes a portal's single-sign-on (OIDC) connection.
+   *
+   * @param {string} portalId
+   * @returns {Promise<{ message: string }>}
+   */
+  async deleteSsoConnection(portalId) {
+    this.sdk.validateParams(
+      { portalId },
+      {
+        portalId: { type: 'string', required: true },
+      },
+    );
+
+    return internalRequest(this.sdk, `/portals/${portalId}/sso`, 'DELETE');
+  }
 }
