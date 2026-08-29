@@ -514,4 +514,58 @@ export class PortalsService {
       { body },
     );
   }
+
+  /**
+   * Staff-only portal credential status for a person. Never includes hashes.
+   *
+   * @param {string} peopleId
+   * @returns {Promise<{
+   *   hasPassword: boolean,
+   *   ssoLinked: boolean,
+   *   lastLoginAt: string|null,
+   *   lastLoginMethod: string|null,
+   *   mustReset: boolean
+   * }>}
+   */
+  async getPeopleAccess(peopleId) {
+    this.sdk.validateParams(
+      { peopleId },
+      {
+        peopleId: { type: 'string', required: true },
+      },
+    );
+
+    return internalRequest(
+      this.sdk,
+      `/portals/people/${encodeURIComponent(peopleId)}/access`,
+      'GET',
+    );
+  }
+
+  /**
+   * Force the person to reset their portal password on next login (`mustReset=1`).
+   *
+   * @param {string} peopleId
+   * @returns {Promise<{
+   *   hasPassword: boolean,
+   *   ssoLinked: boolean,
+   *   lastLoginAt: string|null,
+   *   lastLoginMethod: string|null,
+   *   mustReset: boolean
+   * }>}
+   */
+  async forceResetPeopleAccess(peopleId) {
+    this.sdk.validateParams(
+      { peopleId },
+      {
+        peopleId: { type: 'string', required: true },
+      },
+    );
+
+    return internalRequest(
+      this.sdk,
+      `/portals/people/${encodeURIComponent(peopleId)}/access/force-reset`,
+      'POST',
+    );
+  }
 }
