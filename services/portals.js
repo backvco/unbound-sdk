@@ -264,21 +264,26 @@ export class PortalsService {
    * @param {string} params.path - `/` or a slash-prefixed path like `/spring-sale`.
    * @param {string} params.title
    * @param {string} params.type - landing|html|layout|kbHome|kbArticle|ticketList|ticketDetail|login|redirect
+   * @param {boolean} [params.requiresLogin] - Require a signed-in portal session to view this page.
    * @returns {Promise<object>}
    */
-  async createPage(portalId, { path, title, type }) {
+  async createPage(portalId, { path, title, type, requiresLogin }) {
     this.sdk.validateParams(
-      { portalId, path, title, type },
+      { portalId, path, title, type, requiresLogin },
       {
         portalId: { type: 'string', required: true },
         path: { type: 'string', required: true },
         title: { type: 'string', required: true },
         type: { type: 'string', required: true },
+        requiresLogin: { type: 'boolean', required: false },
       },
     );
 
+    const body = { path, title, type };
+    if (requiresLogin !== undefined) body.requiresLogin = requiresLogin;
+
     return internalRequest(this.sdk, `/portals/${portalId}/pages`, 'POST', {
-      body: { path, title, type },
+      body,
     });
   }
 
@@ -323,6 +328,7 @@ export class PortalsService {
       isPublished,
       publishedVersionId,
       draftVersionId,
+      requiresLogin,
     } = {},
   ) {
     this.sdk.validateParams(
@@ -335,6 +341,7 @@ export class PortalsService {
         isPublished,
         publishedVersionId,
         draftVersionId,
+        requiresLogin,
       },
       {
         portalId: { type: 'string', required: true },
@@ -345,6 +352,7 @@ export class PortalsService {
         isPublished: { type: 'boolean', required: false },
         publishedVersionId: { type: 'string', required: false },
         draftVersionId: { type: 'string', required: false },
+        requiresLogin: { type: 'boolean', required: false },
       },
     );
 
@@ -357,6 +365,7 @@ export class PortalsService {
       body.publishedVersionId = publishedVersionId;
     }
     if (draftVersionId !== undefined) body.draftVersionId = draftVersionId;
+    if (requiresLogin !== undefined) body.requiresLogin = requiresLogin;
 
     return internalRequest(
       this.sdk,
