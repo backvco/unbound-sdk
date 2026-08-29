@@ -1,3 +1,4 @@
+import { internalRequest } from '../base.js';
 export class ExternalOAuthService {
   constructor(sdk) {
     this.sdk = sdk;
@@ -23,7 +24,7 @@ export class ExternalOAuthService {
       body: oauthData,
     };
 
-    const result = await this.sdk._fetch('/externalOAuth', 'POST', params);
+    const result = await internalRequest(this.sdk, '/externalOAuth', 'POST', params);
     return result;
   }
 
@@ -49,7 +50,7 @@ export class ExternalOAuthService {
       body: updateData,
     };
 
-    const result = await this.sdk._fetch(`/externalOAuth/${id}`, 'PUT', params);
+    const result = await internalRequest(this.sdk, `/externalOAuth/${id}`, 'PUT', params);
     return result;
   }
 
@@ -61,7 +62,7 @@ export class ExternalOAuthService {
       },
     );
 
-    const result = await this.sdk._fetch(`/externalOAuth/${id}`, 'DELETE');
+    const result = await internalRequest(this.sdk, `/externalOAuth/${id}`, 'DELETE');
     return result;
   }
 
@@ -73,7 +74,7 @@ export class ExternalOAuthService {
       },
     );
 
-    const result = await this.sdk._fetch(`/externalOAuth/${id}`, 'GET');
+    const result = await internalRequest(this.sdk, `/externalOAuth/${id}`, 'GET');
     return result;
   }
 
@@ -89,7 +90,7 @@ export class ExternalOAuthService {
       query: { name },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/externalOAuth/byName',
       'GET',
       params,
@@ -110,7 +111,7 @@ export class ExternalOAuthService {
       query: { scope, provider },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/externalOAuth/byScopeAndProvider',
       'GET',
       params,
@@ -119,17 +120,17 @@ export class ExternalOAuthService {
   }
 
   async list() {
-    const result = await this.sdk._fetch('/externalOAuth', 'GET');
+    const result = await internalRequest(this.sdk, '/externalOAuth', 'GET');
     return result;
   }
 
   async listUnified() {
-    const result = await this.sdk._fetch('/externalOAuth/unified', 'GET');
+    const result = await internalRequest(this.sdk, '/externalOAuth/unified', 'GET');
     return result;
   }
 
   async providers() {
-    const result = await this.sdk._fetch('/externalOAuth/providers', 'GET');
+    const result = await internalRequest(this.sdk, '/externalOAuth/providers', 'GET');
     return result;
   }
 
@@ -141,6 +142,7 @@ export class ExternalOAuthService {
     scopes,
     authorizationUrl,
     tokenUrl,
+    fromConnectionId,
   }) {
     this.sdk.validateParams(
       { name, provider },
@@ -152,6 +154,7 @@ export class ExternalOAuthService {
         scopes: { type: 'array', required: false },
         authorizationUrl: { type: 'string', required: false },
         tokenUrl: { type: 'string', required: false },
+        fromConnectionId: { type: 'string', required: false },
       },
     );
 
@@ -161,10 +164,30 @@ export class ExternalOAuthService {
     if (scopes) body.scopes = scopes;
     if (authorizationUrl) body.authorizationUrl = authorizationUrl;
     if (tokenUrl) body.tokenUrl = tokenUrl;
+    if (fromConnectionId) body.fromConnectionId = fromConnectionId;
 
-    const result = await this.sdk._fetch('/externalOAuth/authorize', 'POST', {
+    const result = await internalRequest(this.sdk, '/externalOAuth/authorize', 'POST', {
       body,
     });
     return result;
+  }
+
+  /**
+   * Check whether a connection can be used for a purpose (e.g. Google Ads / Meta ads).
+   *
+   * @param {string} id
+   * @param {object} [args]
+   * @param {string} [args.purpose='googleAds']
+   * @returns {Promise<object>}
+   */
+  async verify(id, { purpose = 'googleAds' } = {}) {
+    this.sdk.validateParams(
+      { id },
+      { id: { type: 'string', required: true } },
+    );
+
+    return internalRequest(this.sdk, `/externalOAuth/${id}/verify`, 'POST', {
+      body: { purpose },
+    });
   }
 }

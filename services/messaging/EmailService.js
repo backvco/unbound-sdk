@@ -5,7 +5,9 @@ import { EmailMailboxesService } from './EmailMailboxesService.js';
 import { EmailAnalyticsService } from './EmailAnalyticsService.js';
 import { EmailQueueService } from './EmailQueueService.js';
 import { EmailSuppressionService } from './EmailSuppressionService.js';
+import { EmailAccountSettingsService } from './EmailAccountSettingsService.js';
 
+import { internalRequest } from '../../base.js';
 export class EmailService {
   constructor(sdk) {
     this.sdk = sdk;
@@ -16,6 +18,27 @@ export class EmailService {
     this.analytics = new EmailAnalyticsService(sdk);
     this.queue = new EmailQueueService(sdk);
     this.suppression = new EmailSuppressionService(sdk);
+    // Account-level email settings (plan §3.3).
+    this.settings = new EmailAccountSettingsService(sdk);
+  }
+
+  /**
+   * Assign (or unassign) an email message to a user — shared-inbox "claim" (plan §2b/§4)
+   * @param {string} messageId - Email message ID
+   * @param {string|null} userId - User ID to assign to, or null to unassign
+   * @returns {Promise<Object>} { id, assignedUserId, assignedAt, message }
+   * @example
+   * await sdk.messaging.email.assign('emailId123', 'user456');
+   * await sdk.messaging.email.assign('emailId123', null); // unassign
+   */
+  async assign(messageId, userId = null) {
+    this.sdk.validateParams(
+      { messageId },
+      { messageId: { type: 'string', required: true } },
+    );
+    return internalRequest(this.sdk, `/messaging/email/${messageId}/assign`, 'PUT', {
+      body: { userId },
+    });
   }
 
   /**
@@ -33,7 +56,9 @@ export class EmailService {
    * @param {Array} [params.storageId] - Array of storage IDs for attachments
    * @param {string} [params.replyTo] - Reply-to email address
    * @param {string} [params.replyToEmailId] - ID of email this is replying to
-   * @param {string} [params.relatedId] - Related record ID
+   * @param {string} [params.relatedId] - Related record ID (e.g. opportunity)
+   * @param {string} [params.peopleId] - Person record ID to link the email to
+   * @param {string} [params.companyId] - Company record ID to link the email to
    * @param {string} [params.emailType='marketing'] - Email type: 'marketing' or 'transactional'
    * @param {boolean} [params.tracking=true] - Enable email tracking (opens, clicks)
    * @param {string} [params.mailboxId] - Specific mailbox to send from
@@ -54,6 +79,8 @@ export class EmailService {
     replyTo,
     replyToEmailId,
     relatedId,
+    peopleId,
+    companyId,
     emailType,
     tracking,
     mailboxId,
@@ -84,6 +111,8 @@ export class EmailService {
         replyTo,
         replyToEmailId,
         relatedId,
+        peopleId,
+        companyId,
         emailType,
         tracking,
         mailboxId,
@@ -99,6 +128,8 @@ export class EmailService {
         replyTo: { type: 'string', required: false },
         replyToEmailId: { type: 'string', required: false },
         relatedId: { type: 'string', required: false },
+        peopleId: { type: 'string', required: false },
+        companyId: { type: 'string', required: false },
         emailType: { type: 'string', required: false },
         tracking: { type: 'boolean', required: false },
         mailboxId: { type: 'string', required: false },
@@ -122,6 +153,8 @@ export class EmailService {
     if (replyTo) emailData.replyTo = replyTo;
     if (replyToEmailId) emailData.replyToEmailId = replyToEmailId;
     if (relatedId) emailData.relatedId = relatedId;
+    if (peopleId) emailData.peopleId = peopleId;
+    if (companyId) emailData.companyId = companyId;
     if (emailType) emailData.emailType = emailType;
     if (tracking !== undefined) emailData.tracking = tracking;
     if (mailboxId) emailData.mailboxId = mailboxId;
@@ -133,7 +166,7 @@ export class EmailService {
       body: emailData,
     };
 
-    const result = await this.sdk._fetch('/messaging/email', 'POST', options);
+    const result = await internalRequest(this.sdk, '/messaging/email', 'POST', options);
     return result;
   }
 
@@ -167,7 +200,7 @@ export class EmailService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/messaging/email/message/${id}`,
       'GET',
     );
@@ -200,7 +233,7 @@ export class EmailService {
       body: updateData,
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/messaging/email/${id}`,
       'PUT',
       options,
@@ -227,7 +260,9 @@ export class EmailService {
    * @param {Array} [params.storageId] - Array of storage IDs for attachments
    * @param {string} [params.replyTo] - Reply-to email address
    * @param {string} [params.replyToEmailId] - ID of email this is replying to
-   * @param {string} [params.relatedId] - Related record ID
+   * @param {string} [params.relatedId] - Related record ID (e.g. opportunity)
+   * @param {string} [params.peopleId] - Person record ID to link the draft to
+   * @param {string} [params.companyId] - Company record ID to link the draft to
    * @param {string} [params.emailType='marketing'] - Email type: 'marketing' or 'transactional'
    * @param {boolean} [params.tracking=true] - Enable email tracking (opens, clicks)
    * @param {string} [params.mailboxId] - Specific mailbox for the draft
@@ -249,6 +284,8 @@ export class EmailService {
     replyTo,
     replyToEmailId,
     relatedId,
+    peopleId,
+    companyId,
     emailType,
     tracking,
     mailboxId,
@@ -270,6 +307,8 @@ export class EmailService {
         replyTo,
         replyToEmailId,
         relatedId,
+        peopleId,
+        companyId,
         emailType,
         tracking,
         mailboxId,
@@ -287,6 +326,8 @@ export class EmailService {
         replyTo: { type: 'string', required: false },
         replyToEmailId: { type: 'string', required: false },
         relatedId: { type: 'string', required: false },
+        peopleId: { type: 'string', required: false },
+        companyId: { type: 'string', required: false },
         emailType: { type: 'string', required: false },
         tracking: { type: 'boolean', required: false },
         mailboxId: { type: 'string', required: false },
@@ -310,6 +351,8 @@ export class EmailService {
     if (replyTo) draftData.replyTo = replyTo;
     if (replyToEmailId) draftData.replyToEmailId = replyToEmailId;
     if (relatedId) draftData.relatedId = relatedId;
+    if (peopleId) draftData.peopleId = peopleId;
+    if (companyId) draftData.companyId = companyId;
     if (emailType) draftData.emailType = emailType;
     if (tracking !== undefined) draftData.tracking = tracking;
     if (mailboxId) draftData.mailboxId = mailboxId;
@@ -321,7 +364,7 @@ export class EmailService {
       body: draftData,
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/messaging/email/drafts',
       'POST',
       params,
@@ -344,6 +387,9 @@ export class EmailService {
    * @param {Object} [params.variables] - Template variables for substitution
    * @param {Array} [params.storageId] - Array of storage IDs for attachments
    * @param {string} [params.replyTo] - Reply-to email address
+   * @param {string} [params.relatedId] - Related record ID (e.g. opportunity)
+   * @param {string} [params.peopleId] - Person record ID to link the draft to
+   * @param {string} [params.companyId] - Company record ID to link the draft to
    * @param {string} [params.emailType] - Email type: 'marketing' or 'transactional'
    * @param {boolean} [params.tracking] - Enable email tracking (opens, clicks)
    * @param {string} [params.mailboxId] - Specific mailbox for the draft
@@ -364,6 +410,9 @@ export class EmailService {
       variables,
       storageId,
       replyTo,
+      relatedId,
+      peopleId,
+      companyId,
       emailType,
       tracking,
       mailboxId,
@@ -384,6 +433,9 @@ export class EmailService {
         variables,
         storageId,
         replyTo,
+        relatedId,
+        peopleId,
+        companyId,
         emailType,
         tracking,
         mailboxId,
@@ -399,6 +451,9 @@ export class EmailService {
         variables: { type: 'object', required: false },
         storageId: { type: 'array', required: false },
         replyTo: { type: 'string', required: false },
+        relatedId: { type: 'string', required: false },
+        peopleId: { type: 'string', required: false },
+        companyId: { type: 'string', required: false },
         emailType: { type: 'string', required: false },
         tracking: { type: 'boolean', required: false },
         mailboxId: { type: 'string', required: false },
@@ -419,6 +474,9 @@ export class EmailService {
     if (variables !== undefined) updateData.variables = variables;
     if (storageId !== undefined) updateData.storageId = storageId;
     if (replyTo !== undefined) updateData.replyTo = replyTo;
+    if (relatedId !== undefined) updateData.relatedId = relatedId;
+    if (peopleId !== undefined) updateData.peopleId = peopleId;
+    if (companyId !== undefined) updateData.companyId = companyId;
     if (emailType !== undefined) updateData.emailType = emailType;
     if (tracking !== undefined) updateData.tracking = tracking;
     if (mailboxId !== undefined) updateData.mailboxId = mailboxId;
@@ -429,7 +487,7 @@ export class EmailService {
       body: updateData,
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/messaging/email/drafts/${id}`,
       'PUT',
       params,
@@ -450,7 +508,7 @@ export class EmailService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/messaging/email/drafts/${id}`,
       'GET',
     );
@@ -470,7 +528,7 @@ export class EmailService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/messaging/email/drafts/${id}`,
       'DELETE',
     );
@@ -514,7 +572,7 @@ export class EmailService {
       },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/messaging/email/drafts',
       'GET',
       params,
@@ -537,6 +595,7 @@ export class EmailService {
    * @param {string} [filters.sortOrder='desc'] - Sort order: 'asc', 'desc'
    * @param {number} [filters.limit=25] - Number of results per page (max 200)
    * @param {number} [filters.offset=0] - Offset for pagination
+   * @param {string} [filters.assignedUserId] - Filter by assignment: 'me', 'none', or a specific user ID (plan §2b)
    * @returns {Promise<Object>} List of email messages with their threads
    * @example
    * // Returns messages with nested threads for Gmail-like UI:
@@ -576,6 +635,7 @@ export class EmailService {
       sortOrder = 'desc',
       limit = 25,
       offset = 0,
+      assignedUserId,
     } = {},
   ) {
     this.sdk.validateParams(
@@ -588,6 +648,7 @@ export class EmailService {
         sortOrder,
         limit,
         offset,
+        assignedUserId,
       },
       {
         mailboxId: { type: 'string', required: true },
@@ -598,17 +659,19 @@ export class EmailService {
         sortOrder: { type: 'string', required: false },
         limit: { type: 'number', required: false },
         offset: { type: 'number', required: false },
+        assignedUserId: { type: 'string', required: false },
       },
     );
 
     const query = { folder, includeDrafts, sortBy, sortOrder, limit, offset };
     if (search) query.search = search;
+    if (assignedUserId) query.assignedUserId = assignedUserId;
 
     const params = {
       query,
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/messaging/email/mailbox/${mailboxId}/emails`,
       'GET',
       params,
@@ -648,7 +711,7 @@ export class EmailService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/messaging/email/message/${emailId}`,
       'PUT',
       {
@@ -681,10 +744,40 @@ export class EmailService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk,
       `/messaging/email/message/${emailId}`,
       'DELETE',
     );
     return result;
+  }
+
+  /**
+   * Re-queue an email that failed to send (Errored folder) for another send attempt
+   * @param {string} messageId - Email message ID
+   * @returns {Promise<Object>} { id, folder, isError, message }
+   * @example
+   * await sdk.messaging.email.retry('emailId123');
+   */
+  async retry(messageId) {
+    this.sdk.validateParams(
+      { messageId },
+      { messageId: { type: 'string', required: true } },
+    );
+    return internalRequest(this.sdk, `/messaging/email/${messageId}/retry`, 'POST');
+  }
+
+  /**
+   * Cancel a queued/retrying outbound email send, moving it back to Drafts
+   * @param {string} messageId - Email message ID
+   * @returns {Promise<Object>} { id, folder: 'drafts' }
+   * @example
+   * await sdk.messaging.email.cancel('emailId123');
+   */
+  async cancel(messageId) {
+    this.sdk.validateParams(
+      { messageId },
+      { messageId: { type: 'string', required: true } },
+    );
+    return internalRequest(this.sdk, `/messaging/email/${messageId}/cancel`, 'POST');
   }
 }

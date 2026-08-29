@@ -1,6 +1,40 @@
+import { internalRequest } from '../../base.js';
+import { EmailMailboxAccessService } from './EmailMailboxAccessService.js';
+import { EmailMailboxUserService } from './EmailMailboxUserService.js';
+import { EmailMailboxGroupAccessService } from './EmailMailboxGroupAccessService.js';
+import { EmailAliasSuggestService } from './EmailAliasSuggestService.js';
+
 export class EmailMailboxesService {
   constructor(sdk) {
     this.sdk = sdk;
+    // Access grants (mailboxUsers_acct) — plan §3.2/§4.
+    this.access = new EmailMailboxAccessService(sdk);
+    // A user's dedicated mailbox — plan §4/§6.
+    this.forUser = new EmailMailboxUserService(sdk);
+    // Shared mailboxes granted to a group — plan §3.2/§4/§6.
+    this.groupAccess = new EmailMailboxGroupAccessService(sdk);
+    this._aliasSuggestService = new EmailAliasSuggestService(sdk);
+  }
+
+  /**
+   * Suggest an available mailbox localpart for a user on the account's default domain
+   * @param {string} [firstName]
+   * @param {string} [lastName]
+   * @param {string} [username]
+   * @returns {Promise<Object>} { localpart, domain, domainId, available: true }
+   */
+  aliasSuggest(params) {
+    return this._aliasSuggestService.suggest(params);
+  }
+
+  /**
+   * Check whether a localpart is available on a given domain
+   * @param {string} localpart
+   * @param {string} domainId
+   * @returns {Promise<Object>} { localpart, domainId, available }
+   */
+  aliasAvailable(params) {
+    return this._aliasSuggestService.available(params);
   }
 
   /**
@@ -14,6 +48,7 @@ export class EmailMailboxesService {
    * @param {string} [ticketPrefix] - Ticket prefix for engagement sessions (e.g., 'SUP', 'TECH') (optional)
    * @param {string} [ticketCreateEmailTemplateId] - Email template ID for auto-reply on new tickets (optional)
    * @param {string} [ticketCreateEmailFrom] - From address for auto-reply emails (optional, defaults to received address)
+   * @param {string} [type] - Mailbox type: 'dedicated' (has a primary user) or 'shared' (default)
    * @returns {Promise<Object>} Created mailbox with system address
    * @example
    * // Create basic mailbox
@@ -45,6 +80,7 @@ export class EmailMailboxesService {
         ticketPrefix,
         ticketCreateEmailTemplateId,
         ticketCreateEmailFrom,
+        type,
       ] = arguments;
       mailboxData = {};
       if (mailbox !== undefined) mailboxData.mailbox = mailbox;
@@ -59,6 +95,7 @@ export class EmailMailboxesService {
         mailboxData.ticketCreateEmailTemplateId = ticketCreateEmailTemplateId;
       if (ticketCreateEmailFrom !== undefined)
         mailboxData.ticketCreateEmailFrom = ticketCreateEmailFrom;
+      if (type !== undefined) mailboxData.type = type;
     } else {
       // New API: options object
       mailboxData = { ...options };
@@ -74,9 +111,10 @@ export class EmailMailboxesService {
       ticketPrefix: { type: 'string', required: false },
       ticketCreateEmailTemplateId: { type: 'string', required: false },
       ticketCreateEmailFrom: { type: 'string', required: false },
+      type: { type: 'string', required: false },
     });
 
-    const result = await this.sdk._fetch('/messaging/email/mailbox', 'POST', {
+    const result = await internalRequest(this.sdk, '/messaging/email/mailbox', 'POST', {
       body: mailboxData,
     });
     return result;
@@ -154,7 +192,7 @@ export class EmailMailboxesService {
       },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/messaging/email/mailbox',
       'GET',
       params,
@@ -189,7 +227,7 @@ export class EmailMailboxesService {
       },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/messaging/email/mailbox/${id}`,
       'GET',
       params,
@@ -211,6 +249,7 @@ export class EmailMailboxesService {
    * @param {string} [updates.ticketCreateEmailTemplateId] - Email template ID for auto-reply
    * @param {string} [updates.ticketCreateEmailFrom] - From address for auto-reply emails
    * @param {boolean} [updates.isActive] - Whether mailbox is active
+   * @param {string} [updates.type] - Mailbox type: 'dedicated' or 'shared'
    * @returns {Promise<Object>} Update result
    * @example
    * // Update mailbox with engagement sessions and queue
@@ -241,6 +280,7 @@ export class EmailMailboxesService {
         ticketPrefix,
         ticketCreateEmailTemplateId,
         ticketCreateEmailFrom,
+        type,
       ] = Array.from(arguments).slice(1);
       updateData = {};
       if (mailbox !== undefined) updateData.mailbox = mailbox;
@@ -256,6 +296,7 @@ export class EmailMailboxesService {
         updateData.ticketCreateEmailTemplateId = ticketCreateEmailTemplateId;
       if (ticketCreateEmailFrom !== undefined)
         updateData.ticketCreateEmailFrom = ticketCreateEmailFrom;
+      if (type !== undefined) updateData.type = type;
     } else {
       // New API: options object
       updateData = { ...updates };
@@ -275,10 +316,11 @@ export class EmailMailboxesService {
         ticketCreateEmailTemplateId: { type: 'string', required: false },
         ticketCreateEmailFrom: { type: 'string', required: false },
         isActive: { type: 'boolean', required: false },
+        type: { type: 'string', required: false },
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk,
       `/messaging/email/mailbox/${id}`,
       'PUT',
       {
@@ -303,7 +345,7 @@ export class EmailMailboxesService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/messaging/email/mailbox/${id}`,
       'DELETE',
     );
@@ -361,7 +403,7 @@ export class EmailMailboxesService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/messaging/email/mailbox/${mailboxId}/alias`,
       'POST',
       {
@@ -401,7 +443,7 @@ export class EmailMailboxesService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/messaging/email/mailbox/alias/${aliasId}`,
       'PUT',
       {
@@ -426,7 +468,7 @@ export class EmailMailboxesService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/messaging/email/mailbox/alias/${aliasId}`,
       'DELETE',
     );
@@ -449,10 +491,70 @@ export class EmailMailboxesService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/messaging/email/mailbox/${mailboxId}/folders`,
       'GET',
     );
     return result;
+  }
+
+  async createFolder(mailboxId, { name, parent } = {}) {
+    this.sdk.validateParams(
+      { mailboxId, name, parent },
+      {
+        mailboxId: { type: 'string', required: true },
+        name: { type: 'string', required: true },
+        parent: { type: 'string', required: false },
+      },
+    );
+    const body = { name };
+    if (parent) body.parent = parent;
+    return internalRequest(this.sdk, 
+      `/messaging/email/mailbox/${mailboxId}/folders`,
+      'POST',
+      { body },
+    );
+  }
+
+  async renameFolder(mailboxId, { from, to } = {}) {
+    this.sdk.validateParams(
+      { mailboxId, from, to },
+      {
+        mailboxId: { type: 'string', required: true },
+        from: { type: 'string', required: true },
+        to: { type: 'string', required: true },
+      },
+    );
+    return internalRequest(this.sdk, 
+      `/messaging/email/mailbox/${mailboxId}/folders`,
+      'PUT',
+      { body: { from, to } },
+    );
+  }
+
+  /**
+   * Unread counts across every mailbox the caller can access, for the nav
+   * bar badge.
+   * @returns {Promise<Object>} { count, mailboxes: [{ mailboxId, unread }] }
+   * @example
+   * const { count } = await sdk.messaging.email.mailboxes.badge();
+   */
+  async badge() {
+    return internalRequest(this.sdk, '/messaging/email/mailbox/badge', 'GET');
+  }
+
+  async deleteFolder(mailboxId, { name } = {}) {
+    this.sdk.validateParams(
+      { mailboxId, name },
+      {
+        mailboxId: { type: 'string', required: true },
+        name: { type: 'string', required: true },
+      },
+    );
+    return internalRequest(this.sdk, 
+      `/messaging/email/mailbox/${mailboxId}/folders`,
+      'DELETE',
+      { query: { name }, body: { name } },
+    );
   }
 }

@@ -1,27 +1,47 @@
+import { internalRequest } from '../base.js';
 export class GoogleCalendarService {
   constructor(sdk) {
     this.sdk = sdk;
   }
 
-  async setupWebhook({ calendarId, eventTypes, webhookUrl, expirationTime }) {
+  async setupWebhook({
+    calendarId,
+    eventTypes,
+    webhookUrl,
+    expirationTime,
+    recordTypeId,
+  } = {}) {
+    // Only calendarId is required. The server derives the webhook URL itself
+    // (per-environment: https://login.<API_BASE_URL>/webhooks/google/...) and
+    // watches all event types, so eventTypes/webhookUrl are optional. They
+    // were previously marked required, which broke the common
+    // setupWebhook({ calendarId }) call site (createRoom) with
+    // "Missing required parameter eventTypes".
+    // recordTypeId is optional: callers (e.g. createRoom) pass the meeting's
+    // already-resolved recordTypeId so the webhook row inherits it; if omitted
+    // the server resolves a fallback via findRecordTypeId.
     this.sdk.validateParams(
-      { calendarId, eventTypes, webhookUrl },
+      { calendarId, eventTypes, webhookUrl, recordTypeId },
       {
         calendarId: { type: 'string', required: true },
-        eventTypes: { type: 'array', required: true },
-        webhookUrl: { type: 'string', required: true },
+        eventTypes: { type: 'array', required: false },
+        webhookUrl: { type: 'string', required: false },
         expirationTime: { type: 'number', required: false },
+        recordTypeId: { type: 'string', required: false },
       },
     );
 
-    const webhookData = { calendarId, eventTypes, webhookUrl };
+    const webhookData = { calendarId };
+    if (eventTypes) webhookData.eventTypes = eventTypes;
+    if (webhookUrl) webhookData.webhookUrl = webhookUrl;
     if (expirationTime) webhookData.expirationTime = expirationTime;
+    if (recordTypeId) webhookData.recordTypeId = recordTypeId;
 
     const params = {
       body: webhookData,
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/googleCalendar/webhook',
       'POST',
       params,
@@ -37,7 +57,7 @@ export class GoogleCalendarService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/googleCalendar/webhook/${webhookId}`,
       'DELETE',
     );
@@ -45,12 +65,12 @@ export class GoogleCalendarService {
   }
 
   async listWebhooks() {
-    const result = await this.sdk._fetch('/googleCalendar/webhooks', 'GET');
+    const result = await internalRequest(this.sdk, '/googleCalendar/webhooks', 'GET');
     return result;
   }
 
   async getCalendarList() {
-    const result = await this.sdk._fetch('/googleCalendar/calendars', 'GET');
+    const result = await internalRequest(this.sdk, '/googleCalendar/calendars', 'GET');
     return result;
   }
 
@@ -78,7 +98,7 @@ export class GoogleCalendarService {
       query: { calendarId, ...options },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/googleCalendar/events',
       'GET',
       params,
@@ -98,7 +118,7 @@ export class GoogleCalendarService {
       body: changeData,
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/googleCalendar/processChange',
       'POST',
       params,

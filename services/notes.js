@@ -1,3 +1,4 @@
+import { internalRequest } from '../base.js';
 export class NotesService {
   constructor(sdk) {
     this.sdk = sdk;
@@ -25,7 +26,7 @@ export class NotesService {
       },
     };
 
-    const result = await this.sdk._fetch('/notes', 'GET', params);
+    const result = await internalRequest(this.sdk, '/notes', 'GET', params);
     return result;
   }
 
@@ -75,7 +76,7 @@ export class NotesService {
       },
     };
 
-    const result = await this.sdk._fetch('/notes', 'POST', params);
+    const result = await internalRequest(this.sdk, '/notes', 'POST', params);
     return result;
   }
 
@@ -107,7 +108,7 @@ export class NotesService {
       },
     };
 
-    const result = await this.sdk._fetch(`/notes/${noteId}`, 'PUT', params);
+    const result = await internalRequest(this.sdk, `/notes/${noteId}`, 'PUT', params);
     return result;
   }
 
@@ -119,7 +120,7 @@ export class NotesService {
       },
     );
 
-    const result = await this.sdk._fetch(`/notes/${noteId}`, 'DELETE');
+    const result = await internalRequest(this.sdk, `/notes/${noteId}`, 'DELETE');
     return result;
   }
 
@@ -131,7 +132,7 @@ export class NotesService {
       },
     );
 
-    const result = await this.sdk._fetch(`/notes/${noteId}`, 'GET');
+    const result = await internalRequest(this.sdk, `/notes/${noteId}`, 'GET');
     return result;
   }
 
@@ -150,7 +151,7 @@ export class NotesService {
       body: { query, relatedId, limit, isPublic },
     };
 
-    const result = await this.sdk._fetch('/notes/search', 'POST', params);
+    const result = await internalRequest(this.sdk, '/notes/search', 'POST', params);
     return result;
   }
 }

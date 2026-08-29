@@ -1,3 +1,4 @@
+import { internalRequest } from '../../base.js';
 export class EmailDomainsService {
   constructor(sdk) {
     this.sdk = sdk;
@@ -32,7 +33,7 @@ export class EmailDomainsService {
       body: domainData,
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/messaging/email/validate/domain',
       'POST',
       options,
@@ -57,7 +58,7 @@ export class EmailDomainsService {
       body: { domainId },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/messaging/email/validate/domain',
       'DELETE',
       options,
@@ -85,7 +86,7 @@ export class EmailDomainsService {
    * // }
    */
   async list() {
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/messaging/email/validate/domain',
       'GET',
     );
@@ -147,7 +148,7 @@ export class EmailDomainsService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/messaging/email/validate/domain/${domainId}`,
       'GET',
     );
@@ -171,7 +172,7 @@ export class EmailDomainsService {
       query: { domain },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/messaging/email/validate/domain/dns',
       'GET',
       options,
@@ -184,6 +185,36 @@ export class EmailDomainsService {
    * @param {string} domain - Domain name (required)
    * @returns {Promise<Object>} Domain verification status
    */
+  /**
+   * Verify domain DNS + SES status.
+   * Accepts a domain id (UI) or domain name.
+   * @param {string} domainOrId
+   * @returns {Promise<Object>} SES status plus DNS check results
+   */
+  async verify(domainOrId) {
+    this.sdk.validateParams(
+      { domainOrId },
+      {
+        domainOrId: { type: 'string', required: true },
+      },
+    );
+
+    let domainName = domainOrId;
+    let domainId = domainOrId;
+    if (!domainOrId.includes('.')) {
+      const domain = await this.get(domainOrId);
+      domainName = domain.domain;
+      domainId = domain.id;
+    }
+
+    const [status, dns] = await Promise.all([
+      this.checkStatus(domainName),
+      this.validateDns(domainName),
+    ]);
+
+    return { id: domainId, domain: domainName, ...status, dns };
+  }
+
   async checkStatus(domain) {
     this.sdk.validateParams(
       { domain },
@@ -196,7 +227,7 @@ export class EmailDomainsService {
       query: { domain },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/messaging/email/validate/domain/status',
       'GET',
       options,
@@ -242,7 +273,7 @@ export class EmailDomainsService {
       body: updateData,
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/messaging/email/validate/domain',
       'PUT',
       options,

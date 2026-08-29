@@ -1,6 +1,7 @@
 import { TenDlcBrandsService } from './TenDlcBrandsService.js';
 import { TenDlcCampaignManagementService } from './TenDlcCampaignManagementService.js';
 
+import { internalRequest } from '../../base.js';
 export class TenDlcCampaignsService {
   constructor(sdk) {
     this.sdk = sdk;
@@ -21,7 +22,7 @@ export class TenDlcCampaignsService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/messaging/campaigns/10dlc/phoneNumber/${encodeURIComponent(
         phoneNumber,
       )}/campaignStatus`,

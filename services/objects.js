@@ -1,3 +1,4 @@
+import { internalRequest } from '../base.js';
 /**
  * Objects Service - Manage data objects in the Unbound platform
  *
@@ -17,9 +18,25 @@
  * // Legacy (deprecated) usage still supported:
  * const result = await sdk.objects.query('users', { status: 'active' });
  */
+import { liveQuery } from './liveQuery.js';
+
 export class ObjectsService {
   constructor(sdk) {
     this.sdk = sdk;
+  }
+
+  /**
+   * Subscribe to real-time changes on an object (see services/liveQuery.js
+   * for the full contract: heartbeat, seq-gap resync, reconnect
+   * re-subscribe, revoked teardown).
+   *
+   * sdk.objects.liveQuery({ socket, object, filter, fields, recordTypeId, onEvent, onStateChange })
+   * sdk.objects.liveQuery({ socket, uoql, onEvent, onStateChange }) // uoql is mutually
+   *   exclusive with object/filter/fields/recordTypeId
+   * -> Promise<{ subscriptionId, mode, unsubscribe() }>
+   */
+  liveQuery(args) {
+    return liveQuery(this.sdk, args);
   }
 
   /**
@@ -68,7 +85,7 @@ export class ObjectsService {
 
     const params = { query };
 
-    const result = await this.sdk._fetch(`/object/${id}`, 'GET', params);
+    const result = await internalRequest(this.sdk, `/object/${id}`, 'GET', params);
     // console.log(`sdk.objects.byId :: params :: `, params, result);
     return result;
   }
@@ -141,7 +158,7 @@ export class ObjectsService {
       if (expandDetails) query.expandDetails = expandDetails;
 
       const params = { query };
-      return await this.sdk._fetch(`/object/query/${object}`, 'GET', params);
+      return await internalRequest(this.sdk, `/object/query/${object}`, 'GET', params);
     }
 
     // Old signature: query(objectName, queryParams)
@@ -156,7 +173,7 @@ export class ObjectsService {
       );
 
       const params = { query: queryParams };
-      return await this.sdk._fetch(
+      return await internalRequest(this.sdk, 
         `/object/query/${objectName}`,
         'GET',
         params,
@@ -188,32 +205,34 @@ export class ObjectsService {
     const body = { query, expandDetails };
     if (isPublic) body.isPublic = isPublic;
     const params = { body };
-    return await this.sdk._fetch('/object/query/v2', 'POST', params);
+    return await internalRequest(this.sdk, '/object/query/v2', 'POST', params);
   }
 
   /**
    * Update an object record by ID
    *
    * Preferred usage (new signature):
-   * sdk.objects.updateById({ object: 'users', id: 'userId', update: { name: 'Jane' } })
+   * sdk.objects.updateById({ object: 'users', id: 'userId', update: { name: 'Jane' }, skipTriggers: true })
    *
    * Legacy usage (deprecated, but supported):
    * sdk.objects.updateById('users', 'userId', { name: 'Jane' })
    *
    * @param {object} args - Update parameters
+   * @param {boolean} [args.skipTriggers=false] - Skip trigger execution for this write
    * @returns {Promise} Updated object data
    */
   async updateById(...args) {
-    // New signature: updateById({ object, id, update })
+    // New signature: updateById({ object, id, update, skipTriggers })
     if (args.length === 1 && typeof args[0] === 'object' && args[0].object) {
-      const { object, id, update } = args[0];
+      const { object, id, update, skipTriggers = false } = args[0];
 
       this.sdk.validateParams(
-        { object, id, update },
+        { object, id, update, skipTriggers },
         {
           object: { type: 'string', required: true },
           id: { type: 'string', required: true },
           update: { type: 'object', required: true },
+          skipTriggers: { type: 'boolean', required: false },
         },
       );
 
@@ -223,8 +242,9 @@ export class ObjectsService {
           update,
         },
       };
+      if (skipTriggers) params.query = { skipTriggers: true };
 
-      return await this.sdk._fetch(`/object/${object}`, 'PUT', params);
+      return await internalRequest(this.sdk, `/object/${object}`, 'PUT', params);
     }
 
     // Old signature: updateById(object, id, update)
@@ -247,19 +267,38 @@ export class ObjectsService {
         },
       };
 
-      return await this.sdk._fetch(`/object/${object}`, 'PUT', params);
+      return await internalRequest(this.sdk, `/object/${object}`, 'PUT', params);
     }
 
     throw new Error('Invalid arguments for updateById method');
   }
 
-  async update({ object, where, update }) {
+  /**
+   * Update records matching a where clause.
+   *
+   * @param {object} args
+   * @param {string} args.object
+   * @param {object} args.where
+   * @param {object} args.update
+   * @param {boolean} [args.skipTriggers=false] - Do not run triggers for this write
+   * @returns {Promise} Update result
+   *
+   * @example
+   * await sdk.objects.update({
+   *   object: 'people',
+   *   where: { id: '013…' },
+   *   update: { leadScore: 200 },
+   *   skipTriggers: true,
+   * });
+   */
+  async update({ object, where, update, skipTriggers = false }) {
     this.sdk.validateParams(
-      { object, where, update },
+      { object, where, update, skipTriggers },
       {
         object: { type: 'string', required: true },
         where: { type: 'object', required: true },
         update: { type: 'object', required: true },
+        skipTriggers: { type: 'boolean', required: false },
       },
     );
 
@@ -269,8 +308,9 @@ export class ObjectsService {
         update,
       },
     };
+    if (skipTriggers) params.query = { skipTriggers: true };
 
-    const result = await this.sdk._fetch(`/object/${object}`, 'PUT', params);
+    const result = await internalRequest(this.sdk, `/object/${object}`, 'PUT', params);
     return result;
   }
 
@@ -278,29 +318,32 @@ export class ObjectsService {
    * Create a new object record
    *
    * Preferred usage (new signature):
-   * sdk.objects.create({ object: 'users', body: { name: 'John', email: 'john@example.com' } })
+   * sdk.objects.create({ object: 'users', body: { name: 'John', email: 'john@example.com' }, skipTriggers: true })
    *
    * Legacy usage (deprecated, but supported):
    * sdk.objects.create('users', { name: 'John', email: 'john@example.com' })
    *
    * @param {object} args - Creation parameters
+   * @param {boolean} [args.skipTriggers=false] - Skip trigger execution for this write
    * @returns {Promise} Created object data
    */
   async create(...args) {
-    // New signature: create({ object, body })
+    // New signature: create({ object, body, skipTriggers })
     if (args.length === 1 && typeof args[0] === 'object' && args[0].object) {
-      const { object, body } = args[0];
+      const { object, body, skipTriggers = false } = args[0];
 
       this.sdk.validateParams(
-        { object, body },
+        { object, body, skipTriggers },
         {
           object: { type: 'string', required: true },
           body: { type: 'object', required: true },
+          skipTriggers: { type: 'boolean', required: false },
         },
       );
 
       const params = { body };
-      return await this.sdk._fetch(`/object/${object}`, 'POST', params);
+      if (skipTriggers) params.query = { skipTriggers: true };
+      return await internalRequest(this.sdk, `/object/${object}`, 'POST', params);
     }
 
     // Old signature: create(object, body)
@@ -316,18 +359,35 @@ export class ObjectsService {
       );
 
       const params = { body };
-      return await this.sdk._fetch(`/object/${object}`, 'POST', params);
+      return await internalRequest(this.sdk, `/object/${object}`, 'POST', params);
     }
 
     throw new Error('Invalid arguments for create method');
   }
 
-  async delete({ object, where }) {
+  /**
+   * Delete records matching a where clause.
+   *
+   * @param {object} args
+   * @param {string} args.object
+   * @param {object} args.where
+   * @param {boolean} [args.skipTriggers=false] - Do not run triggers for this write
+   * @returns {Promise} Delete result
+   *
+   * @example
+   * await sdk.objects.delete({
+   *   object: 'people',
+   *   where: { id: '013…' },
+   *   skipTriggers: true,
+   * });
+   */
+  async delete({ object, where, skipTriggers = false }) {
     this.sdk.validateParams(
-      { object, where },
+      { object, where, skipTriggers },
       {
         object: { type: 'string', required: true },
         where: { type: 'object', required: true },
+        skipTriggers: { type: 'boolean', required: false },
       },
     );
 
@@ -336,17 +396,31 @@ export class ObjectsService {
         where,
       },
     };
+    if (skipTriggers) params.query = { skipTriggers: true };
 
-    const result = await this.sdk._fetch(`/object/${object}`, 'DELETE', params);
+    const result = await internalRequest(this.sdk, `/object/${object}`, 'DELETE', params);
     return result;
   }
 
-  async deleteById({ object, id }) {
+  /**
+   * Delete a record by id.
+   *
+   * @param {object} args
+   * @param {string} args.object
+   * @param {string} args.id
+   * @param {boolean} [args.skipTriggers=false] - Do not run triggers for this write
+   * @returns {Promise} Delete result
+   *
+   * @example
+   * await sdk.objects.deleteById({ object: 'people', id: '013…', skipTriggers: true });
+   */
+  async deleteById({ object, id, skipTriggers = false }) {
     this.sdk.validateParams(
-      { object, id },
+      { object, id, skipTriggers },
       {
         object: { type: 'string', required: true },
         id: { type: 'string', required: true },
+        skipTriggers: { type: 'boolean', required: false },
       },
     );
 
@@ -357,13 +431,66 @@ export class ObjectsService {
         },
       },
     };
+    if (skipTriggers) params.query = { skipTriggers: true };
 
-    const result = await this.sdk._fetch(`/object/${object}`, 'DELETE', params);
+    const result = await internalRequest(this.sdk, `/object/${object}`, 'DELETE', params);
     return result;
   }
 
+  /**
+   * List saved list-views for an object (system + shared + own).
+   * @param {Object} params
+   * @param {string} params.objectName - Object the views belong to.
+   * @returns {Promise<{results: Object[]}>}
+   */
+  async listViews({ objectName }) {
+    this.sdk.validateParams(
+      { objectName },
+      { objectName: { type: 'string', required: true } },
+    );
+    return await internalRequest(this.sdk, '/object/views', 'GET', {
+      query: { objectName },
+    });
+  }
+
+  /**
+   * Create a saved list-view.
+   * @param {Object} params
+   * @param {string} params.objectName
+   * @param {string} params.name
+   * @param {Array} params.filters
+   * @param {string} [params.visibility] - 'user' (default) or 'shared'.
+   * @returns {Promise<Object>}
+   */
+  async createView({ objectName, name, filters, visibility }) {
+    this.sdk.validateParams(
+      { objectName, name, filters },
+      {
+        objectName: { type: 'string', required: true },
+        name: { type: 'string', required: true },
+        filters: { type: 'array', required: true },
+      },
+    );
+    const body = { objectName, name, filters };
+    if (visibility !== undefined) body.visibility = visibility;
+    return await internalRequest(this.sdk, '/object/views', 'POST', { body });
+  }
+
+  /**
+   * Delete a saved list-view by id.
+   * @param {string} viewId
+   * @returns {Promise<Object>}
+   */
+  async deleteView(viewId) {
+    this.sdk.validateParams(
+      { viewId },
+      { viewId: { type: 'string', required: true } },
+    );
+    return await internalRequest(this.sdk, `/object/views/${viewId}`, 'DELETE');
+  }
+
   async botSchema() {
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/object/manage/bot-schema',
       'GET',
     );
@@ -380,7 +507,7 @@ export class ObjectsService {
 
     const params = {};
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/object/describe/${object}`,
       'GET',
       params,
@@ -391,7 +518,7 @@ export class ObjectsService {
   async list() {
     const params = {};
 
-    const result = await this.sdk._fetch(`/object/`, 'GET', params);
+    const result = await internalRequest(this.sdk, `/object/`, 'GET', params);
     return result;
   }
 
@@ -441,7 +568,7 @@ export class ObjectsService {
     };
     const params = { body };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/object/expandDetails`,
       'POST',
       params,
@@ -490,7 +617,7 @@ export class ObjectsService {
 
     const params = { query };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/object/expandDetails`,
       'GET',
       params,
@@ -506,7 +633,7 @@ export class ObjectsService {
       },
     );
 
-    const result = await this.sdk._fetch(`/object/expandDetails/${id}`, 'GET');
+    const result = await internalRequest(this.sdk, `/object/expandDetails/${id}`, 'GET');
     return result;
   }
 
@@ -554,7 +681,7 @@ export class ObjectsService {
 
     const params = { body };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/object/expandDetails/${id}`,
       'PUT',
       params,
@@ -570,7 +697,7 @@ export class ObjectsService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/object/expandDetails/${id}`,
       'DELETE',
     );
@@ -623,7 +750,7 @@ export class ObjectsService {
     };
     const params = { body };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/object/generatedColumns`,
       'POST',
       params,
@@ -661,7 +788,7 @@ export class ObjectsService {
 
     const params = { query };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/object/generatedColumns`,
       'GET',
       params,
@@ -677,7 +804,7 @@ export class ObjectsService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/object/generatedColumns/${id}`,
       'GET',
     );
@@ -719,7 +846,7 @@ export class ObjectsService {
 
     const params = { body };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/object/generatedColumns/${id}`,
       'PUT',
       params,
@@ -735,7 +862,7 @@ export class ObjectsService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/object/generatedColumns/${id}`,
       'DELETE',
     );
@@ -754,7 +881,7 @@ export class ObjectsService {
     const body = { name };
     const params = { body };
 
-    const result = await this.sdk._fetch(`/object/manage`, 'POST', params);
+    const result = await internalRequest(this.sdk, `/object/manage`, 'POST', params);
     return result;
   }
 
@@ -809,7 +936,7 @@ export class ObjectsService {
 
     const params = { body };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/object/manage/${objectName}`,
       'POST',
       params,
@@ -840,7 +967,7 @@ export class ObjectsService {
 
     const params = { body };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/object/manage/${objectName}`,
       'PUT',
       params,
@@ -903,7 +1030,7 @@ export class ObjectsService {
 
     const params = { body };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/object/manage/${objectName}/${columnName}`,
       'PUT',
       params,
@@ -920,10 +1047,197 @@ export class ObjectsService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/object/manage/${objectName}/${columnName}`,
       'DELETE',
     );
     return result;
+  }
+
+  /**
+   * List Google Ads customer IDs for an OAuth connection.
+   *
+   * @param {object} args
+   * @param {string} args.connectionId
+   * @returns {Promise<{results: object[], warning?: string|null}>}
+   */
+  async listGoogleAdAccounts({ connectionId }) {
+    this.sdk.validateParams(
+      { connectionId },
+      { connectionId: { type: 'string', required: true } },
+    );
+    return internalRequest(this.sdk, '/object/ad-catalog/google/accounts', 'GET', {
+      query: { connectionId },
+    });
+  }
+
+  /**
+   * List Google Ads campaigns for a customer.
+   *
+   * @param {object} args
+   * @param {string} args.connectionId
+   * @param {string} args.customerId
+   * @param {string} [args.loginCustomerId]
+   * @returns {Promise<{results: object[]}>}
+   */
+  async listGoogleAdCampaigns({ connectionId, customerId, loginCustomerId }) {
+    this.sdk.validateParams(
+      { connectionId, customerId },
+      {
+        connectionId: { type: 'string', required: true },
+        customerId: { type: 'string', required: true },
+      },
+    );
+    const query = { connectionId, customerId };
+    if (loginCustomerId) query.loginCustomerId = loginCustomerId;
+    return internalRequest(this.sdk, '/object/ad-catalog/google/campaigns', 'GET', {
+      query,
+    });
+  }
+
+  /**
+   * List Meta ad accounts for an OAuth connection.
+   *
+   * @param {object} args
+   * @param {string} args.connectionId
+   * @returns {Promise<{results: object[]}>}
+   */
+  async listMetaAdAccounts({ connectionId }) {
+    this.sdk.validateParams(
+      { connectionId },
+      { connectionId: { type: 'string', required: true } },
+    );
+    return internalRequest(this.sdk, '/object/ad-catalog/meta/accounts', 'GET', {
+      query: { connectionId },
+    });
+  }
+
+  /**
+   * List Meta campaigns for an ad account.
+   *
+   * @param {object} args
+   * @param {string} args.connectionId
+   * @param {string} args.adAccountId
+   * @returns {Promise<{results: object[]}>}
+   */
+  async listMetaAdCampaigns({ connectionId, adAccountId }) {
+    this.sdk.validateParams(
+      { connectionId, adAccountId },
+      {
+        connectionId: { type: 'string', required: true },
+        adAccountId: { type: 'string', required: true },
+      },
+    );
+    return internalRequest(this.sdk, '/object/ad-catalog/meta/campaigns', 'GET', {
+      query: { connectionId, adAccountId },
+    });
+  }
+
+  /**
+   * Record activity feed for a single record.
+   * @param {string} recordId
+   * @param {object} [options]
+   * @param {string[]} [options.sources] - item kinds to include (see
+   *   TIMELINE_SOURCES in schemas/layouts/section.js); omit for all.
+   * @param {number} [options.limit]
+   * @returns {Promise<{results: object[]}>}
+   */
+  async getActivity(recordId, { sources, limit } = {}) {
+    this.sdk.validateParams(
+      { recordId },
+      { recordId: { type: 'string', required: true } },
+    );
+    // Repeated `sources=a&sources=b` keys, not `sources=a,b` — some
+    // environments' ingress/WAF blocks literal/encoded commas in query
+    // strings, so this is built by hand (bypassing internalRequest's
+    // generic `query` object, which would join array values with `,` via
+    // URLSearchParams) rather than the usual query param shape.
+    const params = new URLSearchParams();
+    if (Array.isArray(sources) && sources.length) {
+      for (const source of sources) params.append('sources', source);
+    }
+    if (limit) params.append('limit', String(limit));
+    const qs = params.toString();
+    return internalRequest(
+      this.sdk,
+      `/object/${recordId}/activity${qs ? `?${qs}` : ''}`,
+      'GET',
+    );
+  }
+
+  /**
+   * Thread-grouped, record-scoped emails for a single record (person,
+   * company, or opportunity) — filtered mailbox view used by the `email`
+   * layout section (see schemas/layouts/section.js).
+   * @param {string} recordId
+   * @param {object} [options]
+   * @param {number} [options.limit]
+   * @param {number} [options.offset]
+   * @param {string} [options.search]
+   * @param {string} [options.mailboxId]
+   * @param {boolean} [options.unreadOnly]
+   * @returns {Promise<{threads: object[], total: number, unreadCount: number, mailboxes: object[]}>}
+   */
+  async getRecordEmails(recordId, { limit, offset, search, mailboxId, unreadOnly } = {}) {
+    this.sdk.validateParams(
+      { recordId },
+      { recordId: { type: 'string', required: true } },
+    );
+    const query = {};
+    if (limit) query.limit = limit;
+    if (offset) query.offset = offset;
+    if (search) query.search = search;
+    if (mailboxId) query.mailboxId = mailboxId;
+    if (unreadOnly) query.unreadOnly = unreadOnly;
+    return internalRequest(this.sdk, `/object/${recordId}/emails`, 'GET', {
+      query,
+    });
+  }
+
+  /**
+   * Marketing programs dashboard (programs + totals).
+   * @returns {Promise<object>}
+   */
+  async getMarketingProgramsDashboard() {
+    return internalRequest(
+      this.sdk,
+      '/object/marketing-programs/dashboard',
+      'GET',
+    );
+  }
+
+  /**
+   * Metrics for one marketing program.
+   * @param {string} programId
+   * @returns {Promise<object>}
+   */
+  async getMarketingProgramMetrics(programId) {
+    this.sdk.validateParams(
+      { programId },
+      { programId: { type: 'string', required: true } },
+    );
+    return internalRequest(
+      this.sdk,
+      `/object/marketing-programs/${programId}/metrics`,
+      'GET',
+    );
+  }
+
+  /**
+   * Pull latest ad spend for a marketing program.
+   * @param {string} programId
+   * @returns {Promise<object>}
+   */
+  async pullMarketingProgramSpend(programId) {
+    this.sdk.validateParams(
+      { programId },
+      { programId: { type: 'string', required: true } },
+    );
+    return internalRequest(
+      this.sdk,
+      `/object/marketing-programs/${programId}/pull-spend`,
+      'POST',
+      { body: {} },
+    );
   }
 }

@@ -1,3 +1,4 @@
+import { internalRequest } from '../../base.js';
 export class TaskService {
   constructor(sdk) {
     this.sdk = sdk;
@@ -180,7 +181,7 @@ export class TaskService {
       params.body.aiChatSessionId = aiChatSessionId;
     }
 
-    const result = await this.sdk._fetch('/taskRouter/tasks', 'POST', params);
+    const result = await internalRequest(this.sdk, '/taskRouter/tasks', 'POST', params);
     return result;
   }
 
@@ -235,7 +236,7 @@ export class TaskService {
       params.body.userId = userId;
     }
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/taskRouter/tasks/callWorker',
       'PUT',
       params,
@@ -306,7 +307,7 @@ export class TaskService {
       params.body.workerSipCallId = workerSipCallId;
     }
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/taskRouter/tasks/accept',
       'PUT',
       params,
@@ -360,7 +361,7 @@ export class TaskService {
       params.body.userId = userId;
     }
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/taskRouter/tasks/reject',
       'PUT',
       params,
@@ -426,7 +427,7 @@ export class TaskService {
       },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/taskRouter/tasks/priority',
       'PUT',
       params,
@@ -472,7 +473,7 @@ export class TaskService {
       },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/taskRouter/tasks/hold',
       'PUT',
       params,
@@ -542,7 +543,7 @@ export class TaskService {
       },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/taskRouter/tasks/skills',
       'PUT',
       params,
@@ -587,7 +588,7 @@ export class TaskService {
       },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/taskRouter/tasks/wrapUp',
       'PUT',
       params,
@@ -650,7 +651,7 @@ export class TaskService {
       params.body.extend = extend;
     }
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/taskRouter/tasks/wrapUp/extend',
       'PUT',
       params,
@@ -695,7 +696,7 @@ export class TaskService {
       },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/taskRouter/tasks/complete',
       'PUT',
       params,
@@ -739,7 +740,7 @@ export class TaskService {
       },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/taskRouter/tasks/statusEvent',
       'PUT',
       params,
@@ -840,7 +841,28 @@ export class TaskService {
       params.body.sentiment = sentiment;
     }
 
-    const result = await this.sdk._fetch('/taskRouter/tasks/', 'PUT', params);
+    const result = await internalRequest(this.sdk, '/taskRouter/tasks/', 'PUT', params);
     return result;
+  }
+
+  /**
+   * Get the voice transcript for a task, keyed by the media-manager
+   * bridgeId (not sipCallId) so it works across requeue/transfer.
+   *
+   * @param {string} taskId - The task ID to fetch a transcript for
+   * @returns {Promise<Object>} { bridgeId, messages } — bridgeId is null
+   *   and messages is [] for chat/email tasks or tasks with no bridge yet.
+   */
+  async getTranscript(taskId) {
+    this.sdk.validateParams(
+      { taskId },
+      { taskId: { type: 'string', required: true } },
+    );
+    return await internalRequest(
+      this.sdk,
+      `/taskRouter/tasks/${taskId}/transcript`,
+      'GET',
+      {},
+    );
   }
 }

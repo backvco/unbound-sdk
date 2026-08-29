@@ -28,7 +28,7 @@ message AudioRequest {
   string language = 4;
 
   // Transcription engine to use
-  // Options: "whisper", "google"
+  // Options: "whisper", "google", "groq"
   string engine = 5;
 
   // Audio configuration
@@ -66,28 +66,52 @@ message AudioRequest {
   // VAD event timestamp
   int64 vad_timestamp = 15;
 
-  // Playbook identifier (optional - links transcription to a playbook session)
+  // Optional playbook ID for real-time agent scoring
   string playbook_id = 16;
 
-  // Bridge identifier (optional - links related transcription streams)
-  // When multiple bridged call legs have transcription active,
-  // bridge_id lets the transcription service correlate them
+  // Bridge ID linking related transcription streams (e.g., both legs of a bridged call)
+  // Empty string = not part of any bridge. Dynamic: can appear, change, or disappear mid-stream.
   string bridge_id = 17;
 
-  // Task identifier (optional - links transcription to a specific task)
+  // Optional task ID for playbook session tracking
   string task_id = 18;
 
-  // Worker identifier (optional)
+  // Optional worker ID for playbook session tracking
   string worker_id = 19;
 
-  // Generate subject from transcription (optional)
+  // Enable real-time subject generation from customer transcripts
+  // Requires task_id to be set for SDK task update
   bool generate_subject = 20;
 
-  // Generate transcript summary (optional)
+  // Enable end-of-call transcript summary generation
+  // Requires task_id to be set for SDK task update
   bool generate_transcript_summary = 21;
 
-  // Generate sentiment analysis (optional)
+  // Enable real-time sentiment analysis with multi-signal fusion
+  // Requires task_id to be set for SDK task update
   bool generate_sentiment = 22;
+
+  // ── Meet (video-room) session metadata — additive, optional ──────────────
+  // Video room ID this stream belongs to (Meet sessions only). Also used as
+  // the conversation identifier for Meet sessions.
+  string video_room_id = 23;
+
+  // Video room participant ID (Meet sessions only)
+  string participant_id = 24;
+
+  // Display name of the participant (Meet sessions only)
+  string display_name = 25;
+
+  // Opt-in server-side VAD: when true, this repo runs its own energy-based
+  // silence detector over incoming PCM chunks and injects synthetic
+  // speaking_started/speaking_stopped vad_events (media-manager-parity
+  // SilenceDetector), instead of relying on client-sent vad_event fields.
+  // Defaults to false/unset: existing (non-Meet) callers are unaffected.
+  bool server_vad = 26;
+
+  // Optional custom vocabulary terms to bias transcription toward
+  // (e.g. product names, jargon). Merged account + room terms, capped.
+  repeated string vocabulary = 27;
 }
 
 // Audio configuration
@@ -156,6 +180,28 @@ message TranscriptResponse {
 
   // Speaker role (echoed back from AudioRequest)
   string role = 11;
+
+  // Sentiment score (-100 to +100, 0 if sentiment not enabled)
+  float sentiment_score = 12;
+
+  // Sentiment trend ('improving', 'stable', 'declining', empty if not enabled)
+  string sentiment_trend = 13;
+
+  // Unique message ID for correlating transcript with its sentiment update
+  string message_id = 14;
+
+  // Whether this message is a sentiment enrichment update (not a new transcript)
+  bool is_sentiment_update = 15;
+
+  // ── Meet (video-room) session metadata — additive, optional, echoed back ─
+  // Video room ID (echoed back from AudioRequest, Meet sessions only)
+  string video_room_id = 16;
+
+  // Video room participant ID (echoed back from AudioRequest, Meet sessions only)
+  string participant_id = 17;
+
+  // Display name of the participant (echoed back from AudioRequest, Meet sessions only)
+  string display_name = 18;
 }
 
 // Word-level information

@@ -1,3 +1,194 @@
+## 4.13.4
+
+- feat: `sdk.messaging.email.templates.list({ scope })` — `user` (default) / `system` / `all`
+- feat: `sdk.messaging.email.templates.reset(id)` — restore a system account template to the platform default
+
+## 4.13.3
+
+- feat: `sdk.storage` account/record settings (`getAccountSettings`, `updateAccountSettings`, `listRecordSettings`, `getRecordSettings`, `updateRecordSettings`, `getRecordGoogleFolder`); upload/`createFolder` accept `objectName`
+- feat: `sdk.drive.listDrives`; `resolvePath` accepts `objectName` / `relatedId`
+
+## 4.13.2
+
+- feat: `sdk.phoneNumbers.generateLoa` takes `mode` (`send`|`present`) and optional `signerEmail` / `signerTitle`; returns the signing package (`presentUrl` on present)
+
+## 4.13.0
+
+- feat: `sdk.ai.email` — `generate`, `rewrite`, `subjects`, `altText`
+  (`POST /ai/email/{generate,rewrite,subjects,alt-text}`)
+
+## 4.12.0
+
+- feat: `sdk.messaging.email.templates` v2 — `autosave`, `listVersions`,
+  `restoreVersion`; `create`/`update`/`list` accept `design`, `appearance`,
+  usage flags; `preview` may return `unresolvedTags`
+- feat: `sdk.brand.kits` — CRUD, `get`, `setDefault`, URL `extract`
+- feat: `sdk.content.blocks` CRUD; `sdk.content.library` list/get/create;
+  `sdk.content.stock` unsplash/pexels/giphy search + import
+
+## 4.11.0
+
+- feat: `sdk.messaging.email.templates.preview(id, body)` and `.sendTest(id, to, body?)`
+
+## 4.10.2
+
+- fix: storage/drive PATCH goes over socket/NATS again (revert HTTP forceFetch)
+
+## 4.10.1
+
+- fix: storage/drive PATCH methods use HTTP (`forceFetch`) — socket has no PATCH
+
+## 4.10.0
+
+- feat: `sdk.storage` folder CRUD (`listFolders`, `createFolder`, `updateFolder`,
+  `deleteFolder`), `moveFiles`, `updateFileMetadata` → `PATCH /storage/files/:id`
+- feat: `listFiles` query `relatedId` / `folderId` / `search` / `page` / `sortBy`
+- feat: `sdk.drive` — Google Drive proxy (`status`, list/upload/folder/file,
+  `browserToken`)
+
+## 4.8.13
+
+- feat: `sdk.chat` threads, bots, channel-meet create/update/slug/password,
+  group default channels; `sendMessage` accepts `tools` / `toolConfig`
+
+## 4.8.12
+
+- feat: `sdk.recents` (`list`, `smsThread`, `stats`, `transcribeVoicemail`)
+  — HTTP `/recents`
+
+## 4.8.10
+
+- feat: `sdk.messaging.email.mailboxes.createFolder` / `renameFolder` /
+  `deleteFolder` — custom and nested mailbox folders
+- feat: `sdk.recents.list` filters (`startDate`, `endDate`, `q`, `direction`,
+  `missed`, `hasRecording`, `hasTranscription`) and meeting stats
+- feat: `sdk.directory.listContacts` / `addContact` / `removeContact`;
+  favorites accept `user`/`queue` plus `channelId`/`numberField`
+- feat: `sdk.taskRouter.cc` (`getScope`, `getSnapshot`, `getSessions`) and
+  `sdk.taskRouter.metrics.getWindow`
+- feat: meet personal-room methods on `sdk.video`; `statusWebhook` on
+  `sdk.voice.call`
+- fix: HTTP error bodies parse via `json()`/`text()` so API `{ message }`
+  is not swallowed as a generic "API Error"
+
+## 4.6.0
+
+- feat: `sdk.objects.listGoogleAdAccounts` / `listGoogleAdCampaigns` /
+  `listMetaAdAccounts` / `listMetaAdCampaigns` — ad-catalog pickers
+  (`GET /object/ad-catalog/{google|meta}/{accounts|campaigns}`)
+- feat: `sdk.externalOAuth.verify(id, { purpose })` — Ads connection
+  check; `authorize` accepts `fromConnectionId` to reuse credentials
+- feat: `sdk.triggers` — CRUD for object-change triggers (`list`,
+  `listObjects`, `get`, `create`, `update`, `delete`/`remove`,
+  `setStatus`, `listFires`)
+- feat: `skipTriggers` on `objects.create` / `update` / `updateById` /
+  `delete` / `deleteById` (query flag; default false so triggers run)
+- feat: `schemas/workflows/` — new Zod schema package, sibling of
+  `schemas/layouts/`, for the Workflow Builder v2 `ModuleSpec` contract
+  (`WORKFLOW-V2-PLAN.md` Phase 2): identity (`type`/`category`/
+  `moduleSchemaVersion`), presentation colors, `PortSpec` (`ports[]`,
+  `isHidden`/`isMultiple`/`isLocked`/`isConnectionDeletable`), `editWidth`,
+  `CapabilitiesSpec` (`deletable`, `hiddenFromPicker`, `dynamicPorts`,
+  `spawnsChildItems`, `outputVariables`, `excludedFromVariableExtraction`,
+  `dataProducer`, `simulatable`, `customEditor` — replaces the ad hoc
+  type-string branches and the separate `DATA_PRODUCER_TYPES` registry),
+  `SettingsSchemaSpec` (`namespace`/`defaults`), and a `layout` shape
+  (`ModuleSection`/`ModuleRow`/`ModuleColumn`/`EditEntrySpec`) modeled
+  against the 29 real files in
+  `app1-api/.../constants/workflows/*.js` — not the idealized sketch — since
+  the real layout/defaults tree nests under `settings.layout`/
+  `settings.<namespace>`, not as top-level siblings
+- feat: `Conditional` (`{field, operator?, value}`, `operator` default
+  `'equals'`) — accepts the legacy `{field, value}` shorthand used by ~28 of
+  29 modules via preprocessing; the one explicit-operator occurrence
+  (`sendEmail.js`'s `operator: 'not_empty'`) validates unchanged
+- feat: `validateModuleSpec(spec)` → `{valid, errors[]}` — structural
+  validity; `capabilities`/`settingsSchema`/`moduleSchemaVersion` are fully
+  additive, so every currently-shipping module constant validates
+  unmodified with none of them present
+- feat: `lintModuleSpec(spec)` → `{valid, errors[]}` — extra authoring
+  rules: `category-required`; `boolean-widget-checkbox` (rejects
+  `fieldType: 'switch'`, which has no renderer — the confirmed
+  `peopleCompanyLink.js` gap); `settings-namespace-match` (every
+  `edit[].field`'s `settings.<ns>` root must match the module's declared
+  `settingsSchema.namespace` — mechanically catches the live
+  `aBRouting.js` field/default mismatch and `update.js`'s
+  copy-pasted-and-never-renamed defaults bug class, only once a module has
+  opted into `settingsSchema`)
+- No execution-side change: module `type`/`category`/`edit[].field` path
+  strings are unmodified by this package — see design-schema-first.md §5 /
+  design-incremental-risk.md §5 for the preserved execution contract
+
+## 4.5.0
+
+- schemas/layouts: `orderBy` accepts multi-column ordering — a single `{field, direction}` or an ordered array (`OrderByListSpec`). Existing single-object layouts remain valid.
+
+## 4.4.0
+
+- feat: `sdk.layouts.schema.migrateV1toV2(layoutJson, ctx?)` — the real
+  v1→v2 document migration (Phase 1 shipped the registry scaffold and a
+  join/kanban/actions-derivation first pass; this completes it per
+  SPEC-PHASE-5.md §2.1): canonicalizes `object`/`objectName` (drops
+  `object`, flags drift); wraps legacy flat single-table sections into
+  `tables[]` field-for-field; normalizes table/component joins to canonical
+  `JoinSpec` `{childField, parentField}`, leaving non-trivial templates or
+  missing/empty FK columns untouched (tagged in `changes[]`, not silently
+  guessed); retags `type:"table"` sections that actually hold a kanban
+  block to `"table-kanban"` so the kanban config isn't silently dropped by
+  validation; promotes qualifying `tables[]` entries (child object, clean
+  join, non-empty fields) to `RelatedListSpec`, additive alongside
+  `tables[]` — never a replacement — with their `create` action promoted to
+  a section-placed `ActionSpec` on the layout's `actions[]`
+- feat: `sdk.layouts.schema.migrateToLatest(json, fromVersion, ctx?)`,
+  `MIGRATIONS`, `CURRENT_SCHEMA_VERSION` — the versioned migration-runner
+  contract from SPEC-PHASE-5.md §2.1 (`migrateLayoutSchema(doc)` stays as
+  the documented one-liner, now implemented on top of `migrateToLatest`)
+- feat: `RelatedListSpec` is now wired into `SectionSpec` — new
+  `relatedLists: RelatedListSpec[]` field on `TableSection`/
+  `TableKanbanSection` (additive, defaults `[]`), resolving Phase 1's
+  "Open Decision #5" (`relatedList.js`) as additive rather than folding
+  `tables[]` away
+- fix: every `migrateV1toV2`/`migrateToLatest` step now returns
+  `{json, schemaVersion, changes}` (was: the raw migrated doc) — `changes[]`
+  is the human-readable log the backfill sweep and migration-preview tool
+  (Phase 5 API work) need; this is a breaking change to the previous
+  in-progress (unreleased-behavior) return shape, not to any documented 4.3.0
+  API
+- docs: regenerated `schemas/layouts/SCHEMA.md` for the `relatedLists`
+  field addition (`npm run docs:layouts`)
+
+## 4.3.0
+
+- feat: `sdk.layouts.resolve({object, kind, recordId?, recordTypeId?, asUser?})` —
+  hot-path read against the new `GET /layouts/resolve` resolution endpoint,
+  returns `{ layoutId, schemaVersion, layout, resolution }`
+- feat: `sdk.layouts.getVersions(layoutId)`, `sdk.layouts.getForEdit(layoutId)`,
+  `sdk.layouts.publish(layoutId, {changeNote?})`,
+  `sdk.layouts.rollback(layoutId, version)` — draft/publish/rollback version
+  history API
+- feat: `sdk.layouts.assignments.{list,create,update,delete}` — new
+  `LayoutAssignmentsService`, exposed as `sdk.layouts.assignments.*`, for the
+  `layoutAssignments` resolution-matrix CRUD (`objectName`/`kind` wire keys,
+  per Phase 2 spec)
+- `sdk.layouts.get/create/update/delete/dynamicSelectSearch` unchanged — same
+  routes, response shape only additively gains `resolution` server-side
+
+## 4.2.0
+
+- feat: `sdk.layouts.schema.*` — canonical Zod schema package for the layout
+  JSON contract (`LayoutDoc`, `CompactLayoutDoc`, `SectionSpec`, `FieldSpec`,
+  `FormatSpec`, `JoinSpec`, `SelectDynamicSpec`, `KanbanConfigSpec`, plus two
+  new first-class primitives: `RelatedListSpec`, `ActionSpec`)
+- feat: `sdk.layouts.schema.validateLayoutDoc(doc, { type? })` and
+  `sdk.layouts.schema.migrateLayoutSchema(doc)` — pure, additive
+  `schemaVersion:1 → 2` migration registry
+- feat: also importable without an SDK instance —
+  `import * as layoutSchemas from '@unboundcx/sdk/schemas/layouts'`
+- chore: adds `zod` as the package's first real runtime dependency
+  (`zod-to-json-schema` is a docs-only devDependency, not published)
+- docs: generated schema reference at `schemas/layouts/SCHEMA.md`
+  (`npm run docs:layouts` to regenerate)
+
 ## 4.0.7
 
 - feat: `updateRoomBot` accepts `recordingAssetStatus` (none|processing|ready_webm|ready_mp4|failed)

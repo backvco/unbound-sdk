@@ -1,3 +1,4 @@
+import { internalRequest } from '../base.js';
 export class PortalsService {
   constructor(sdk) {
     this.sdk = sdk;
@@ -61,7 +62,7 @@ export class PortalsService {
       body: portalData,
     };
 
-    const result = await this.sdk._fetch('/portals', 'POST', params);
+    const result = await internalRequest(this.sdk, '/portals', 'POST', params);
     return result;
   }
 
@@ -121,7 +122,7 @@ export class PortalsService {
       body: updateData,
     };
 
-    const result = await this.sdk._fetch(`/portals/${portalId}`, 'PUT', params);
+    const result = await internalRequest(this.sdk, `/portals/${portalId}`, 'PUT', params);
     return result;
   }
 
@@ -139,7 +140,7 @@ export class PortalsService {
       },
     );
 
-    const result = await this.sdk._fetch(`/portals/${portalId}`, 'DELETE');
+    const result = await internalRequest(this.sdk, `/portals/${portalId}`, 'DELETE');
     return result;
   }
 
@@ -157,7 +158,7 @@ export class PortalsService {
       },
     );
 
-    const result = await this.sdk._fetch(`/portals/${portalId}`, 'GET');
+    const result = await internalRequest(this.sdk, `/portals/${portalId}`, 'GET');
     return result;
   }
 
@@ -184,7 +185,7 @@ export class PortalsService {
       query: { domain },
     };
 
-    const result = await this.sdk._fetch('/portals/public', 'GET', params);
+    const result = await internalRequest(this.sdk, '/portals/public', 'GET', params);
     return result;
   }
 
@@ -194,7 +195,7 @@ export class PortalsService {
    * @returns {Promise<{ portals: object[] }>} An object containing an array of portal records.
    */
   async list() {
-    const result = await this.sdk._fetch('/portals', 'GET');
+    const result = await internalRequest(this.sdk, '/portals', 'GET');
     return result;
   }
 
@@ -222,7 +223,7 @@ export class PortalsService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/portals/${portalId}/verify-dns`,
       'POST',
     );

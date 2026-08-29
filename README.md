@@ -14,6 +14,7 @@ The official JavaScript SDK for Unbound's comprehensive communication and AI pla
 - 🤖 **AI**: Generative AI chat, text-to-speech, and speech-to-text
 - 💾 **Data**: Object management with queries and relationships
 - 🔄 **Workflows**: Programmable workflow execution
+- 📄 **Documents**: Templates → PDF (`api.documents`); fax is a consumer, not the owner
 - 🔌 **Extensible**: Plugin system for transports and extensions
 - ⚡ **Performance**: Automatic transport optimization (NATS/Socket/HTTP)
 
@@ -174,7 +175,108 @@ await api.objects.updateById('contacts', 'contact-123', { name: 'Jane' });
 await api.objects.deleteById('contacts', 'contact-123');
 await api.objects.describe('contacts'); // Get schema
 await api.objects.list(); // List all object types
+
+// Skip trigger execution on a write (imports / bulk tools)
+await api.objects.updateById({
+  object: 'people',
+  id: '013…',
+  update: { leadScore: 200 },
+  skipTriggers: true,
+});
 ```
+
+#### Triggers (`api.triggers`)
+
+```javascript
+await api.triggers.listObjects();
+await api.triggers.list({ objectName: 'people', status: 'enabled' });
+await api.triggers.create({
+  name: 'Hot lead',
+  objectName: 'people',
+  actions: ['update'],
+  recordFilter: { type: { op: 'eq', value: 'lead' } },
+  changeFilters: [
+    {
+      field: 'leadScore',
+      previous: { op: 'lt', value: 20 },
+      updated: { op: 'gt', value: 100 },
+    },
+  ],
+  actionType: 'workflow',
+  actionConfig: { workflowVersionId: '052…' },
+});
+await api.triggers.get('173…');
+await api.triggers.update('173…', { status: 'paused' });
+await api.triggers.setStatus('173…', 'enabled');
+await api.triggers.listFires('173…', { limit: 20 });
+await api.triggers.delete('173…');
+```
+
+#### Live Queries (`api.objects.liveQuery`)
+
+Real-time, server-evaluated subscriptions over App1 Database objects. The
+server matches every mutation against your filter and pushes only relevant
+events — no client-side polling or firehose filtering.
+
+```javascript
+const handle = await api.objects.liveQuery({
+  socket, // an authed socket.io-client instance (required until the SDK ships its own transport)
+  object: 'contacts',
+  filter: { companyId: 'company-123' }, // bare value = equals; 'op::term' strings for other operators
+  onEvent: (frame) => {
+    // frame.type: 'enter' | 'change' | 'leave' | 'refresh' | 'resync' | 'revoked'
+    // 'enter'  -> frame.record (full row now matches your filter)
+    // 'change' -> frame.changedFields ONLY (patch, never the full row)
+    // 'leave'  -> frame.recordId no longer matches (or was deleted)
+    // 'refresh'/'resync' -> re-run your query (coarse mode or gap recovery)
+  },
+  onStateChange: (state) => {}, // 'active' | 'resubscribing' | 'revoked'
+});
+
+handle.unsubscribe(); // always tear down when done
+```
+
+Notes: the resolved `handle.mode` is `'fine'` (row-level events) or
+`'coarse'` (debounced refresh hints — used when the filter isn't
+row-evaluable). Heartbeats, reconnect-resubscribe, and sequence-gap resync
+are handled internally. Server caps: 25 subscriptions per socket, 500 per
+account.
+
+**UOQL form** — pass a `uoql` string instead of `object`/`filter`/`fields`/
+`recordTypeId` (mutually exclusive; the SDK throws synchronously if both, or
+neither, are given). The server parses and classifies the query for you:
+
+```javascript
+// Simple single-object query with a flat WHERE -> classifies FINE, same
+// row-level 'enter'/'change'/'leave' events as the object/filter form above.
+const handle = await api.objects.liveQuery({
+  socket,
+  uoql: "SELECT id, name, status FROM contacts WHERE companyId = 'company-123'",
+  onEvent: (frame) => {},
+});
+
+// Relationship paths / aggregates -> classifies COARSE: you only get
+// debounced 'refresh' hints (no row-level frames), so re-run the query
+// yourself each time onEvent fires with frame.type === 'refresh'.
+// (UOQL expresses joins as dot-notation relationship paths, not JOIN syntax.)
+const relatedUoql =
+  "SELECT name, companyId.name FROM contacts WHERE companyId.industry = 'tech'";
+const relatedHandle = await api.objects.liveQuery({
+  socket,
+  uoql: relatedUoql,
+  onEvent: async (frame) => {
+    if (frame.type === 'refresh' || frame.type === 'resync') {
+      const results = await api.objects.queryV2({ query: relatedUoql });
+    }
+  },
+});
+
+relatedHandle.unsubscribe();
+```
+
+Resubscribe-on-reconnect re-sends the same `uoql` string verbatim, so the
+server re-classifies it fresh each time (mode can't drift out from under a
+long-lived handle).
 
 #### Messaging (`api.messaging`)
 
@@ -250,7 +352,7 @@ const call = await api.voice.createCall({
 // Call controls
 await api.voice.mute(call.callControlId);
 await api.voice.hold(call.callControlId);
-await api.voice.sendDtmf(call.callControlId, '1234');
+await api.voice.sendDtmf({ callId: call.callId, dtmf: '1234' }); // mode: 'auto'|'rtp'|'inband'|'info'; target: 'leg' (default) | 'peer'
 await api.voice.transfer(call.callControlId, '+1555555555');
 await api.voice.hangup(call.callControlId);
 
@@ -341,6 +443,45 @@ const files = await api.storage.uploadFiles(fileData, {
 const fileUrl = api.storage.getFileUrl(files[0].storageId);
 await api.storage.deleteFile(files[0].storageId);
 ```
+
+#### Documents (`api.documents`)
+
+Generic templates → PDF. Implementation: `services/documents.js`.
+`this.documents = new DocumentsService(this)`.
+
+```javascript
+const created = await api.documents.templates.create({
+  name: 'Fax cover',
+  engine: 'generative', // or 'overlay' + sourcePdfStorageId
+  uses: ['fax'], // omit / [] = every surface
+});
+await api.documents.templates.list({ status: 'published', use: 'fax' });
+await api.documents.templates.update(created.id, { draftSchemaJson, draftLayoutJson });
+await api.documents.templates.publish(created.id);
+
+const doc = await api.documents.generate({
+  templateId: created.id,
+  data: { fromCompany: 'Acme', subject: 'Hello' },
+});
+// { id, storageId, pageCount, pageSize }
+
+await api.fax.send({
+  faxMailboxId,
+  toNumber,
+  fromNumber,
+  storageId: doc.storageId,
+  coverStorageId, // optional; API concatenates cover then body
+  paperSize: doc.pageSize,
+});
+
+const pages = await api.documents.inspect({ storageId: doc.storageId });
+```
+
+There is no `api.fax.generateFromTemplate`. Preview: `api.documents.preview({ templateId, data })`.
+
+Published SDK versions older than this branch may not have `documents` or
+`fax.send({ coverStorageId })`. The client falls back to `_fetch('/documents/…')`
+and `_fetch('/fax/send')`.
 
 #### Workflows (`api.workflows`)
 

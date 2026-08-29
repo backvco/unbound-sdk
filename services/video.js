@@ -1,3 +1,4 @@
+import { internalRequest } from '../base.js';
 export class VideoService {
   constructor(sdk) {
     this.sdk = sdk;
@@ -5,7 +6,7 @@ export class VideoService {
 
   async clearToken() {
     const params = {};
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/video/clearVideoToken`,
       'POST',
       params,
@@ -50,7 +51,7 @@ export class VideoService {
         token,
       },
     };
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/video/${room}/join`,
       'POST',
       params,
@@ -101,7 +102,7 @@ export class VideoService {
         isSip: true,
       },
     };
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/video/${room}/join`,
       'POST',
       params,
@@ -124,7 +125,7 @@ export class VideoService {
         ...update,
       },
     };
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/video/${roomId}/${participantId}`,
       'PUT',
       params,
@@ -145,7 +146,7 @@ export class VideoService {
         participantId,
       },
     };
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/video/${roomId}/leave`,
       'DELETE',
       params,
@@ -161,7 +162,7 @@ export class VideoService {
       },
     );
     const params = {};
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/video/${roomId}/leave`,
       'DELETE',
       params,
@@ -195,7 +196,7 @@ export class VideoService {
         streamCreation,
       },
     };
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/video/${roomId}/${participantId}/mute/${mediaType}`,
       'PUT',
       params,
@@ -221,6 +222,16 @@ export class VideoService {
     startMicrophoneMutedAfter,
     enableChat,
     engagementSessionId,
+    startRecordingOn,
+    startTranscribingOn,
+    syncToCalendar,
+    source,
+    calendarId,
+    eventId,
+    calendarProvider,
+    vocabularyTerms,
+    shareOcrEnabled,
+    earlyJoinMinutes,
   }) {
     this.sdk.validateParams(
       {
@@ -241,6 +252,16 @@ export class VideoService {
         startMicrophoneMutedAfter,
         enableChat,
         engagementSessionId,
+        startRecordingOn,
+        startTranscribingOn,
+        syncToCalendar,
+        source,
+        calendarId,
+        eventId,
+        calendarProvider,
+        vocabularyTerms,
+        shareOcrEnabled,
+        earlyJoinMinutes,
       },
       {
         name: { type: 'string', required: false },
@@ -260,6 +281,18 @@ export class VideoService {
         startMicrophoneMutedAfter: { type: 'number', required: false },
         enableChat: { type: 'boolean', required: false },
         engagementSessionId: { type: 'string', required: false },
+        startRecordingOn: { type: 'boolean', required: false },
+        startTranscribingOn: { type: 'boolean', required: false },
+        syncToCalendar: { type: 'boolean', required: false },
+        source: { type: 'string', required: false },
+        calendarId: { type: 'string', required: false },
+        eventId: { type: 'string', required: false },
+        calendarProvider: { type: 'string', required: false },
+        vocabularyTerms: { type: 'array', required: false },
+        shareOcrEnabled: { type: 'boolean', required: false },
+        // 0 = strict at startTime, 5 = 5-min early window (api rejects
+        // other values); omit for no schedule-window enforcement.
+        earlyJoinMinutes: { type: 'number', required: false },
       },
     );
     const params = {
@@ -281,9 +314,19 @@ export class VideoService {
         startMicrophoneMutedAfter,
         enableChat,
         engagementSessionId,
+        startRecordingOn,
+        startTranscribingOn,
+        syncToCalendar,
+        source,
+        calendarId,
+        eventId,
+        calendarProvider,
+        vocabularyTerms,
+        shareOcrEnabled,
+        earlyJoinMinutes,
       },
     };
-    const result = await this.sdk._fetch(`/video`, 'POST', params);
+    const result = await internalRequest(this.sdk, `/video`, 'POST', params);
     return result;
   }
 
@@ -322,6 +365,12 @@ export class VideoService {
       validationSchema.startTranscribingOn = { type: 'boolean' };
     if ('enableChat' in update)
       validationSchema.enableChat = { type: 'boolean' };
+    if ('vocabularyTerms' in update)
+      validationSchema.vocabularyTerms = { type: 'array' };
+    if ('shareOcrEnabled' in update)
+      validationSchema.shareOcrEnabled = { type: 'boolean' };
+    if ('earlyJoinMinutes' in update)
+      validationSchema.earlyJoinMinutes = { type: 'number' };
 
     if (Object.keys(validationSchema).length > 0) {
       this.sdk.validateParams(update, validationSchema);
@@ -332,7 +381,7 @@ export class VideoService {
         ...update,
       },
     };
-    const result = await this.sdk._fetch(`/video/${roomId}`, 'PUT', params);
+    const result = await internalRequest(this.sdk, `/video/${roomId}`, 'PUT', params);
     return result;
   }
 
@@ -360,7 +409,7 @@ export class VideoService {
         ...update,
       },
     };
-    const result = await this.sdk._fetch(`/video/${roomId}/bot`, 'PUT', params);
+    const result = await internalRequest(this.sdk, `/video/${roomId}/bot`, 'PUT', params);
     return result;
   }
 
@@ -380,7 +429,7 @@ export class VideoService {
         callerIdNumber,
       },
     };
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/video/${roomId}/placeOutboundCall`,
       'POST',
       params,
@@ -403,26 +452,46 @@ export class VideoService {
       },
     };
 
-    return await this.sdk._fetch(`/video/${roomId}`, 'GET', params);
+    return await internalRequest(this.sdk, `/video/${roomId}`, 'GET', params);
   }
 
+  /**
+   * List meetings visible to the current user.
+   *
+   * @param {Object} [options] - Parameters
+   * @param {string} [options.startDate] - Start of the search window
+   * @param {string} [options.endDate] - End of the search window
+   * @param {number} [options.limit] - Max results
+   * @param {number} [options.offset] - Pagination offset
+   * @param {string} [options.engagementSessionId] - When set, returns meetings tied to this
+   *   engagement session instead of filtering by the caller's own hosts/participants email —
+   *   lets a reviewing manager see meetings they weren't part of.
+   * @returns {Promise<Object>} Meetings list result
+   */
   async listMeetings(options = {}) {
+    const { engagementSessionId, ...rest } = options;
+
     // Validate optional parameters
     const validationSchema = {};
-    if ('startDate' in options) validationSchema.startDate = { type: 'string' };
-    if ('endDate' in options) validationSchema.endDate = { type: 'string' };
-    if ('limit' in options) validationSchema.limit = { type: 'number' };
-    if ('offset' in options) validationSchema.offset = { type: 'number' };
+    if ('startDate' in rest) validationSchema.startDate = { type: 'string' };
+    if ('endDate' in rest) validationSchema.endDate = { type: 'string' };
+    if ('limit' in rest) validationSchema.limit = { type: 'number' };
+    if ('offset' in rest) validationSchema.offset = { type: 'number' };
+    if (engagementSessionId !== undefined)
+      validationSchema.engagementSessionId = { type: 'string' };
 
     if (Object.keys(validationSchema).length > 0) {
-      this.sdk.validateParams(options, validationSchema);
+      this.sdk.validateParams({ ...rest, engagementSessionId }, validationSchema);
     }
 
     const params = {
-      query: options,
+      query: {
+        ...rest,
+        engagementSessionId,
+      },
     };
 
-    const result = await this.sdk._fetch('/video/meetings', 'GET', params);
+    const result = await internalRequest(this.sdk, '/video/meetings', 'GET', params);
     return result;
   }
 
@@ -451,7 +520,7 @@ export class VideoService {
       query: params,
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/video/meetings/${roomId}/analytics`,
       'GET',
       options,
@@ -459,7 +528,7 @@ export class VideoService {
     return result;
   }
 
-  async deleteRoom(roomId) {
+  async deleteRoom(roomId, options = {}) {
     this.sdk.validateParams(
       { roomId },
       {
@@ -467,7 +536,10 @@ export class VideoService {
       },
     );
     const params = {};
-    const result = await this.sdk._fetch(`/video/${roomId}`, 'DELETE', params);
+    if (options && options.deleteCalendarEvent === true) {
+      params.body = { deleteCalendarEvent: true };
+    }
+    const result = await internalRequest(this.sdk, `/video/${roomId}`, 'DELETE', params);
     return result;
   }
 
@@ -484,7 +556,7 @@ export class VideoService {
       body: participant,
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/video/${roomId}/participants`,
       'POST',
       params,
@@ -501,7 +573,7 @@ export class VideoService {
     );
 
     const params = {};
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/video/${roomId}/close`,
       'POST',
       params,
@@ -543,7 +615,7 @@ export class VideoService {
       body: { token },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/video/${id}/validate`,
       'POST',
       params,
@@ -588,7 +660,7 @@ export class VideoService {
       { roomId },
       { roomId: { type: 'string', required: true } },
     );
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/video/session/end`,
       'POST',
       { body: { roomId } },
@@ -610,12 +682,32 @@ export class VideoService {
       body: stats,
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/video/${roomId}/stats`,
       'POST',
       params,
     );
     return result;
+  }
+
+  // Persist a rolled-up quality summary to MySQL (one row per participant
+  // per meeting). Internal endpoint, called by app1-video-server on
+  // participant.leave. Long-term home for billing (bytes) and "was this
+  // meeting good?" support lookups, surviving ClickHouse TTL expiry.
+  async submitParticipantSummary(roomId, participantId, summary) {
+    this.sdk.validateParams(
+      { roomId, participantId, summary },
+      {
+        roomId: { type: 'string', required: true },
+        participantId: { type: 'string', required: true },
+        summary: { type: 'object', required: true },
+      },
+    );
+    return internalRequest(this.sdk, 
+      `/internal/video/${roomId}/participants/${participantId}/summary`,
+      'POST',
+      { body: summary },
+    );
   }
 
   async submitSurvey({
@@ -663,7 +755,7 @@ export class VideoService {
       },
     };
 
-    const result = await this.sdk._fetch('/video/survey', 'POST', params);
+    const result = await internalRequest(this.sdk, '/video/survey', 'POST', params);
     return result;
   }
 
@@ -693,7 +785,7 @@ export class VideoService {
 
     const params = { body };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/video/${roomId}/chat`,
       'POST',
       params,
@@ -741,8 +833,44 @@ export class VideoService {
       query: options,
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/video/${roomId}/chat`,
+      'GET',
+      params,
+    );
+    return result;
+  }
+
+  /**
+   * Get the live transcription transcript for a video room, paged.
+   * @param {string} roomId - The video room ID
+   * @param {Object} [options] - Paging options
+   * @param {number} [options.limit] - Max rows to return
+   * @param {number} [options.offset] - Row offset
+   * @returns {Promise} Paged transcript rows, ordered by timestamp/createdAt ascending
+   */
+  async getTranscript(roomId, options = {}) {
+    this.sdk.validateParams(
+      { roomId },
+      {
+        roomId: { type: 'string', required: true },
+      },
+    );
+
+    const validationSchema = {};
+    if ('limit' in options) validationSchema.limit = { type: 'number' };
+    if ('offset' in options) validationSchema.offset = { type: 'number' };
+
+    if (Object.keys(validationSchema).length > 0) {
+      this.sdk.validateParams(options, validationSchema);
+    }
+
+    const params = {
+      query: options,
+    };
+
+    const result = await internalRequest(this.sdk, 
+      `/video/${roomId}/transcript`,
       'GET',
       params,
     );
@@ -778,7 +906,7 @@ export class VideoService {
 
     const params = { body };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/video/${roomId}/chat/${messageId}`,
       'PUT',
       params,
@@ -804,7 +932,7 @@ export class VideoService {
 
     const params = {};
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/video/${roomId}/chat/${messageId}`,
       'DELETE',
       params,
@@ -866,7 +994,7 @@ export class VideoService {
       body: settings,
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/video/settings/user',
       'POST',
       params,
@@ -916,7 +1044,7 @@ export class VideoService {
       body: settings,
     };
 
-    const result = await this.sdk._fetch('/video/settings/user', 'PUT', params);
+    const result = await internalRequest(this.sdk, '/video/settings/user', 'PUT', params);
     return result;
   }
 
@@ -940,7 +1068,552 @@ export class VideoService {
       params.query.userId = userId;
     }
 
-    const result = await this.sdk._fetch('/video/settings/user', 'GET', params);
+    const result = await internalRequest(this.sdk, '/video/settings/user', 'GET', params);
+    return result;
+  }
+
+  /**
+   * Get live presence for a video room (current participants, grouped by
+   * waiting-room state)
+   * @param {string} roomId - The video room ID
+   * @returns {Promise} Live presence info
+   */
+  async getLivePresence(roomId) {
+    this.sdk.validateParams(
+      { roomId },
+      {
+        roomId: { type: 'string', required: true },
+      },
+    );
+
+    const result = await internalRequest(this.sdk, 
+      `/video/${roomId}/livePresence`,
+      'GET',
+    );
+    return result;
+  }
+
+  /**
+   * Get the AI-generated summary for a video room's transcript
+   * @param {string} roomId - The video room ID
+   * @returns {Promise} Meeting summary
+   */
+  async getSummary(roomId) {
+    this.sdk.validateParams(
+      { roomId },
+      {
+        roomId: { type: 'string', required: true },
+      },
+    );
+
+    const result = await internalRequest(this.sdk, `/video/${roomId}/summary`, 'GET');
+    return result;
+  }
+
+  /**
+   * Host-only edit of a video room's post-meeting AI summary
+   * @param {string} roomId - The video room ID
+   * @param {Object} update
+   * @param {Object} update.summaryJson - {title, summary, actionItems, chapters}
+   * @returns {Promise} Update result
+   */
+  async updateSummary(roomId, { summaryJson }) {
+    this.sdk.validateParams(
+      { roomId, summaryJson },
+      {
+        roomId: { type: 'string', required: true },
+        summaryJson: { type: 'object', required: true },
+      },
+    );
+
+    const params = {
+      body: { summaryJson },
+    };
+
+    const result = await internalRequest(this.sdk, 
+      `/video/${roomId}/summary`,
+      'PATCH',
+      params,
+    );
+    return result;
+  }
+
+  /**
+   * Generate a "catch me up" recap of a video room's transcript so far
+   * @param {string} roomId - The video room ID
+   * @returns {Promise} Catch-up summary
+   */
+  async catchMeUp(roomId) {
+    this.sdk.validateParams(
+      { roomId },
+      {
+        roomId: { type: 'string', required: true },
+      },
+    );
+
+    const result = await internalRequest(this.sdk, 
+      `/video/${roomId}/catch-me-up`,
+      'POST',
+      {},
+    );
+    return result;
+  }
+
+  /**
+   * Ask the room-scoped AI assistant a question, grounded in the meeting
+   * transcript so far
+   * @param {string} roomId - The video room ID
+   * @param {Object} params
+   * @param {string} params.question - The question to ask
+   * @param {Array<{role: 'user'|'assistant', content: string}>} [params.history] - Prior turns
+   * @returns {Promise} Assistant answer
+   */
+  async assistantChat(roomId, { question, history } = {}) {
+    this.sdk.validateParams(
+      { roomId, question },
+      {
+        roomId: { type: 'string', required: true },
+        question: { type: 'string', required: true },
+      },
+    );
+
+    const body = { question };
+    if (history !== undefined) {
+      body.history = history;
+    }
+
+    const result = await internalRequest(this.sdk, `/video/${roomId}/assistant`, 'POST', {
+      body,
+    });
+    return result;
+  }
+
+  /**
+   * Update the text of a transcript message
+   * @param {string} roomId - The video room ID
+   * @param {string} messageId - The transcript message ID
+   * @param {Object} update
+   * @param {string} update.text - New transcript text
+   * @returns {Promise} Updated transcript message
+   */
+  async updateTranscriptMessage(roomId, messageId, { text }) {
+    this.sdk.validateParams(
+      { roomId, messageId, text },
+      {
+        roomId: { type: 'string', required: true },
+        messageId: { type: 'string', required: true },
+        text: { type: 'string', required: true },
+      },
+    );
+
+    const params = {
+      body: { text },
+    };
+
+    const result = await internalRequest(this.sdk, 
+      `/video/${roomId}/transcript/${messageId}`,
+      'PATCH',
+      params,
+    );
+    return result;
+  }
+
+  /**
+   * Redact a transcript message
+   * @param {string} roomId - The video room ID
+   * @param {string} messageId - The transcript message ID
+   * @returns {Promise} Redaction result
+   */
+  async redactTranscriptMessage(roomId, messageId) {
+    this.sdk.validateParams(
+      { roomId, messageId },
+      {
+        roomId: { type: 'string', required: true },
+        messageId: { type: 'string', required: true },
+      },
+    );
+
+    const result = await internalRequest(this.sdk, 
+      `/video/${roomId}/transcript/${messageId}/redact`,
+      'POST',
+      {},
+    );
+    return result;
+  }
+
+  /**
+   * Rename a speaker in the transcript for a video room
+   * @param {string} roomId - The video room ID
+   * @param {Object} update
+   * @param {string} update.participantId - Participant ID whose transcript speaker name to update
+   * @param {string} update.displayName - New display name
+   * @returns {Promise} Update result
+   */
+  async renameTranscriptSpeaker(roomId, { participantId, displayName }) {
+    this.sdk.validateParams(
+      { roomId, participantId, displayName },
+      {
+        roomId: { type: 'string', required: true },
+        participantId: { type: 'string', required: true },
+        displayName: { type: 'string', required: true },
+      },
+    );
+
+    const params = {
+      body: { participantId, displayName },
+    };
+
+    const result = await internalRequest(this.sdk, 
+      `/video/${roomId}/transcript-speakers`,
+      'PATCH',
+      params,
+    );
+    return result;
+  }
+
+  /**
+   * Host-only manual retry for a stuck/failed webm->mp4 recording conversion
+   * @param {string} roomId - The video room ID
+   * @returns {Promise} { launched: true } on success
+   */
+  async retryRecordingConvert(roomId) {
+    this.sdk.validateParams(
+      { roomId },
+      {
+        roomId: { type: 'string', required: true },
+      },
+    );
+
+    const result = await internalRequest(this.sdk, 
+      `/video/${roomId}/recording-convert-retry`,
+      'POST',
+      {},
+    );
+    return result;
+  }
+
+  /**
+   * Host-triggered "generate meeting name from transcript" action. Always
+   * force-regenerates the room name.
+   * @param {string} roomId - The video room ID
+   * @returns {Promise} { ok: true, name: string } on success
+   */
+  async autoNameMeeting(roomId) {
+    this.sdk.validateParams(
+      { roomId },
+      {
+        roomId: { type: 'string', required: true },
+      },
+    );
+
+    const result = await internalRequest(this.sdk, 
+      `/video/${roomId}/auto-name`,
+      'POST',
+      {},
+    );
+    return result;
+  }
+
+  /**
+   * Host-authorized live-transcription toggle, mirrors the recording control
+   * @param {string} roomId - The video room ID
+   * @param {'start'|'stop'} action - Whether to start or stop transcription
+   * @returns {Promise} { action, ok: true } on success
+   */
+  async controlTranscription(roomId, action) {
+    this.sdk.validateParams(
+      { roomId, action },
+      {
+        roomId: { type: 'string', required: true },
+        action: { type: 'string', required: true },
+      },
+    );
+
+    const params = {
+      body: { action },
+    };
+
+    const result = await internalRequest(this.sdk, 
+      `/video/${roomId}/transcription`,
+      'POST',
+      params,
+    );
+    return result;
+  }
+
+  /**
+   * Set the caption language for the calling participant in a video room
+   * @param {string} roomId - The video room ID
+   * @param {Object} options
+   * @param {string} options.language - Language code, or 'original' for no translation
+   * @returns {Promise} { ok: true } on success
+   */
+  async setCaptionLanguage(roomId, { language }) {
+    this.sdk.validateParams(
+      { roomId, language },
+      {
+        roomId: { type: 'string', required: true },
+        language: { type: 'string', required: true },
+      },
+    );
+
+    const params = {
+      body: { language },
+    };
+
+    const result = await internalRequest(this.sdk, 
+      `/video/${roomId}/caption-language`,
+      'POST',
+      params,
+    );
+    return result;
+  }
+
+  /**
+   * Translate a video room's full transcript into a target language (account users).
+   * Batches the full transcript and caches translations server-side.
+   * @param {string} roomId - The video room ID
+   * @param {Object} options
+   * @param {string} options.targetLanguage - Target language code
+   * @returns {Promise} { items: [{messageId, text}] }
+   */
+  async translateTranscript(roomId, { targetLanguage }) {
+    this.sdk.validateParams(
+      { roomId, targetLanguage },
+      {
+        roomId: { type: 'string', required: true },
+        targetLanguage: { type: 'string', required: true },
+      },
+    );
+
+    const params = {
+      body: { targetLanguage },
+    };
+
+    const result = await internalRequest(this.sdk, 
+      `/video/${roomId}/transcript/translate`,
+      'POST',
+      params,
+    );
+    return result;
+  }
+
+  /**
+   * Submit a captured content-share keyframe for OCR/indexing
+   * @param {string} roomId - The video room ID
+   * @param {Object} options
+   * @param {string} options.image - Base64 jpeg image data (no data: prefix)
+   * @param {string} [options.title] - Optional title for the content frame
+   * @returns {Promise} { event }
+   */
+  async submitContentFrame(roomId, { image, title }) {
+    this.sdk.validateParams(
+      { roomId, image, title },
+      {
+        roomId: { type: 'string', required: true },
+        image: { type: 'string', required: true },
+        title: { type: 'string', required: false },
+      },
+    );
+
+    const params = {
+      body: { image, title },
+    };
+
+    const result = await internalRequest(this.sdk, 
+      `/video/${roomId}/content-frame`,
+      'POST',
+      params,
+    );
+    return result;
+  }
+
+  /**
+   * Get captured content-share events for a video room
+   * @param {string} roomId - The video room ID
+   * @returns {Promise} { events: [{id, participantId, displayName, timestamp, title, text, fileId}] }
+   */
+  async getContentEvents(roomId) {
+    this.sdk.validateParams(
+      { roomId },
+      {
+        roomId: { type: 'string', required: true },
+      },
+    );
+
+    const result = await internalRequest(this.sdk, 
+      `/video/${roomId}/content-events`,
+      'GET',
+    );
+    return result;
+  }
+
+  /**
+   * Get (or lazily create) the calling user's personal meeting room for this
+   * account. Every account user has exactly one; the first call provisions
+   * it server-side.
+   *
+   * NOTE: implemented flat (`getPersonalRoom`/`updatePersonalRoom`/
+   * `regeneratePersonalRoomPin`/`resolvePersonalRoom`) rather than the
+   * `sdk.video.personalRoom.{get,update,regeneratePin}` namespace named in
+   * the meet-hub plan — this file has no existing nested-namespace
+   * precedent, so flat matches every other method here.
+   *
+   * @param {string} [userId] - Optional target userId (admin viewing another user's room, e.g. Setup -> Users -> Meet). Defaults to the calling user.
+   * @returns {Promise<{personalRoom: {id: string, slug: string, url: string|null, dialInPin: string, guestsCanStart: boolean}}>}
+   */
+  async getPersonalRoom(userId = null) {
+    const params = { query: {} };
+    if (userId) {
+      this.sdk.validateParams(
+        { userId },
+        { userId: { type: 'string', required: true } },
+      );
+      params.query.userId = userId;
+    }
+    const result = await internalRequest(this.sdk, '/video/personal-room', 'GET', params);
+    return result;
+  }
+
+  /**
+   * Update the calling user's personal meeting room (slug and/or
+   * guests-can-start). Omit a field to leave it unchanged.
+   *
+   * @param {Object} [update]
+   * @param {string} [update.slug] - New slug (3-32 chars, lowercase/numbers/hyphens, not reserved). 409-equivalent BadRequestError on collision.
+   * @param {boolean} [update.guestsCanStart] - Whether guests can start the room without the host present.
+   * @param {string} [update.password] - New static room passcode.
+   * @param {string} [update.userId] - Optional target userId (admin editing another user's room). Defaults to the calling user.
+   * @returns {Promise<{personalRoom: {id: string, slug: string, url: string|null, dialInPin: string, guestsCanStart: boolean}}>}
+   */
+  async updatePersonalRoom({ slug, guestsCanStart, password, userId } = {}) {
+    const validationSchema = {};
+    if (slug !== undefined) validationSchema.slug = { type: 'string' };
+    if (guestsCanStart !== undefined)
+      validationSchema.guestsCanStart = { type: 'boolean' };
+    // Static room passcode — 4-6 digits (api-enforced); applied to every
+    // session the room link mints.
+    if (password !== undefined) validationSchema.password = { type: 'string' };
+    if (userId !== undefined) validationSchema.userId = { type: 'string' };
+
+    if (Object.keys(validationSchema).length > 0) {
+      this.sdk.validateParams(
+        { slug, guestsCanStart, password, userId },
+        validationSchema,
+      );
+    }
+
+    const body = {};
+    if (slug !== undefined) body.slug = slug;
+    if (guestsCanStart !== undefined) body.guestsCanStart = guestsCanStart;
+    if (password !== undefined) body.password = password;
+    if (userId !== undefined) body.userId = userId;
+
+    const params = { body };
+    const result = await internalRequest(this.sdk, '/video/personal-room', 'PUT', params);
+    return result;
+  }
+
+  /**
+   * Regenerate the dial-in PIN for the calling user's personal meeting room.
+   *
+   * @param {string} [userId] - Optional target userId (admin action). Defaults to the calling user.
+   * @returns {Promise<{personalRoom: {id: string, dialInPin: string}}>}
+   */
+  async regeneratePersonalRoomPin(userId = null) {
+    const body = {};
+    if (userId) {
+      this.sdk.validateParams(
+        { userId },
+        { userId: { type: 'string', required: true } },
+      );
+      body.userId = userId;
+    }
+    const result = await internalRequest(this.sdk, 
+      '/video/personal-room/regenerate-pin',
+      'POST',
+      { body },
+    );
+    return result;
+  }
+
+  /**
+   * Live availability dry-run for a personal-room slug (settings editor).
+   *
+   * @param {string} slug - Candidate slug.
+   * @param {string} [userId] - Optional target userId (admin action). Defaults to the calling user.
+   * @returns {Promise<{slug: string, available: boolean, reason?: 'invalid'|'taken'}>}
+   */
+  async checkPersonalRoomSlug(slug, userId = null) {
+    this.sdk.validateParams(
+      { slug, userId },
+      {
+        slug: { type: 'string', required: true },
+        userId: { type: 'string', required: false },
+      },
+    );
+    const query = { slug };
+    if (userId) query.userId = userId;
+    const result = await internalRequest(this.sdk, 
+      '/video/personal-room/slug-available',
+      'GET',
+      { query },
+    );
+    return result;
+  }
+
+  /**
+   * Regenerate the static web passcode for the calling user's personal
+   * meeting room (a separate secret from the dial-in PIN). Sessions minted
+   * after this use the new value.
+   *
+   * @param {string} [userId] - Optional target userId (admin action). Defaults to the calling user.
+   * @returns {Promise<{personalRoom: {id: string, password: string}}>}
+   */
+  async regeneratePersonalRoomPassword(userId = null) {
+    const body = {};
+    if (userId) {
+      this.sdk.validateParams(
+        { userId },
+        { userId: { type: 'string', required: true } },
+      );
+      body.userId = userId;
+    }
+    const result = await internalRequest(this.sdk, 
+      '/video/personal-room/regenerate-password',
+      'POST',
+      { body },
+    );
+    return result;
+  }
+
+  /**
+   * Resolve a personal-room slug to a live session (join page). Guest-capable
+   * — mints/claims a fresh meeting if none is live, or returns the already
+   * -claimed session; if the caller is an unauthenticated guest and the room
+   * doesn't allow guests to start, returns `waitingForHost: true` instead.
+   * Guests only receive `password` when they supply the room's static
+   * passcode; otherwise `passwordRequired: true` is returned and the join
+   * page should prompt.
+   *
+   * @param {string} slug - The personal room's slug.
+   * @param {{password?: string}} [options] - The room's static passcode, when known.
+   * @returns {Promise<{claimed: boolean, meetingId?: string, friendlyName?: string, password?: string, passwordRequired?: boolean, waitingForHost?: boolean}>}
+   */
+  async resolvePersonalRoom(slug, { password } = {}) {
+    this.sdk.validateParams(
+      { slug, password },
+      {
+        slug: { type: 'string', required: true },
+        password: { type: 'string', required: false },
+      },
+    );
+
+    const result = await internalRequest(this.sdk, 
+      `/video/personal-room/resolve/${slug}`,
+      'POST',
+      { body: { password } },
+    );
     return result;
   }
 }

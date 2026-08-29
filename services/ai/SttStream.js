@@ -118,6 +118,10 @@ export class SttStream extends EventEmitter {
     //   sipCallId: string,   // NEW
     //   side: string,        // NEW
     //   role: string         // NEW
+    //   videoRoomId: string,     // NEW (meet sessions only, else '')
+    //   participantId: string,   // NEW (meet sessions only, else '')
+    //   displayName: string,     // NEW (meet sessions only, else '')
+    //   messageId: string        // NEW (proto field 14)
     // }
 
     if (response.transcript) {
@@ -134,6 +138,11 @@ export class SttStream extends EventEmitter {
         sipCallId: response.sipCallId || response.sip_call_id || '',
         side: response.side || '',
         role: response.role || '',
+        // Meet (video-room) session metadata (NEW, additive, '' when not a meet session)
+        videoRoomId: response.videoRoomId || response.video_room_id || '',
+        participantId: response.participantId || response.participant_id || '',
+        displayName: response.displayName || response.display_name || '',
+        messageId: response.messageId || response.message_id || '',
       };
 
       this.emit('transcript', transcriptData);
@@ -154,6 +163,12 @@ export class SttStream extends EventEmitter {
    * @param {string} streamMetadata.role - Optional speaker role (e.g., 'customer', 'agent', 'system')
    * @param {boolean} streamMetadata.isLastChunk - If true, marks this specific stream as complete
    * @returns {boolean} - True if write successful
+   *
+   * Meet (video-room) session metadata is not per-chunk — it is sent once in the
+   * first-chunk session config, read from stream options: options.videoRoomId,
+   * options.participantId, options.displayName, options.serverVad. See constructor.
+   * @param {string[]} [options.vocabulary] - Custom vocabulary terms to bias
+   * transcription toward (sent once in the first-chunk session config).
    */
   write(audioChunk, streamMetadata = {}) {
     if (this.isClosed) {
@@ -205,6 +220,12 @@ export class SttStream extends EventEmitter {
           generate_transcript_summary: this.options.generateTranscriptSummary || false,
           generate_sentiment: this.options.generateSentiment || false,
           bridge_id: bridgeId,
+          // Meet (video-room) session metadata (NEW, additive, optional)
+          video_room_id: this.options.videoRoomId || '',
+          participant_id: this.options.participantId || '',
+          display_name: this.options.displayName || '',
+          server_vad: this.options.serverVad || false,
+          vocabulary: this.options.vocabulary || [],
         };
 
         this.grpcCall.write(request);

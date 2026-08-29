@@ -1,3 +1,4 @@
+import { internalRequest } from '../../base.js';
 export class WorkerService {
   constructor(sdk) {
     this.sdk = sdk;
@@ -41,7 +42,7 @@ export class WorkerService {
       params.body.userId = userId;
     }
 
-    const result = await this.sdk._fetch('/taskRouter/worker', 'POST', params);
+    const result = await internalRequest(this.sdk, '/taskRouter/worker', 'POST', params);
     return result;
   }
 
@@ -80,7 +81,7 @@ export class WorkerService {
       params.query = { userId };
     }
 
-    const result = await this.sdk._fetch('/taskRouter/worker', 'GET', params);
+    const result = await internalRequest(this.sdk, '/taskRouter/worker', 'GET', params);
     return result;
   }
 
@@ -131,7 +132,7 @@ export class WorkerService {
       params.body.userId = userId;
     }
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/taskRouter/worker/avaliable',
       'PUT',
       params,
@@ -186,7 +187,7 @@ export class WorkerService {
       params.body.userId = userId;
     }
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/taskRouter/worker/offline',
       'PUT',
       params,
@@ -232,7 +233,7 @@ export class WorkerService {
       params.body.userId = userId;
     }
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/taskRouter/worker/queueAutoLogin',
       'PUT',
       params,
@@ -278,7 +279,7 @@ export class WorkerService {
       params.body.userId = userId;
     }
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/taskRouter/worker/queueLogoutAll',
       'PUT',
       params,
@@ -331,7 +332,7 @@ export class WorkerService {
       params.body.userId = userId;
     }
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/taskRouter/worker/queueLogin',
       'PUT',
       params,
@@ -384,7 +385,7 @@ export class WorkerService {
       params.body.userId = userId;
     }
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/taskRouter/worker/queueLogout',
       'PUT',
       params,

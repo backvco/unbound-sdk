@@ -13,6 +13,31 @@
  * npm install mime-types
  */
 
+const requestBySdk = new WeakMap();
+const SDK_REQUEST = Symbol.for('unbound.sdk.request');
+
+/**
+ * Service-internal request. Not part of the public SDK surface.
+ * Named SDK methods call this; app code must not. Optional transports
+ * (e.g. Socket.IO) are used when available unless httpOnly/forceFetch.
+ *
+ * @param {object} sdk
+ * @param {string} endpoint
+ * @param {string} method
+ * @param {object} [params]
+ * @param {boolean} [forceFetch] Skip optional transports (HTTP only).
+ *   Use for file upload/download.
+ */
+export function internalRequest(sdk, endpoint, method, params = {}, forceFetch) {
+  const run =
+    requestBySdk.get(sdk) || sdk?.[SDK_REQUEST];
+  if (typeof run !== 'function') {
+    throw new Error('SDK request is not initialized');
+  }
+  const httpOnly = forceFetch === true || params?.httpOnly === true;
+  return run(endpoint, method, params, httpOnly);
+}
+
 export class BaseSDK {
   constructor(options = {}) {
     // Support both object and legacy positional parameters for backwards compatibility
@@ -35,6 +60,15 @@ export class BaseSDK {
     this.transports = new Map();
     this.debugMode = false;
     this._initializeEnvironment();
+    const run = (endpoint, method, params, forceFetch) =>
+      this.#request(endpoint, method, params, forceFetch);
+    requestBySdk.set(this, run);
+    Object.defineProperty(this, SDK_REQUEST, {
+      value: run,
+      enumerable: false,
+      configurable: false,
+      writable: false,
+    });
   }
 
   _initializeEnvironment() {
@@ -177,7 +211,13 @@ export class BaseSDK {
     }
   }
 
-  async _fetch(endpoint, method, params = {}, forceFetch = false) {
+  _fetch() {
+    throw new Error(
+      'sdk._fetch is private. Use a service method (sdk.chat, sdk.objects, ...).',
+    );
+  }
+
+  async #request(endpoint, method, params = {}, forceFetch = false) {
     const startTime = Date.now();
     const { body, query, headers = {}, returnRawResponse = false } = params;
 
@@ -297,6 +337,17 @@ export class BaseSDK {
       return true;
     }
 
+    // Streaming bodies (Node Readable or Web ReadableStream) — caller is
+    // expected to set an explicit content-type header alongside.
+    if (
+      typeof body === 'object' &&
+      body !== null &&
+      (typeof body.pipe === 'function' ||
+        typeof body.getReader === 'function')
+    ) {
+      return true;
+    }
+
     return false;
   }
 
@@ -353,9 +404,20 @@ export class BaseSDK {
         typeof Buffer !== 'undefined' &&
         Buffer.isBuffer &&
         Buffer.isBuffer(body);
+      const isStream =
+        body &&
+        typeof body === 'object' &&
+        (typeof body.pipe === 'function' ||
+          typeof body.getReader === 'function');
 
       if (isFormData || isBuffer) {
         options.body = body;
+      } else if (isStream) {
+        // Node 18+ native fetch (undici) requires duplex: 'half' for
+        // streaming request bodies. Without this the fetch throws
+        // synchronously before the first byte is sent.
+        options.body = body;
+        options.duplex = 'half';
       } else {
         options.body = JSON.stringify(body);
       }
@@ -388,37 +450,36 @@ export class BaseSDK {
       'application/json';
 
     if (!response.ok) {
+      // A fetch Response's `.body` is a ReadableStream, not the parsed
+      // payload — it must go through json()/text() or the API's
+      // `{ message }` envelope is lost and every error surfaces as the
+      // generic "API Error". Only NATS-transport responses carry a
+      // pre-parsed `.body`.
       let errorBody;
-      if (response?.body) {
-        errorBody = response.body;
-      } else if (response?.headers?.['content-type']) {
-        try {
-          if (
-            typeof response?.json === 'function' ||
-            typeof response?.text === 'function'
-          ) {
-            if (contentType.includes('application/json')) {
-              errorBody = await response.json();
-            } else if (contentType.includes('text/')) {
-              errorBody = await response.text();
-            }
+      try {
+        if (
+          typeof response?.json === 'function' ||
+          typeof response?.text === 'function'
+        ) {
+          if (contentType.includes('application/json')) {
+            errorBody = await response.json();
+          } else if (contentType.includes('text/')) {
+            errorBody = await response.text();
+          }
+        } else if (response?.body) {
+          if (contentType.includes('application/json')) {
+            errorBody = this._getJsonSafely(
+              response?.body,
+              response?.body || {},
+            );
           } else {
-            if (contentType.includes('application/json')) {
-              errorBody = this._getJsonSafely(
-                response?.body,
-                response?.body || {},
-              );
-            } else if (contentType.includes('text/')) {
-              errorBody = response?.body || '';
-            }
+            errorBody = response.body;
           }
-          if (!errorBody) {
-            errorBody = `HTTP ${response.status} ${response.statusText}`;
-          }
-        } catch (parseError) {
-          errorBody = `HTTP ${response.status} ${response.statusText}`;
         }
-      } else {
+      } catch (parseError) {
+        // fall through to the status-line fallback below
+      }
+      if (!errorBody) {
         errorBody = `HTTP ${response.status} ${response.statusText}`;
       }
 
@@ -433,7 +494,10 @@ export class BaseSDK {
       httpError.method = method;
       httpError.endpoint = endpoint;
       httpError.body = errorBody;
-      httpError.message = errorBody?.error || errorBody?.message || 'API Error';
+      httpError.message =
+        errorBody?.error ||
+        errorBody?.message ||
+        (typeof errorBody === 'string' ? errorBody : 'API Error');
 
       // Debug logging for successful HTTP requests
       if (this.debugMode) {

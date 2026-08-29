@@ -1,3 +1,4 @@
+import { internalRequest } from '../base.js';
 export class SubscriptionsService {
   constructor(sdk) {
     this.sdk = sdk;
@@ -24,7 +25,7 @@ export class SocketSubscriptionsService {
       },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/subscriptions/socket/connection',
       'GET',
       params,
@@ -52,7 +53,7 @@ export class SocketSubscriptionsService {
     if (subscriptionParams?.id) {
       uri = `/subscriptions/socket/${subscriptionParams.id}`;
     }
-    const result = await this.sdk._fetch(uri, 'POST', params);
+    const result = await internalRequest(this.sdk, uri, 'POST', params);
     return result;
   }
 
@@ -71,7 +72,7 @@ export class SocketSubscriptionsService {
       },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/subscriptions/socket/${id}`,
       'DELETE',
       params,

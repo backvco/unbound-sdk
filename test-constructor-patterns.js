@@ -115,6 +115,7 @@ const services = [
   'sipEndpoints',
   'externalOAuth',
   'googleCalendar',
+  'drive',
   'enroll',
   'phoneNumbers',
   'recordTypes',

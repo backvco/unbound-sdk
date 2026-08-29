@@ -1,3 +1,4 @@
+import { internalRequest } from '../base.js';
 export class KnowledgeBaseService {
   constructor(sdk) {
     this.sdk = sdk;
@@ -30,7 +31,7 @@ export class KnowledgeBaseService {
       body: { query, knowledgeBaseId, limit, filters, rerank },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/knowledgeBase/search',
       'POST',
       params,
@@ -59,7 +60,7 @@ export class KnowledgeBaseService {
       body: { url },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/knowledgeBase/discover-url',
       'POST',
       params,
@@ -92,7 +93,7 @@ export class KnowledgeBaseService {
       body: { knowledgeBaseId, url, categoryId, title, refreshInterval },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/knowledgeBase/ingest/url',
       'POST',
       params,
@@ -118,7 +119,7 @@ export class KnowledgeBaseService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/knowledgeBase/process/${sourceType}/${id}`,
       'POST',
     );
@@ -140,7 +141,7 @@ export class KnowledgeBaseService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/knowledgeBase/process/${id}/status`,
       'GET',
     );
@@ -163,7 +164,7 @@ export class KnowledgeBaseService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/knowledgeBase/articles/${id}/publish`,
       'POST',
     );
@@ -190,7 +191,7 @@ export class KnowledgeBaseService {
       query: filters,
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/knowledgeBase/${knowledgeBaseId}/analytics`,
       'GET',
       params,
@@ -219,7 +220,7 @@ export class KnowledgeBaseService {
       query: filters,
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/knowledgeBase/${knowledgeBaseId}/analytics/gaps`,
       'GET',
       params,

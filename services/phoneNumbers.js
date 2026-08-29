@@ -1,3 +1,4 @@
+import { internalRequest } from '../base.js';
 export class PhoneNumbersService {
   constructor(sdk) {
     this.sdk = sdk;
@@ -59,7 +60,7 @@ export class PhoneNumbersService {
       },
     };
 
-    const result = await this.sdk._fetch('/phoneNumbers/search', 'GET', params);
+    const result = await internalRequest(this.sdk, '/phoneNumbers/search', 'GET', params);
     return result;
   }
 
@@ -79,7 +80,7 @@ export class PhoneNumbersService {
       body: orderData,
     };
 
-    const result = await this.sdk._fetch('/phoneNumbers/order', 'POST', params);
+    const result = await internalRequest(this.sdk, '/phoneNumbers/order', 'POST', params);
     return result;
   }
 
@@ -91,7 +92,7 @@ export class PhoneNumbersService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/phoneNumbers/${phoneNumber}`,
       'DELETE',
     );
@@ -159,7 +160,7 @@ export class PhoneNumbersService {
       body: updateData,
     };
 
-    const result = await this.sdk._fetch(`/phoneNumbers/${id}`, 'PUT', params);
+    const result = await internalRequest(this.sdk, `/phoneNumbers/${id}`, 'PUT', params);
     return result;
   }
 
@@ -176,7 +177,7 @@ export class PhoneNumbersService {
       body: { cnam },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/phoneNumbers/cnam/${phoneNumber}`,
       'PUT',
       params,
@@ -192,7 +193,7 @@ export class PhoneNumbersService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/phoneNumbers/format/${number}`,
       'GET',
     );
@@ -272,7 +273,7 @@ export class PhoneNumbersService {
       },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/phoneNumbers/routing-options',
       'GET',
       params,
@@ -281,7 +282,7 @@ export class PhoneNumbersService {
   }
 
   async getSupportedCountries() {
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/phoneNumbers/supported-countries',
       'GET',
     );
@@ -323,7 +324,7 @@ export class PhoneNumbersService {
     const body = { phoneNumbers, runPortabilityCheck };
     if (portingOrderId) body.portingOrderId = portingOrderId;
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/phoneNumbers/porting/portability-check',
       'POST',
       {
@@ -394,7 +395,7 @@ export class PhoneNumbersService {
     if (portOrderType) body.portOrderType = portOrderType;
     if (tags) body.tags = tags;
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/phoneNumbers/porting/orders',
       'POST',
       {
@@ -429,7 +430,7 @@ export class PhoneNumbersService {
       query,
     };
 
-    const result = await this.sdk._fetch(url, 'GET', params);
+    const result = await internalRequest(this.sdk, url, 'GET', params);
     return result;
   }
 
@@ -470,7 +471,7 @@ export class PhoneNumbersService {
       ? `/phoneNumbers/porting/orders/${id}?${queryString}`
       : `/phoneNumbers/porting/orders/${id}`;
 
-    const result = await this.sdk._fetch(url, 'GET');
+    const result = await internalRequest(this.sdk, url, 'GET');
     return result;
   }
 
@@ -510,7 +511,7 @@ export class PhoneNumbersService {
     if (portOrderType) body.portOrderType = portOrderType;
     if (tags) body.tags = tags;
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/phoneNumbers/porting/orders/${id}`,
       'PUT',
       {
@@ -538,7 +539,7 @@ export class PhoneNumbersService {
       status: 'submit',
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/phoneNumbers/porting/orders/${id}`,
       'PUT',
       {
@@ -565,7 +566,7 @@ export class PhoneNumbersService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/phoneNumbers/porting/orders/${id}`,
       'DELETE',
     );
@@ -595,7 +596,7 @@ export class PhoneNumbersService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/phoneNumbers/porting/orders/${encodeURIComponent(
         portingOrderId,
       )}/numbers/${encodeURIComponent(phoneNumber)}`,
@@ -639,7 +640,7 @@ export class PhoneNumbersService {
 
     if (documentId) body.documentId = documentId;
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/phoneNumbers/porting/documents',
       'POST',
       {
@@ -650,35 +651,45 @@ export class PhoneNumbersService {
   }
 
   /**
-   * Generate Letter of Authorization (LOA) for a porting order
-   *
-   * Automatically generates a PDF LOA document using template data from the porting order,
-   * uploads it to storage, and attaches it to the order as an LOA document.
+   * Start e-sign for a porting LOA (`send` emails the signer, `present` returns a URL).
    *
    * @param {Object} params
-   * @param {string} params.portingOrderId - Porting order ID to generate LOA for
-   * @param {string} params.signerName - Full name of person signing the LOA
-   * @param {string} params.signerTitle - Job title of person signing the LOA
-   * @returns {Promise<Object>} Generation result with document ID and storage information
+   * @param {string} params.portingOrderId
+   * @param {string} params.signerName
+   * @param {string} params.mode - `send` or `present`
+   * @param {string} [params.signerTitle]
+   * @param {string} [params.signerEmail] - required when mode is send
+   * @returns {Promise<Object>} `{ packageId, status, signers, presentUrl?, presentExpiresAt? }`
    */
-  async generateLoa({ portingOrderId, signerName, signerTitle }) {
+  async generateLoa({
+    portingOrderId,
+    signerName,
+    signerTitle,
+    signerEmail,
+    mode,
+  }) {
     this.sdk.validateParams(
-      { portingOrderId, signerName, signerTitle },
+      { portingOrderId, signerName, mode },
       {
         portingOrderId: { type: 'string', required: true },
         signerName: { type: 'string', required: true },
-        signerTitle: { type: 'string', required: true },
+        mode: { type: 'string', required: true },
+        signerTitle: { type: 'string', required: false },
+        signerEmail: { type: 'string', required: false },
       },
     );
 
-    const result = await this.sdk._fetch(
+    const body = { signerName, mode };
+    if (signerTitle !== undefined) body.signerTitle = signerTitle;
+    if (signerEmail !== undefined) body.signerEmail = signerEmail;
+
+    const result = await internalRequest(
+      this.sdk,
       `/phoneNumbers/porting/orders/${encodeURIComponent(
         portingOrderId,
       )}/generate-loa`,
       'POST',
-      {
-        body: { signerName, signerTitle },
-      },
+      { body },
     );
     return result;
   }
@@ -700,7 +711,7 @@ export class PhoneNumbersService {
       ? `/phoneNumbers/porting/orders/${id}/events?${queryString}`
       : `/phoneNumbers/porting/orders/${id}/events`;
 
-    const result = await this.sdk._fetch(url, 'GET');
+    const result = await internalRequest(this.sdk, url, 'GET');
     return result;
   }
 
@@ -734,7 +745,7 @@ export class PhoneNumbersService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/phoneNumbers/porting/orders/${id}/foc-windows`,
       'GET',
     );
@@ -765,11 +776,39 @@ export class PhoneNumbersService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/phoneNumbers/porting/orders/${id}/sync`,
       'POST',
     );
     return result;
+  }
+
+  /**
+   * Mark a porting-order exception as resolved after the user has updated
+   * the order (documents, account number, etc.). Syncs with the carrier
+   * so local status picks up the next Telnyx state.
+   * @param {string} id - Porting order ID
+   * @param {string} exceptionId - Exception ID
+   * @param {Object} [options]
+   * @param {string} [options.resolution]
+   * @returns {Promise<Object>} Updated exception
+   */
+  async resolvePortingException(id, exceptionId, { resolution } = {}) {
+    this.sdk.validateParams(
+      { id, exceptionId },
+      {
+        id: { type: 'string', required: true },
+        exceptionId: { type: 'string', required: true },
+      },
+    );
+    const body = {};
+    if (resolution) body.resolution = resolution;
+    return internalRequest(
+      this.sdk,
+      `/phoneNumbers/porting/orders/${id}/exceptions/${exceptionId}/resolve`,
+      'POST',
+      { body },
+    );
   }
 
   /**
@@ -806,7 +845,7 @@ export class PhoneNumbersService {
       queryString ? '?' + queryString : ''
     }`;
 
-    const result = await this.sdk._fetch(url, 'GET');
+    const result = await internalRequest(this.sdk, url, 'GET');
     return result;
   }
 
@@ -840,7 +879,7 @@ export class PhoneNumbersService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/phoneNumbers/porting/orders/${id}/comments`,
       'POST',
       {
@@ -889,7 +928,7 @@ export class PhoneNumbersService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/phoneNumbers/porting/auto-create-orders',
       'POST',
       {
@@ -919,7 +958,7 @@ export class PhoneNumberCarrierService {
       query: { updateVoiceConnection, updateMessagingConnection },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/phoneNumbers/carrier/syncPhoneNumbers/${carrier}`,
       'POST',
       params,
@@ -935,7 +974,7 @@ export class PhoneNumberCarrierService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/phoneNumbers/carrier/${phoneNumber}`,
       'GET',
     );
@@ -950,7 +989,7 @@ export class PhoneNumberCarrierService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/phoneNumbers/carrier/${phoneNumber}`,
       'DELETE',
     );

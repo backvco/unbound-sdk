@@ -4,16 +4,21 @@ import { VideoService } from '../services/video.js';
 
 /**
  * Build a minimal SDK double that the VideoService can call into. Captures
- * _fetch calls for inspection.
+ * request calls for inspection.
  */
 function buildFakeSdk() {
 	const calls = [];
 	const fakeSdk = {
-		_fetch: async (endpoint, method, params, forceFetch) => {
-			calls.push({ endpoint, method, params, forceFetch });
-			return { ok: true };
-		},
 		validateParams: () => {}, // accept anything
+	};
+	fakeSdk[Symbol.for('unbound.sdk.request')] = async (
+		endpoint,
+		method,
+		params,
+		forceFetch,
+	) => {
+		calls.push({ endpoint, method, params, forceFetch });
+		return { ok: true };
 	};
 	return { fakeSdk, calls };
 }
@@ -89,5 +94,78 @@ describe('VideoService.validateGuestToken', () => {
 		await svc.validateGuestToken('r1');
 
 		assert.equal(calls[0].params.body.token, undefined);
+	});
+});
+
+describe('VideoService personal room methods', () => {
+	test('getPersonalRoom GETs /video/personal-room with no params', async () => {
+		const { fakeSdk, calls } = buildFakeSdk();
+		const svc = new VideoService(fakeSdk);
+
+		await svc.getPersonalRoom();
+
+		assert.equal(calls.length, 1);
+		assert.equal(calls[0].endpoint, '/video/personal-room');
+		assert.equal(calls[0].method, 'GET');
+	});
+
+	test('updatePersonalRoom PUTs only the provided fields', async () => {
+		const { fakeSdk, calls } = buildFakeSdk();
+		const svc = new VideoService(fakeSdk);
+
+		await svc.updatePersonalRoom({ slug: 'my-room' });
+
+		assert.equal(calls[0].endpoint, '/video/personal-room');
+		assert.equal(calls[0].method, 'PUT');
+		assert.deepEqual(calls[0].params, { body: { slug: 'my-room' } });
+	});
+
+	test('updatePersonalRoom PUTs guestsCanStart alone', async () => {
+		const { fakeSdk, calls } = buildFakeSdk();
+		const svc = new VideoService(fakeSdk);
+
+		await svc.updatePersonalRoom({ guestsCanStart: false });
+
+		assert.deepEqual(calls[0].params, { body: { guestsCanStart: false } });
+	});
+
+	test('updatePersonalRoom with no args sends an empty body', async () => {
+		const { fakeSdk, calls } = buildFakeSdk();
+		const svc = new VideoService(fakeSdk);
+
+		await svc.updatePersonalRoom();
+
+		assert.deepEqual(calls[0].params, { body: {} });
+	});
+
+	test('checkPersonalRoomSlug GETs /video/personal-room/slug-available with query.slug', async () => {
+		const { fakeSdk, calls } = buildFakeSdk();
+		const svc = new VideoService(fakeSdk);
+
+		await svc.checkPersonalRoomSlug('my-room');
+
+		assert.equal(calls[0].endpoint, '/video/personal-room/slug-available');
+		assert.equal(calls[0].method, 'GET');
+		assert.deepEqual(calls[0].params, { query: { slug: 'my-room' } });
+	});
+
+	test('regeneratePersonalRoomPin POSTs /video/personal-room/regenerate-pin', async () => {
+		const { fakeSdk, calls } = buildFakeSdk();
+		const svc = new VideoService(fakeSdk);
+
+		await svc.regeneratePersonalRoomPin();
+
+		assert.equal(calls[0].endpoint, '/video/personal-room/regenerate-pin');
+		assert.equal(calls[0].method, 'POST');
+	});
+
+	test('resolvePersonalRoom POSTs /video/personal-room/resolve/:slug', async () => {
+		const { fakeSdk, calls } = buildFakeSdk();
+		const svc = new VideoService(fakeSdk);
+
+		await svc.resolvePersonalRoom('my-room');
+
+		assert.equal(calls[0].endpoint, '/video/personal-room/resolve/my-room');
+		assert.equal(calls[0].method, 'POST');
 	});
 });

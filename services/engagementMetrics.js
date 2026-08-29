@@ -1,3 +1,4 @@
+import { internalRequest } from '../base.js';
 export class EngagementMetricsService {
   constructor(sdk) {
     this.sdk = sdk;
@@ -57,7 +58,7 @@ export class EngagementMetricsService {
       },
     };
 
-    const result = await this.sdk._fetch('/engagementMetrics/', 'GET', params);
+    const result = await internalRequest(this.sdk, '/engagementMetrics/', 'GET', params);
     return result;
   }
 

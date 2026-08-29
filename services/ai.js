@@ -1,4 +1,12 @@
+import { internalRequest } from '../base.js';
 import { PlaybooksService } from './ai/playbooks.js';
+import { VocabularyService } from './ai/vocabulary.js';
+import { EmailService } from './ai/email.js';
+import { translate as translateItems } from './ai/translate.js';
+import {
+  getSettings as getAiSettings,
+  updateSettings as updateAiSettings,
+} from './ai/settings.js';
 
 export class AIService {
   constructor(sdk) {
@@ -8,6 +16,34 @@ export class AIService {
     this.stt = new SpeechToTextService(sdk);
     this.extract = new ExtractService(sdk);
     this.playbooks = new PlaybooksService(sdk);
+    this.vocabulary = new VocabularyService(sdk);
+    this.email = new EmailService(sdk);
+  }
+
+  /**
+   * Translate a batch of text items
+   * @param {Object} params - { items, targetLanguage, sourceLanguage?, domain?, context? }
+   * @returns {Promise<Object>} { items: [{id, text}] }
+   */
+  async translate(params) {
+    return translateItems(this.sdk, params);
+  }
+
+  /**
+   * Get account AI settings
+   * @returns {Promise<Object>} { settings: { shareOcrEnabled } }
+   */
+  async getSettings() {
+    return getAiSettings(this.sdk);
+  }
+
+  /**
+   * Update account AI settings
+   * @param {Object} options - { shareOcrEnabled }
+   * @returns {Promise<Object>} { settings }
+   */
+  async updateSettings(options) {
+    return updateAiSettings(this.sdk, options);
   }
 }
 
@@ -142,7 +178,7 @@ export class GenerativeService {
         ),
     );
     const forceFetch = stream === true || hasLargeContent;
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/ai/generative/chat',
       'POST',
       params,
@@ -216,7 +252,7 @@ export class GenerativeService {
       },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/ai/generative/chat/clone',
       'POST',
       params,
@@ -225,11 +261,32 @@ export class GenerativeService {
   }
 
   /**
+   * Summarize chat/transcript content (running summary, chapters, title)
+   * @param {Object} payload
+   * @param {string} [payload.domain] - Summary domain (e.g. 'meeting')
+   * @param {string} [payload.mode] - Summary mode
+   * @param {Array} [payload.lines] - Transcript/chat lines to summarize
+   * @param {Array} [payload.chatMessages] - Chat messages to summarize
+   * @param {string} [payload.runningSummary] - Existing running summary to extend
+   * @param {boolean} [payload.includeChapters] - Include chapter breakdown
+   * @param {boolean} [payload.includeTitle] - Include a generated title
+   * @returns {Promise<Object>} Summary result
+   */
+  async summarize(payload = {}) {
+    const params = {
+      body: payload,
+    };
+
+    const result = await internalRequest(this.sdk, '/ai/summarize', 'POST', params);
+    return result;
+  }
+
+  /**
    * List available chat tools and their metadata
    * @returns {Promise<Object>} { tools: Array<{ name, label, description, configRequirements }>, count: number }
    */
   async listTools() {
-    return await this.sdk._fetch('/ai/generative/tools', 'GET');
+    return await internalRequest(this.sdk, '/ai/generative/tools', 'GET');
   }
 
   /**
@@ -253,7 +310,7 @@ export class GenerativeService {
     );
 
     const params = { query: { relatedId, scope, limit, offset } };
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/ai/generative/sessions',
       'GET',
       params,
@@ -273,7 +330,7 @@ export class GenerativeService {
       { sessionId: { type: 'string', required: true } },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/ai/generative/sessions/${sessionId}`,
       'GET',
     );
@@ -298,7 +355,7 @@ export class GenerativeService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/ai/generative/sessions/${sessionId}`,
       'PUT',
       { body: { name, scope } },
@@ -318,7 +375,7 @@ export class GenerativeService {
       { sessionId: { type: 'string', required: true } },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/ai/generative/sessions/${sessionId}`,
       'DELETE',
     );
@@ -365,7 +422,7 @@ export class GenerativeService {
       },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/ai/generative/playbook',
       'POST',
       params,
@@ -414,7 +471,7 @@ export class GenerativeService {
 
   //   // Force HTTP transport when streaming is enabled since NATS doesn't support streaming responses
   //   const forceFetch = stream === true;
-  //   const result = await this.sdk._fetch(
+  //   const result = await internalRequest(this.sdk, 
   //     '/ai/generative/ollama',
   //     'POST',
   //     params,
@@ -483,7 +540,7 @@ export class TextToSpeechService {
       body: ttsData,
     };
 
-    const result = await this.sdk._fetch('/ai/tts', 'POST', params);
+    const result = await internalRequest(this.sdk, '/ai/tts', 'POST', params);
     return result;
   }
 
@@ -492,7 +549,7 @@ export class TextToSpeechService {
    * @returns {Promise<Object>} { voices: Array, count: number, supportedEncodings: Array, supportedLanguages: Array }
    */
   async list() {
-    const result = await this.sdk._fetch('/ai/tts', 'GET');
+    const result = await internalRequest(this.sdk, '/ai/tts', 'GET');
     return result;
   }
 }
@@ -584,8 +641,34 @@ export class SpeechToTextService {
       },
     };
 
-    const result = await this.sdk._fetch('/ai/stt', 'POST', params);
+    const result = await internalRequest(this.sdk, '/ai/stt', 'POST', params);
     return result;
+  }
+
+  /**
+   * Synchronously transcribe a stored audio file (batch STT).
+   * Counterpart to stream(): give it a storage file id, get the transcript
+   * back in the response (typically ~1-3s for voicemail-length audio).
+   *
+   * @param {Object} options
+   * @param {string} options.storageId - Storage file id of the audio (WAV by default).
+   * @param {string} [options.language] - Language hint (default 'en').
+   * @param {string} [options.encoding] - Audio encoding (default 'WAV').
+   * @returns {Promise<{transcription: string|null, language: string|null, duration: number|null}>}
+   */
+  async file({ storageId, language, encoding } = {}) {
+    this.sdk.validateParams(
+      { storageId, language, encoding },
+      {
+        storageId: { type: 'string', required: true },
+        language: { type: 'string', required: false },
+        encoding: { type: 'string', required: false },
+      },
+    );
+    const body = { storageId };
+    if (language !== undefined) body.language = language;
+    if (encoding !== undefined) body.encoding = encoding;
+    return await internalRequest(this.sdk, '/ai/stt/file', 'POST', { body });
   }
 
   /**
@@ -611,6 +694,11 @@ export class SpeechToTextService {
    * @param {string} [options.playbookId] - Playbook ID
    * @param {string} [options.name] - Session name
    * @param {Object} [options.metadata] - Additional metadata
+   * @param {string} [options.videoRoomId] - Video (Meet) room ID this stream belongs to
+   * @param {string} [options.videoParticipantId] - Video (Meet) room participant ID
+   * @param {string} [options.displayName] - Participant display name (Meet sessions)
+   * @param {string} [options.role] - Speaker role (e.g. 'participant', 'host')
+   * @param {boolean} [options.serverVad] - Opt-in server-side VAD (Meet sessions; defaults false)
    * @returns {Promise<SttStream>} Stream object with write() method and transcript events
    *
    * @example
@@ -658,6 +746,11 @@ export class SpeechToTextService {
       metadata,
       sipCallId,
       cdrId,
+      videoRoomId,
+      videoParticipantId,
+      displayName,
+      role,
+      serverVad,
     } = options;
 
     // Validate parameters
@@ -689,6 +782,11 @@ export class SpeechToTextService {
         metadata,
         sipCallId,
         cdrId,
+        videoRoomId,
+        videoParticipantId,
+        displayName,
+        role,
+        serverVad,
       },
       {
         engine: { type: 'string', required: false },
@@ -717,6 +815,11 @@ export class SpeechToTextService {
         metadata: { type: 'object', required: false },
         sipCallId: { type: 'string', required: false },
         cdrId: { type: 'string', required: false },
+        videoRoomId: { type: 'string', required: false },
+        videoParticipantId: { type: 'string', required: false },
+        displayName: { type: 'string', required: false },
+        role: { type: 'string', required: false },
+        serverVad: { type: 'boolean', required: false },
       },
     );
 
@@ -736,6 +839,10 @@ export class SpeechToTextService {
         sipCallId,
         cdrId,
         name,
+        videoRoomId,
+        videoParticipantId,
+        displayName,
+        role,
         metadata: {
           ...metadata,
           languageCode,
@@ -754,7 +861,7 @@ export class SpeechToTextService {
       },
     };
 
-    const session = await this.sdk._fetch(
+    const session = await internalRequest(this.sdk, 
       '/ai/stt/stream',
       'POST',
       sessionParams,
@@ -773,6 +880,12 @@ export class SpeechToTextService {
       vadEnabled,
       minSilenceDuration,
       speechPadMs,
+      // SttStream reads these as videoRoomId/participantId/displayName/serverVad
+      // for the gRPC first-chunk session config.
+      videoRoomId,
+      participantId: videoParticipantId,
+      displayName,
+      serverVad,
     };
 
     return new SttStream(this.sdk, session, streamOptions);
@@ -798,7 +911,7 @@ export class SpeechToTextService {
       query: { includeMessages: includeMessages.toString() },
     };
 
-    const result = await this.sdk._fetch(`/ai/stt/${id}`, 'GET', params);
+    const result = await internalRequest(this.sdk, `/ai/stt/${id}`, 'GET', params);
     return result;
   }
 
@@ -835,7 +948,7 @@ export class SpeechToTextService {
       query: filters,
     };
 
-    const result = await this.sdk._fetch('/ai/stt', 'GET', params);
+    const result = await internalRequest(this.sdk, '/ai/stt', 'GET', params);
     return result;
   }
 
@@ -883,6 +996,8 @@ export class SpeechToTextService {
       side,
       bridgeId,
       sentiment,
+      videoRoomId,
+      videoParticipantId,
     },
   ) {
     this.sdk.validateParams(
@@ -902,6 +1017,8 @@ export class SpeechToTextService {
         side: { type: 'string', required: false },
         bridgeId: { type: 'string', required: false },
         sentiment: { type: 'object', required: false },
+        videoRoomId: { type: 'string', required: false },
+        videoParticipantId: { type: 'string', required: false },
       },
     );
 
@@ -920,10 +1037,12 @@ export class SpeechToTextService {
         side,
         bridgeId,
         sentiment,
+        videoRoomId,
+        videoParticipantId,
       },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/ai/stt/stream/${sessionId}/messages`,
       'POST',
       params,
@@ -953,7 +1072,7 @@ export class SpeechToTextService {
       body: { status, error },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/ai/stt/stream/${sessionId}/complete`,
       'PUT',
       params,
@@ -1165,7 +1284,7 @@ export class ExtractService {
       },
     };
 
-    const result = await this.sdk._fetch('/ai/extract', 'POST', requestParams);
+    const result = await internalRequest(this.sdk, '/ai/extract', 'POST', requestParams);
     return result;
   }
 }

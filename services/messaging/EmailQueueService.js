@@ -1,3 +1,4 @@
+import { internalRequest } from '../../base.js';
 export class EmailQueueService {
   constructor(sdk) {
     this.sdk = sdk;
@@ -30,7 +31,7 @@ export class EmailQueueService {
     if (limit !== undefined) options.query.limit = limit;
     if (status) options.query.status = status;
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/messaging/email/queue',
       'GET',
       options,

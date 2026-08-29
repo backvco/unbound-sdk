@@ -1,3 +1,4 @@
+import { internalRequest } from '../base.js';
 export class WorkflowsService {
   constructor(sdk) {
     this.sdk = sdk;
@@ -18,7 +19,7 @@ export class WorkflowsService {
       query: { type },
     };
 
-    const result = await this.sdk._fetch('/workflows/settings', 'GET', params);
+    const result = await internalRequest(this.sdk, '/workflows/settings', 'GET', params);
     return result;
   }
 
@@ -27,12 +28,12 @@ export class WorkflowsService {
       query: {},
     };
 
-    const result = await this.sdk._fetch('/workflows/modules', 'GET', params);
+    const result = await internalRequest(this.sdk, '/workflows/modules', 'GET', params);
     return result;
   }
 
   async listFormulaFunctions() {
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/workflows/formula-functions',
       'GET',
     );
@@ -40,7 +41,7 @@ export class WorkflowsService {
   }
 
   async getAvailableHolidaySets() {
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/workflows/holiday-sets',
       'GET',
     );
@@ -59,7 +60,7 @@ export class WorkflowsService {
       body: { webhookSettings },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/workflows/webhook/simulate',
       'POST',
       params,
@@ -79,7 +80,7 @@ export class WorkflowsService {
       body: { lookupSettings },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/workflows/lookup/simulate',
       'POST',
       params,
@@ -99,7 +100,7 @@ export class WorkflowsService {
       body: { timeControlSettings, testDateTime },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/workflows/timeControl/simulate',
       'POST',
       params,
@@ -129,7 +130,7 @@ export class WorkflowItemsService {
       },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/object/workflowItems',
       'DELETE',
       params,
@@ -152,7 +153,7 @@ export class WorkflowItemsService {
       },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/object/workflowItems',
       'GET',
       params,
@@ -205,7 +206,7 @@ export class WorkflowItemsService {
       },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/object/workflowItems',
       'POST',
       params,
@@ -275,7 +276,7 @@ export class WorkflowItemsService {
       },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/object/workflowItems',
       'PUT',
       params,
@@ -321,7 +322,7 @@ export class WorkflowConnectionsService {
       },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/object/workflowItemConnections',
       'DELETE',
       params,
@@ -359,7 +360,7 @@ export class WorkflowConnectionsService {
       },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/object/workflowItemConnections',
       'POST',
       params,
@@ -386,7 +387,7 @@ export class WorkflowSessionsService {
       body: sessionData,
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/workflows/session/${workflowVersionId}`,
       'POST',
       params,
@@ -402,7 +403,7 @@ export class WorkflowSessionsService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/workflows/sessions/${sessionId}`,
       'GET',
     );
@@ -422,7 +423,7 @@ export class WorkflowSessionsService {
       body: updateData,
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/workflows/session/${sessionId}`,
       'PUT',
       params,
@@ -440,7 +441,7 @@ export class WorkflowSessionsService {
 
     const params = {};
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/workflows/session/${sessionId}/complete`,
       'PUT',
       params,
@@ -456,7 +457,7 @@ export class WorkflowSessionsService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/workflows/sessions/${sessionId}`,
       'DELETE',
     );
@@ -475,7 +476,7 @@ export class WorkflowSessionsService {
       body: transcriptData,
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/workflows/session/${sessionId}/transcript`,
       'POST',
       params,
@@ -491,7 +492,7 @@ export class WorkflowSessionsService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/workflows/session/${sessionId}/replay`,
       'GET',
     );
@@ -512,7 +513,7 @@ export class WorkflowSessionsService {
       query: { startDate, endDate },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/workflows/${workflowVersionId}/analytics`,
       'GET',
       params,

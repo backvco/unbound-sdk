@@ -1,6 +1,6 @@
 {
   "name": "@unboundcx/sdk",
-  "version": "4.0.7",
+  "version": "4.13.18",
   "description": "Official JavaScript SDK for the Unbound API - A comprehensive toolkit for integrating with Unbound's communication, AI, and data management services",
   "main": "index.js",
   "type": "module",
@@ -42,6 +42,8 @@
     "transports/**/*.js",
     "types/**/*.d.ts",
     "proto/**/*.proto",
+    "schemas/**/*.js",
+    "schemas/**/*.md",
     "README.md",
     "LICENSE"
   ],
@@ -50,24 +52,33 @@
       "import": "./index.js",
       "require": "./index.cjs"
     },
-    "./base": {
-      "import": "./base.js"
-    },
     "./services/*": {
       "import": "./services/*.js"
+    },
+    "./schemas/layouts": {
+      "import": "./schemas/layouts/index.js"
+    },
+    "./schemas/workflows": {
+      "import": "./schemas/workflows/index.js"
+    },
+    "./schemas/*": {
+      "import": "./schemas/*.js"
     }
   },
   "scripts": {
     "build": "echo 'Build complete - ESM modules ready'",
     "test": "node --test 'test/*.test.js'",
     "lint": "echo 'Linting would run here'",
+    "docs:layouts": "node scripts/generate-layout-schema-docs.js",
     "prepublishOnly": "npm run build"
   },
-  "dependencies": {},
+  "dependencies": {
+    "zod": "^3.23.8"
+  },
   "optionalDependencies": {
-    "mime-types": "^2.1.35",
     "@grpc/grpc-js": "^1.14.1",
-    "@grpc/proto-loader": "^0.7.15"
+    "@grpc/proto-loader": "^0.7.15",
+    "mime-types": "^2.1.35"
   },
   "peerDependencies": {
     "socket.io-client": "^4.0.0"
@@ -77,7 +88,9 @@
       "optional": true
     }
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "zod-to-json-schema": "^3.23.0"
+  },
   "browserslist": [
     "defaults",
     "not IE 11",

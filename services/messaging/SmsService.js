@@ -1,5 +1,6 @@
 import { SmsTemplatesService } from './SmsTemplatesService.js';
 
+import { internalRequest } from '../../base.js';
 export class SmsService {
   constructor(sdk) {
     this.sdk = sdk;
@@ -52,7 +53,7 @@ export class SmsService {
       body: { to, ...messageData },
     };
 
-    const result = await this.sdk._fetch('/messaging/sms', 'POST', options);
+    const result = await internalRequest(this.sdk, '/messaging/sms', 'POST', options);
     return result;
   }
 
@@ -69,7 +70,7 @@ export class SmsService {
       },
     );
 
-    const result = await this.sdk._fetch(`/messaging/sms/${id}`, 'GET');
+    const result = await internalRequest(this.sdk, `/messaging/sms/${id}`, 'GET');
     return result;
   }
 }

@@ -1,3 +1,4 @@
+import { internalRequest } from '../base.js';
 export class VoiceService {
   constructor(sdk) {
     this.sdk = sdk;
@@ -18,13 +19,59 @@ export class VoiceService {
       body: { callId, cdrId, action, direction },
     };
 
-    const result = await this.sdk._fetch(`/voice/record/`, 'POST', params);
+    const result = await internalRequest(this.sdk, `/voice/record/`, 'POST', params);
     return result;
   }
 
-  async call({ to, from, destination, app, timeout, customHeaders }) {
+  async transcription({
+    cdrId,
+    callId,
+    action = 'start',
+    direction = 'sendrecv',
+  }) {
     this.sdk.validateParams(
-      { to, from, destination, app, timeout, customHeaders },
+      { callId, cdrId, action, direction },
+      {
+        cdrId: { type: 'string', required: false },
+        callId: { type: 'string', required: false },
+        action: { type: 'string', required: false },
+        direction: { type: 'string', required: false },
+      },
+    );
+
+    const params = {
+      body: { callId, cdrId, action, direction },
+    };
+
+    const result = await internalRequest(this.sdk, 
+      `/voice/transcription/`,
+      'POST',
+      params,
+    );
+    return result;
+  }
+
+  async call({
+    to,
+    from,
+    destination,
+    app,
+    timeout,
+    customHeaders,
+    statusWebhook,
+    parentCallId,
+  }) {
+    this.sdk.validateParams(
+      {
+        to,
+        from,
+        destination,
+        app,
+        timeout,
+        customHeaders,
+        statusWebhook,
+        parentCallId,
+      },
       {
         to: { type: 'string', required: true },
         from: { type: 'string', required: true },
@@ -32,6 +79,15 @@ export class VoiceService {
         app: { type: 'object', required: false },
         timeout: { type: 'number', required: false },
         customHeaders: { type: 'object', required: false },
+        // { url, static } — internal endpoint that receives call progress
+        // events (trying/ringing/answered/failed) with `static` fields
+        // merged into each POST body
+        statusWebhook: { type: 'object', required: false },
+        // SIP call id of an in-progress call this outbound leg is placed on
+        // behalf of (e.g. task-router ringing an agent for a queued caller).
+        // Links the leg as a child so sip-processor cascade-cancels it if
+        // that caller hangs up while it's still ringing.
+        parentCallId: { type: 'string', required: false },
       },
     );
 
@@ -43,10 +99,12 @@ export class VoiceService {
         app,
         timeout,
         customHeaders,
+        statusWebhook,
+        parentCallId,
       },
     };
 
-    const result = await this.sdk._fetch('/voice/', 'POST', params);
+    const result = await internalRequest(this.sdk, '/voice/', 'POST', params);
     return result;
   }
 
@@ -110,7 +168,7 @@ export class VoiceService {
       },
     };
 
-    const result = await this.sdk._fetch('/voice/replace', 'PUT', params);
+    const result = await internalRequest(this.sdk, '/voice/replace', 'PUT', params);
     return result;
   }
 
@@ -142,7 +200,33 @@ export class VoiceService {
       },
     };
 
-    const result = await this.sdk._fetch(`/voice/hangup`, 'PUT', params);
+    const result = await internalRequest(this.sdk, `/voice/hangup`, 'PUT', params);
+    return result;
+  }
+
+  /**
+   * Get the discrete event timeline for a call
+   * Returns the ordered sequence of discrete CDR events (ringing, answered,
+   * hold, transfer, queue/assignment transitions, recording, dtmf, etc.)
+   * recorded for a call, ordered oldest-first.
+   *
+   * @param {string} cdrId - The CDR id to fetch events for (required)
+   * @returns {Promise<Object>} result
+   * @returns {Array<Object>} result.events - Ordered list of `{ eventType, ts, actorType, actorId, data }`
+   *
+   * @example
+   * const { events } = await sdk.voice.getCdrEvents(cdrId);
+   * events.forEach((e) => console.log(e.eventType, e.ts));
+   */
+  async getCdrEvents(cdrId) {
+    this.sdk.validateParams(
+      { cdrId },
+      {
+        cdrId: { type: 'string', required: true },
+      },
+    );
+
+    const result = await internalRequest(this.sdk, `/voice/cdr/${cdrId}/events`, 'GET');
     return result;
   }
 
@@ -160,7 +244,7 @@ export class VoiceService {
       body: { channels },
     };
 
-    const result = await this.sdk._fetch('/voice/calls/hold', 'PUT', params);
+    const result = await internalRequest(this.sdk, '/voice/calls/hold', 'PUT', params);
     return result;
   }
 
@@ -178,7 +262,7 @@ export class VoiceService {
       body: { action, direction },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/voice/calls/mute/${voiceChannelId}`,
       'PUT',
       params,
@@ -190,24 +274,32 @@ export class VoiceService {
     return this.mute(voiceChannelId, 'unmute', direction);
   }
 
-  async sendDtmf(voiceChannelId, dtmf) {
+  /**
+   * Send DTMF digits on a live call (SIP call ID).
+   * mode:   'auto' (default — RFC4733 RTP if negotiated, else in-band tones)
+   *         | 'rtp' | 'inband' | 'info' (SIP INFO application/dtmf-relay).
+   * target: 'leg' (default) — transmit on callId's media toward its far end
+   *         (e.g. a bot sending digits on the PSTN leg it dialed);
+   *         'peer' — as if the party on callId pressed the keys: the bridge
+   *         relays to the other side (a user's keypad on their own leg).
+   */
+  async sendDtmf({ callId, dtmf, mode, target }) {
     this.sdk.validateParams(
-      { voiceChannelId, dtmf },
+      { callId, dtmf, mode, target },
       {
-        voiceChannelId: { type: 'string', required: true },
+        callId: { type: 'string', required: true },
         dtmf: { type: 'string', required: true },
+        mode: { type: 'string', required: false },
+        target: { type: 'string', required: false },
       },
     );
 
-    const params = {
-      body: { dtmf },
-    };
+    const body = { callId, dtmf };
+    if (mode) body.mode = mode;
+    if (target) body.target = target;
+    const params = { body };
 
-    const result = await this.sdk._fetch(
-      `/voice/calls/dtmf/${voiceChannelId}`,
-      'POST',
-      params,
-    );
+    const result = await internalRequest(this.sdk, `/voice/dtmf`, 'POST', params);
     return result;
   }
 
@@ -249,7 +341,7 @@ export class VoiceService {
       body: bodyData,
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/voice/calls/transcribe/${voiceChannelId}`,
       'POST',
       params,
@@ -292,7 +384,7 @@ export class VoiceService {
       body: bodyData,
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/voice/calls/transfer',
       'POST',
       params,
@@ -312,7 +404,7 @@ export class VoiceService {
       body: { channels },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/voice/calls/conference',
       'POST',
       params,

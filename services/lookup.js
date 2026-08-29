@@ -1,3 +1,4 @@
+import { internalRequest } from '../base.js';
 export class LookupService {
   constructor(sdk) {
     this.sdk = sdk;
@@ -15,7 +16,7 @@ export class LookupService {
       query: { phoneNumber },
     };
 
-    const result = await this.sdk._fetch('/lookup/cnam', 'GET', params);
+    const result = await internalRequest(this.sdk, '/lookup/cnam', 'GET', params);
     return result;
   }
 
@@ -32,7 +33,7 @@ export class LookupService {
       query: { phoneNumber, cnam },
     };
 
-    const result = await this.sdk._fetch('/lookup/lrn', 'GET', params);
+    const result = await internalRequest(this.sdk, '/lookup/lrn', 'GET', params);
     return result;
   }
 
@@ -48,7 +49,7 @@ export class LookupService {
       query: { phoneNumber },
     };
 
-    const result = await this.sdk._fetch('/lookup/number', 'GET', params);
+    const result = await internalRequest(this.sdk, '/lookup/number', 'GET', params);
     return result;
   }
 }

@@ -1,3 +1,4 @@
+import { internalRequest } from '../base.js';
 export class StorageService {
   constructor(sdk) {
     this.sdk = sdk;
@@ -85,6 +86,69 @@ export class StorageService {
       log: 'text/plain',
     };
     return commonTypes[ext] || 'application/octet-stream';
+  }
+
+  // Private helper to detect if a value is a Node Readable or Web ReadableStream
+  _isStreamLike(value) {
+    if (!value || typeof value !== 'object') return false;
+    if (typeof value.pipe === 'function') return true; // Node Readable
+    if (typeof value.getReader === 'function') return true; // Web ReadableStream
+    if (typeof value[Symbol.asyncIterator] === 'function') return true;
+    return false;
+  }
+
+  // Private helper to create a streaming multipart body for Node.js.
+  // Returns { body: ReadableStream, headers } for fetch() with duplex: 'half'.
+  // Byte-identical framing to _createNodeFormData — emitted in chunks so the full
+  // file never has to sit in memory.
+  _createNodeFormDataStream(fileStream, fileName, formFields) {
+    const boundary = `----formdata-${Date.now()}-${Math.random()
+      .toString(36)
+      .slice(2)}`;
+    const CRLF = '\r\n';
+    const contentType = this._getContentType(fileName);
+
+    const header =
+      `--${boundary}${CRLF}` +
+      `Content-Disposition: form-data; name="files"; filename="${
+        fileName || 'file'
+      }"${CRLF}` +
+      `Content-Type: ${contentType}${CRLF}${CRLF}`;
+
+    let tail = '';
+    for (const [name, value] of formFields) {
+      tail += `${CRLF}--${boundary}${CRLF}Content-Disposition: form-data; name="${name}"${CRLF}${CRLF}${value}`;
+    }
+    tail += `${CRLF}--${boundary}--${CRLF}`;
+
+    const body = new ReadableStream({
+      async start(controller) {
+        try {
+          controller.enqueue(Buffer.from(header, 'utf8'));
+          for await (const chunk of fileStream) {
+            controller.enqueue(
+              Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk),
+            );
+          }
+          controller.enqueue(Buffer.from(tail, 'utf8'));
+          controller.close();
+        } catch (err) {
+          controller.error(err);
+        }
+      },
+      cancel(reason) {
+        if (fileStream && typeof fileStream.destroy === 'function') {
+          fileStream.destroy(reason);
+        }
+      },
+    });
+
+    return {
+      body,
+      headers: {
+        'content-type': `multipart/form-data; boundary=${boundary}`,
+      },
+    };
   }
 
   // Private helper to create FormData for Node.js environment
@@ -234,7 +298,13 @@ export class StorageService {
     // Default behavior: Use fetch via sdk._fetch
     let formData, headers;
 
-    if (isNode) {
+    if (isNode && this._isStreamLike(file)) {
+      // Streaming path — file is piped chunk-by-chunk, no full-buffer copy.
+      // Caller is responsible for creating a fresh stream per retry.
+      const result = this._createNodeFormDataStream(file, fileName, formFields);
+      formData = result.body;
+      headers = result.headers;
+    } else if (isNode) {
       const result = this._createNodeFormData(file, fileName, formFields);
       formData = result.formData;
       headers = result.headers;
@@ -258,7 +328,7 @@ export class StorageService {
       headers,
     };
 
-    return await this.sdk._fetch(endpoint, method, params, true);
+    return await internalRequest(this.sdk, endpoint, method, params, true);
   }
 
   // Upload with progress tracking using XMLHttpRequest
@@ -381,7 +451,7 @@ Response:
   /**
    * Upload a file to storage with optional format conversion
    * @param {Object} config - Configuration object
-   * @param {Object} config.file - File content (Buffer or File) - REQUIRED
+   * @param {Object} config.file - File content: Buffer, File, Node Readable stream, or Web ReadableStream. Streams upload chunk-by-chunk (no full-buffer copy) — recommended for files > ~100 MB. For retries, create a fresh stream per attempt. REQUIRED
    * @param {string} [config.classification='generic'] - File classification (e.g., 'fax', 'files', 'generic')
    * @param {string} [config.folder] - Folder path for organizing files
    * @param {string} [config.fileName] - Original file name
@@ -389,12 +459,13 @@ Response:
    * @param {string} [config.country='US'] - Country code for region selection
    * @param {string} [config.expireAfter] - Expiration time
    * @param {string} [config.relatedId] - Related object ID
+   * @param {string} [config.folderId] - Storage folder id
    * @param {boolean} [config.createAccessKey=false] - Generate an access key for the file
    * @param {number} [config.accessKeyExpiresIn] - Access key expiration in seconds
    * @param {string} [config.convertTo] - Convert uploaded file to this format before storing. Supported: 'pdf', 'tiff'. Input must be PDF, DOC, or DOCX.
    * @param {Object} [config.convertOptions] - Options for file conversion (used with convertTo)
    * @param {('fine'|'normal')} [config.convertOptions.resolution='fine'] - Fax resolution: 'fine' (204x196) or 'normal' (204x98)
-   * @param {('letter'|'a4')} [config.convertOptions.paperSize='letter'] - Paper size for conversion
+   * @param {('letter'|'legal'|'a4')} [config.convertOptions.paperSize='letter'] - Paper size for conversion
    * @param {('g4'|'g3')} [config.convertOptions.compression='g4'] - TIFF compression: 'g4' (default) or 'g3' for older fax machines
    * @param {Function} [config.onProgress] - Progress callback for browser uploads
    * @param {Object} [config._options] - Internal options
@@ -409,6 +480,8 @@ Response:
     country = 'US',
     expireAfter,
     relatedId,
+    objectName,
+    folderId,
     createAccessKey = false,
     accessKeyExpiresIn,
     convertTo,
@@ -426,6 +499,8 @@ Response:
         country,
         expireAfter,
         relatedId,
+        objectName,
+        folderId,
         createAccessKey,
         accessKeyExpiresIn,
         convertTo,
@@ -440,6 +515,8 @@ Response:
         country: { type: 'string', required: false },
         expireAfter: { type: 'string', required: false },
         relatedId: { type: 'string', required: false },
+        objectName: { type: 'string', required: false },
+        folderId: { type: 'string', required: false },
         createAccessKey: { type: 'boolean', required: false },
         accessKeyExpiresIn: { type: 'number', required: false },
         convertTo: { type: 'string', required: false },
@@ -456,6 +533,8 @@ Response:
     if (country) formFields.push(['country', country]);
     if (expireAfter) formFields.push(['expireAfter', expireAfter]);
     if (relatedId) formFields.push(['relatedId', relatedId]);
+    if (objectName) formFields.push(['objectName', objectName]);
+    if (folderId) formFields.push(['folderId', folderId]);
     if (createAccessKey !== undefined)
       formFields.push(['createAccessKey', createAccessKey.toString()]);
     if (accessKeyExpiresIn)
@@ -586,7 +665,7 @@ Response:
       headers,
     };
 
-    return await this.sdk._fetch('/storage/upload', 'POST', params, true);
+    return await internalRequest(this.sdk, '/storage/upload', 'POST', params, true);
   }
 
   async getFile(storageId, path, download = false) {
@@ -609,7 +688,7 @@ Response:
       url += `/storage/${path.startsWith('/') ? path.slice(1) : path}`;
     }
 
-    const result = await this.sdk._fetch(url, 'GET', params, true);
+    const result = await internalRequest(this.sdk, url, 'GET', params, true);
     return result;
   }
 
@@ -644,15 +723,15 @@ Response:
       },
     );
 
-    const result = await this.sdk._fetch(
-      `/storage/file/${storageId}`,
+    const result = await internalRequest(this.sdk, 
+      `/storage/${storageId}`,
       'DELETE',
     );
     return result;
   }
 
   async getStorageClassifications() {
-    const result = await this.sdk._fetch('/storage/classifications', 'GET');
+    const result = await internalRequest(this.sdk, '/storage/classifications', 'GET');
     return result;
   }
 
@@ -702,48 +781,90 @@ Response:
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/storage/file/${storageId}/info`,
       'GET',
     );
     return result;
   }
 
-  async updateFileMetadata(storageId, metadata) {
+  /**
+   * Update file metadata (rename and/or move). Does not re-upload the file.
+   * @param {string} id - Storage file id
+   * @param {Object} [updates]
+   * @param {string} [updates.fileName]
+   * @param {string} [updates.folderId]
+   * @param {string} [updates.relatedId]
+   * @returns {Promise<Object>}
+   */
+  async updateFileMetadata(id, { fileName, folderId, relatedId } = {}) {
     this.sdk.validateParams(
-      { storageId, metadata },
+      { id, fileName, folderId, relatedId },
       {
-        storageId: { type: 'string', required: true },
-        metadata: { type: 'object', required: true },
+        id: { type: 'string', required: true },
+        fileName: { type: 'string', required: false },
+        folderId: { type: 'string', required: false },
+        relatedId: { type: 'string', required: false },
       },
     );
 
-    const params = {
-      body: { metadata },
-    };
+    const body = {};
+    if (fileName !== undefined) body.fileName = fileName;
+    if (folderId !== undefined) body.folderId = folderId;
+    if (relatedId !== undefined) body.relatedId = relatedId;
 
-    const result = await this.sdk._fetch(
-      `/storage/file/${storageId}/metadata`,
-      'PUT',
-      params,
+    const result = await internalRequest(
+      this.sdk,
+      `/storage/files/${id}`,
+      'PATCH',
+      { body },
     );
     return result;
   }
 
+  /**
+   * List storage files.
+   * @param {Object} [options]
+   * @param {string} [options.relatedId]
+   * @param {string} [options.folderId]
+   * @param {string} [options.folder]
+   * @param {string} [options.classification]
+   * @param {string} [options.search]
+   * @param {string} [options.view]
+   * @param {number} [options.page]
+   * @param {number} [options.limit]
+   * @param {string} [options.sortBy]
+   * @param {string} [options.sortOrder]
+   * @param {string} [options.fileType]
+   * @param {boolean} [options.isPublic]
+   * @param {number} [options.offset] - Legacy; still forwarded if provided
+   * @param {string} [options.orderBy] - Legacy; still forwarded if provided
+   * @param {string} [options.orderDirection] - Legacy; still forwarded if provided
+   * @returns {Promise<Object>}
+   */
   async listFiles(options = {}) {
-    const { classification, folder, limit, offset, orderBy, orderDirection } =
-      options;
-
-    // Validate optional parameters
     const validationSchema = {};
-    if ('classification' in options)
-      validationSchema.classification = { type: 'string' };
-    if ('folder' in options) validationSchema.folder = { type: 'string' };
-    if ('limit' in options) validationSchema.limit = { type: 'number' };
-    if ('offset' in options) validationSchema.offset = { type: 'number' };
-    if ('orderBy' in options) validationSchema.orderBy = { type: 'string' };
-    if ('orderDirection' in options)
-      validationSchema.orderDirection = { type: 'string' };
+    const optionalTypes = {
+      relatedId: 'string',
+      folderId: 'string',
+      folder: 'string',
+      classification: 'string',
+      search: 'string',
+      view: 'string',
+      page: 'number',
+      limit: 'number',
+      sortBy: 'string',
+      sortOrder: 'string',
+      fileType: 'string',
+      isPublic: 'boolean',
+      offset: 'number',
+      orderBy: 'string',
+      orderDirection: 'string',
+    };
+
+    for (const [key, type] of Object.entries(optionalTypes)) {
+      if (key in options) validationSchema[key] = { type };
+    }
 
     if (Object.keys(validationSchema).length > 0) {
       this.sdk.validateParams(options, validationSchema);
@@ -753,7 +874,153 @@ Response:
       query: options,
     };
 
-    const result = await this.sdk._fetch('/storage/files', 'GET', params);
+    const result = await internalRequest(this.sdk, '/storage/files', 'GET', params);
+    return result;
+  }
+
+  /**
+   * List storage folders for a related record.
+   * @param {Object} options
+   * @param {string} options.relatedId
+   * @param {string} [options.parentId]
+   * @param {string} [options.search]
+   * @returns {Promise<Object>}
+   */
+  async listFolders({ relatedId, parentId, search } = {}) {
+    this.sdk.validateParams(
+      { relatedId, parentId, search },
+      {
+        relatedId: { type: 'string', required: true },
+        parentId: { type: 'string', required: false },
+        search: { type: 'string', required: false },
+      },
+    );
+
+    const query = { relatedId };
+    if (parentId !== undefined) query.parentId = parentId;
+    if (search !== undefined) query.search = search;
+
+    const result = await internalRequest(this.sdk, '/storage/folders', 'GET', {
+      query,
+    });
+    return result;
+  }
+
+  /**
+   * Create a storage folder.
+   * @param {Object} options
+   * @param {string} options.relatedId
+   * @param {string} [options.parentId]
+   * @param {string} options.name
+   * @returns {Promise<Object>}
+   */
+  async createFolder({ relatedId, parentId, name, objectName } = {}) {
+    this.sdk.validateParams(
+      { relatedId, parentId, name, objectName },
+      {
+        relatedId: { type: 'string', required: true },
+        parentId: { type: 'string', required: false },
+        name: { type: 'string', required: true },
+        objectName: { type: 'string', required: false },
+      },
+    );
+
+    const body = { relatedId, name };
+    if (parentId !== undefined) body.parentId = parentId;
+    if (objectName !== undefined) body.objectName = objectName;
+
+    const result = await internalRequest(this.sdk, '/storage/folders', 'POST', {
+      body,
+    });
+    return result;
+  }
+
+  /**
+   * Rename and/or move a storage folder.
+   * @param {string} id
+   * @param {Object} [updates]
+   * @param {string} [updates.relatedId]
+   * @param {string} [updates.name]
+   * @param {string} [updates.parentId]
+   * @returns {Promise<Object>}
+   */
+  async updateFolder(id, { relatedId, name, parentId } = {}) {
+    this.sdk.validateParams(
+      { id, relatedId, name, parentId },
+      {
+        id: { type: 'string', required: true },
+        relatedId: { type: 'string', required: false },
+        name: { type: 'string', required: false },
+        parentId: { type: 'string', required: false },
+      },
+    );
+
+    const body = {};
+    if (relatedId !== undefined) body.relatedId = relatedId;
+    if (name !== undefined) body.name = name;
+    if (parentId !== undefined) body.parentId = parentId;
+
+    const result = await internalRequest(
+      this.sdk,
+      `/storage/folders/${id}`,
+      'PATCH',
+      { body },
+    );
+    return result;
+  }
+
+  /**
+   * Soft-delete a storage folder (cascades to children).
+   * @param {string} id
+   * @param {Object} options
+   * @param {string} options.relatedId
+   * @returns {Promise<Object>}
+   */
+  async deleteFolder(id, { relatedId } = {}) {
+    this.sdk.validateParams(
+      { id, relatedId },
+      {
+        id: { type: 'string', required: true },
+        relatedId: { type: 'string', required: true },
+      },
+    );
+
+    const result = await internalRequest(
+      this.sdk,
+      `/storage/folders/${id}`,
+      'DELETE',
+      { query: { relatedId } },
+    );
+    return result;
+  }
+
+  /**
+   * Move files into a folder (DB folderId only).
+   * @param {Object} options
+   * @param {string[]} options.ids
+   * @param {string} [options.folderId]
+   * @param {string} options.relatedId
+   * @returns {Promise<Object>}
+   */
+  async moveFiles({ ids, folderId, relatedId } = {}) {
+    this.sdk.validateParams(
+      { ids, folderId, relatedId },
+      {
+        ids: { type: 'array', required: true },
+        folderId: { type: 'string', required: false },
+        relatedId: { type: 'string', required: true },
+      },
+    );
+
+    const body = { ids, relatedId };
+    if (folderId !== undefined) body.folderId = folderId;
+
+    const result = await internalRequest(
+      this.sdk,
+      '/storage/files/move',
+      'PATCH',
+      { body },
+    );
     return result;
   }
 
@@ -776,7 +1043,7 @@ Response:
       body: { expiresIn },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/storage/${fileId}/accessKey`,
       'POST',
       params,
@@ -813,7 +1080,7 @@ Response:
       query: options,
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/storage/configurations',
       'GET',
       params,
@@ -864,7 +1131,7 @@ Response:
       body: config,
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/storage/configurations',
       'POST',
       params,
@@ -893,7 +1160,7 @@ Response:
       body: updates,
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/storage/configurations/${id}`,
       'PUT',
       params,
@@ -915,11 +1182,63 @@ Response:
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/storage/configurations/${id}`,
       'DELETE',
     );
     return result;
+  }
+
+  async getAccountSettings() {
+    return internalRequest(this.sdk, '/storage/account-settings', 'GET');
+  }
+
+  async updateAccountSettings(body = {}) {
+    return internalRequest(this.sdk, '/storage/account-settings', 'PUT', {
+      body,
+    });
+  }
+
+  async listRecordSettings() {
+    return internalRequest(this.sdk, '/storage/record-settings', 'GET');
+  }
+
+  async getRecordSettings(objectName) {
+    this.sdk.validateParams(
+      { objectName },
+      { objectName: { type: 'string', required: true } },
+    );
+    return internalRequest(
+      this.sdk,
+      `/storage/record-settings/${objectName}`,
+      'GET',
+    );
+  }
+
+  async updateRecordSettings(objectName, body = {}) {
+    this.sdk.validateParams(
+      { objectName },
+      { objectName: { type: 'string', required: true } },
+    );
+    return internalRequest(
+      this.sdk,
+      `/storage/record-settings/${objectName}`,
+      'PUT',
+      { body },
+    );
+  }
+
+  async getRecordGoogleFolder({ objectName, relatedId } = {}) {
+    this.sdk.validateParams(
+      { objectName, relatedId },
+      {
+        objectName: { type: 'string', required: true },
+        relatedId: { type: 'string', required: true },
+      },
+    );
+    return internalRequest(this.sdk, '/storage/record-google-folders', 'GET', {
+      query: { objectName, relatedId },
+    });
   }
 
   /**
@@ -936,7 +1255,7 @@ Response:
    * @param {string} config.convertTo - Target format: 'pdf' or 'tiff' (required)
    * @param {Object} [config.convertOptions] - Options controlling the conversion output
    * @param {('fine'|'normal')} [config.convertOptions.resolution='fine'] - Fax resolution: 'fine' (204x196 DPI) or 'normal' (204x98 DPI)
-   * @param {('letter'|'a4')} [config.convertOptions.paperSize='letter'] - Paper size for conversion
+   * @param {('letter'|'legal'|'a4')} [config.convertOptions.paperSize='letter'] - Paper size for conversion
    * @param {('g4'|'g3')} [config.convertOptions.compression='g4'] - TIFF compression: 'g4' (modern, default) or 'g3' (legacy fax machines)
    * @param {string} [config.classification] - Storage classification for the new file. Defaults to source file's classification.
    * @param {string} [config.folder] - Folder path for the new file. Defaults to source file's folder.
@@ -1022,7 +1341,7 @@ Response:
 
     const params = { body };
 
-    return await this.sdk._fetch(`/storage/${storageId}/convert`, 'POST', params);
+    return await internalRequest(this.sdk, `/storage/${storageId}/convert`, 'POST', params);
   }
 
   /**
@@ -1105,7 +1424,7 @@ Response:
         body: updateData,
       };
 
-      const result = await this.sdk._fetch(
+      const result = await internalRequest(this.sdk, 
         `/storage/${storageId}`,
         'PUT',
         options,

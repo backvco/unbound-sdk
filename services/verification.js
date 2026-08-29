@@ -1,3 +1,4 @@
+import { internalRequest } from '../base.js';
 export class VerificationService {
   constructor(sdk) {
     this.sdk = sdk;
@@ -23,7 +24,7 @@ export class VerificationService {
       body: verificationData,
     };
 
-    const result = await this.sdk._fetch('/verification/sms', 'POST', params);
+    const result = await internalRequest(this.sdk, '/verification/sms', 'POST', params);
     return result;
   }
 
@@ -40,7 +41,7 @@ export class VerificationService {
       body: { phoneNumber, code },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/verification/sms/validate',
       'POST',
       params,
@@ -68,7 +69,7 @@ export class VerificationService {
       body: verificationData,
     };
 
-    const result = await this.sdk._fetch('/verification/email', 'POST', params);
+    const result = await internalRequest(this.sdk, '/verification/email', 'POST', params);
     return result;
   }
 
@@ -85,7 +86,7 @@ export class VerificationService {
       body: { email, code },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/verification/email/validate',
       'POST',
       params,

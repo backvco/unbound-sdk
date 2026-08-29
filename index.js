@@ -1,7 +1,7 @@
 /* eslint-disable indent */
 /* eslint-disable prettier/prettier */
 
-import { BaseSDK } from './base.js';
+import { BaseSDK, internalRequest } from './base.js';
 import { LoginService } from './services/login.js';
 import { ObjectsService } from './services/objects.js';
 import { MessagingService } from './services/messaging/MessagingService.js';
@@ -14,11 +14,15 @@ import { SubscriptionsService } from './services/subscriptions.js';
 import { WorkflowsService } from './services/workflows.js';
 import { NotesService } from './services/notes.js';
 import { StorageService } from './services/storage.js';
+import { BrandingService } from './services/branding.js';
+import { BrandService } from './services/brand.js';
+import { ContentService } from './services/content.js';
 import { VerificationService } from './services/verification.js';
 import { PortalsService } from './services/portals.js';
 import { SipEndpointsService } from './services/sipEndpoints.js';
 import { ExternalOAuthService } from './services/externalOAuth.js';
 import { GoogleCalendarService } from './services/googleCalendar.js';
+import { DriveService } from './services/drive.js';
 import { EnrollService } from './services/enroll.js';
 import { PhoneNumbersService } from './services/phoneNumbers.js';
 import { RecordTypesService } from './services/recordTypes.js';
@@ -27,6 +31,19 @@ import { EngagementMetricsService } from './services/engagementMetrics.js';
 import { TaskRouterService } from './services/taskRouter.js';
 import { KnowledgeBaseService } from './services/knowledgeBase.js';
 import { FaxService } from './services/fax.js';
+import { DocumentsService } from './services/documents.js';
+import { EsignService } from './services/esign.js';
+import { PermissionsService } from './services/permissions.js';
+import { TriggersService } from './services/triggers.js';
+import { RecentsService } from './services/recents.js';
+import { SearchService } from './services/search.js';
+import { DirectoryService } from './services/directory.js';
+import { ChatService } from './services/chat.js';
+import { DeveloperApisService } from './services/developerApis.js';
+import {
+  DataImportService,
+  DataExportService,
+} from './services/dataImport.js';
 
 class UnboundSDK extends BaseSDK {
   constructor(options = {}) {
@@ -82,11 +99,15 @@ class UnboundSDK extends BaseSDK {
     this.workflows = new WorkflowsService(this);
     this.notes = new NotesService(this);
     this.storage = new StorageService(this);
+    this.branding = new BrandingService(this);
+    this.brand = new BrandService(this);
+    this.content = new ContentService(this);
     this.verification = new VerificationService(this);
     this.portals = new PortalsService(this);
     this.sipEndpoints = new SipEndpointsService(this);
     this.externalOAuth = new ExternalOAuthService(this);
     this.googleCalendar = new GoogleCalendarService(this);
+    this.drive = new DriveService(this);
     this.enroll = new EnrollService(this);
     this.phoneNumbers = new PhoneNumbersService(this);
     this.recordTypes = new RecordTypesService(this);
@@ -95,6 +116,17 @@ class UnboundSDK extends BaseSDK {
     this.taskRouter = new TaskRouterService(this);
     this.knowledgeBase = new KnowledgeBaseService(this);
     this.fax = new FaxService(this);
+    this.documents = new DocumentsService(this);
+    this.esign = new EsignService(this);
+    this.permissions = new PermissionsService(this);
+    this.triggers = new TriggersService(this);
+    this.recents = new RecentsService(this);
+    this.search = new SearchService(this);
+    this.directory = new DirectoryService(this);
+    this.chat = new ChatService(this);
+    this.developerApis = new DeveloperApisService(this);
+    this.dataImport = new DataImportService(this);
+    this.dataExport = new DataExportService(this);
 
     // Add additional services that might be missing
     this._initializeAdditionalServices();
@@ -174,7 +206,7 @@ class UnboundSDK extends BaseSDK {
    */
   async status() {
     try {
-      const response = await this._fetch('/health', 'GET', {
+      const response = await internalRequest(this, '/health', 'GET', {
         returnRawResponse: true,
       });
 
@@ -228,7 +260,7 @@ class UnboundSDK extends BaseSDK {
    */
   async getIp() {
     // Force fetch transport (pass true as forceFetch parameter)
-    return await this._fetch('/get-ip', 'GET', {}, true);
+    return await internalRequest(this, '/get-ip', 'GET', {}, true);
   }
 }
 
@@ -254,11 +286,20 @@ export { SubscriptionsService } from './services/subscriptions.js';
 export { WorkflowsService } from './services/workflows.js';
 export { NotesService } from './services/notes.js';
 export { StorageService } from './services/storage.js';
+export { BrandingService, BrandingEmailTemplatesService } from './services/branding.js';
+export { BrandService, BrandKitsService } from './services/brand.js';
+export {
+  ContentService,
+  ContentBlocksService,
+  ContentLibraryService,
+  ContentStockService,
+} from './services/content.js';
 export { VerificationService } from './services/verification.js';
 export { PortalsService } from './services/portals.js';
 export { SipEndpointsService } from './services/sipEndpoints.js';
 export { ExternalOAuthService } from './services/externalOAuth.js';
 export { GoogleCalendarService } from './services/googleCalendar.js';
+export { DriveService } from './services/drive.js';
 export { EnrollService } from './services/enroll.js';
 export {
   PhoneNumbersService,
@@ -274,4 +315,15 @@ export { TaskRouterService } from './services/taskRouter.js';
 export { WorkerService } from './services/taskRouter/WorkerService.js';
 export { KnowledgeBaseService } from './services/knowledgeBase.js';
 export { FaxService } from './services/fax.js';
+export { EsignService, EsignPublicService } from './services/esign.js';
+export { PermissionsService } from './services/permissions.js';
+export { RecentsService } from './services/recents.js';
+export { SearchService } from './services/search.js';
+export { DirectoryService } from './services/directory.js';
+export { ChatService } from './services/chat.js';
+export { DeveloperApisService } from './services/developerApis.js';
+export {
+  DataImportService,
+  DataExportService,
+} from './services/dataImport.js';
 export { BaseSDK } from './base.js';

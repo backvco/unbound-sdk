@@ -1,3 +1,4 @@
+import { internalRequest } from '../../base.js';
 export class TollFreeCampaignsService {
   constructor(sdk) {
     this.sdk = sdk;
@@ -129,7 +130,7 @@ export class TollFreeCampaignsService {
       campaignData.ageGatedContent = ageGatedContent;
     if (optInKeywords !== undefined) campaignData.optInKeywords = optInKeywords;
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/messaging/campaigns/tollfree',
       'POST',
       { body: campaignData },
@@ -150,7 +151,7 @@ export class TollFreeCampaignsService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/messaging/campaigns/tollfree/${campaignId}`,
       'GET',
     );
@@ -255,7 +256,7 @@ export class TollFreeCampaignsService {
       updateData.ageGatedContent = ageGatedContent;
     if (optInKeywords !== undefined) updateData.optInKeywords = optInKeywords;
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/messaging/campaigns/tollfree/${campaignId}`,
       'PUT',
       { body: updateData },
@@ -271,7 +272,7 @@ export class TollFreeCampaignsService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/messaging/campaigns/tollfree/${campaignId}`,
       'DELETE',
     );
@@ -301,7 +302,7 @@ export class TollFreeCampaignsService {
       ? `/messaging/campaigns/tollfree?${queryParams.toString()}`
       : '/messaging/campaigns/tollfree';
 
-    const result = await this.sdk._fetch(url, 'GET');
+    const result = await internalRequest(this.sdk, url, 'GET');
     return result;
   }
 
@@ -313,7 +314,7 @@ export class TollFreeCampaignsService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/messaging/campaigns/tollfree/refresh/${campaignId}`,
       'GET',
     );
@@ -336,7 +337,7 @@ export class TollFreeCampaignsService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/messaging/campaigns/tollfree/${campaignId}/submit`,
       'POST',
       { body: { termsAndConditions } },
@@ -362,7 +363,7 @@ export class TollFreeCampaignsService {
     const body = {};
     if (name !== undefined) body.name = name;
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/messaging/campaigns/tollfree/${campaignId}/duplicate`,
       'POST',
       { body },
@@ -383,7 +384,7 @@ export class TollFreeCampaignsService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/messaging/campaigns/tollfree/${campaignId}/phoneNumbers`,
       'GET',
     );
@@ -406,7 +407,7 @@ export class TollFreeCampaignsService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/messaging/campaigns/tollfree/${campaignId}/phoneNumber`,
       'POST',
       { body: { phoneNumber } },
@@ -430,7 +431,7 @@ export class TollFreeCampaignsService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/messaging/campaigns/tollfree/${campaignId}/phoneNumber`,
       'DELETE',
       { body: { phoneNumber } },
@@ -446,7 +447,7 @@ export class TollFreeCampaignsService {
       },
     );
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       `/messaging/campaigns/tollfree/phoneNumber/${encodeURIComponent(
         phoneNumber,
       )}/campaignStatus`,

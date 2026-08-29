@@ -1,3 +1,4 @@
+import { internalRequest } from '../base.js';
 export class LoginService {
   constructor(sdk) {
     this.sdk = sdk;
@@ -17,7 +18,7 @@ export class LoginService {
       body: { username, password, tokenType: 'cookie', namespace },
     };
 
-    const login = await this.sdk._fetch('/login', 'POST', options, true);
+    const login = await internalRequest(this.sdk, '/login', 'POST', options, true);
 
     if (typeof window !== 'undefined') {
       const canUseLocalStorage = typeof localStorage !== 'undefined';
@@ -37,7 +38,7 @@ export class LoginService {
   }
 
   async logout() {
-    const logout = await this.sdk._fetch('/login', 'DELETE', {}, true);
+    const logout = await internalRequest(this.sdk, '/login', 'DELETE', {}, true);
 
     if (typeof window !== 'undefined') {
       const canUseLocalStorage = typeof localStorage !== 'undefined';
@@ -54,7 +55,7 @@ export class LoginService {
   async validate(forceFetch = true) {
     console.log('login :: validate :: forceFetch', forceFetch);
     const options = {};
-    const validation = await this.sdk._fetch(
+    const validation = await internalRequest(this.sdk, 
       '/login/validate',
       'POST',
       options,
@@ -75,7 +76,7 @@ export class LoginService {
       body: { password: newPassword },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/login/changePassword',
       'PUT',
       options,
@@ -84,7 +85,7 @@ export class LoginService {
   }
 
   async getPasswordRequirements() {
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/login/passwordRequirements',
       'GET',
       {},
@@ -104,7 +105,7 @@ export class LoginService {
       body: { password },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/login/validatePasswordStrength',
       'POST',
       options,
@@ -124,7 +125,7 @@ export class LoginService {
       body: { email },
     };
 
-    const result = await this.sdk._fetch(
+    const result = await internalRequest(this.sdk, 
       '/login/forgotPassword',
       'POST',
       options,
