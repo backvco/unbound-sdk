@@ -51,9 +51,27 @@ export class VoiceService {
     return result;
   }
 
-  async call({ to, from, destination, app, timeout, customHeaders, statusWebhook }) {
+  async call({
+    to,
+    from,
+    destination,
+    app,
+    timeout,
+    customHeaders,
+    statusWebhook,
+    parentCallId,
+  }) {
     this.sdk.validateParams(
-      { to, from, destination, app, timeout, customHeaders, statusWebhook },
+      {
+        to,
+        from,
+        destination,
+        app,
+        timeout,
+        customHeaders,
+        statusWebhook,
+        parentCallId,
+      },
       {
         to: { type: 'string', required: true },
         from: { type: 'string', required: true },
@@ -65,6 +83,11 @@ export class VoiceService {
         // events (trying/ringing/answered/failed) with `static` fields
         // merged into each POST body
         statusWebhook: { type: 'object', required: false },
+        // SIP call id of an in-progress call this outbound leg is placed on
+        // behalf of (e.g. task-router ringing an agent for a queued caller).
+        // Links the leg as a child so sip-processor cascade-cancels it if
+        // that caller hangs up while it's still ringing.
+        parentCallId: { type: 'string', required: false },
       },
     );
 
@@ -77,6 +100,7 @@ export class VoiceService {
         timeout,
         customHeaders,
         statusWebhook,
+        parentCallId,
       },
     };
 
