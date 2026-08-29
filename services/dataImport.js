@@ -148,6 +148,27 @@ export class DataImportService {
   }
 
   /**
+   * Download job rows as CSV (source columns + rowNumber,status,errorCode,errorMessage).
+   * Returns the raw CSV text (UTF-8, BOM-prefixed).
+   * @param {string} jobId
+   * @param {Object} [query] { status } default 'error'; also 'resolved', 'skipped',
+   *   a comma list, or 'all' for no filter.
+   */
+  async downloadRowsCsv(jobId, query = { status: 'error' }) {
+    this.sdk.validateParams(
+      { jobId },
+      { jobId: { type: 'string', required: true } },
+    );
+    return internalRequest(
+      this.sdk,
+      `/dataImport/jobs/${jobId}/rows.csv`,
+      'GET',
+      { query },
+      true,
+    );
+  }
+
+  /**
    * Resolve an errored row.
    * @param {string} jobId
    * @param {string} rowId
