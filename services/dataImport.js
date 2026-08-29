@@ -34,6 +34,18 @@ export class DataImportService {
   }
 
   /**
+   * Autosave wizard state on a draft job.
+   * @param {string} id
+   * @param {Object} body { mapping?, wizardStep?, name?, errorMode?, skipTriggers? }
+   */
+  async updateJob(id, body = {}) {
+    this.sdk.validateParams({ id }, { id: { type: 'string', required: true } });
+    return internalRequest(this.sdk, `/dataImport/jobs/${id}`, 'PATCH', {
+      body,
+    });
+  }
+
+  /**
    * Attach a storage source file to a draft job.
    * @param {string} jobId
    * @param {Object} body
