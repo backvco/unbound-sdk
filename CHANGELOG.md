@@ -1,3 +1,9 @@
+## 4.13.21
+
+- feat: `sdk.portals.invitePerson(peopleId, { portalId })` / `sdk.portals.resetPersonPassword(peopleId, { portalId })` — staff invite/reset-password for a support/partner portal (`POST /portals/people/:peopleId/invite` / `.../reset-password`), each sending a fresh 30-min single-use set-password link
+- feat: `sdk.portals.revokePeopleAccess(peopleId)` — soft-delete a person's portal credential (`DELETE /portals/people/:peopleId/access`)
+- feat: `sdk.portals.getPeopleAccess(peopleId)` response gains `status` (`none`|`invited`|`active`|`locked`), `invitedAt`, `lockedUntil`, and `portals` (support/partner portals with a `matches` flag)
+
 ## 4.13.20
 
 - fix: `sdk.portals.update` forwards `domain: null` (remove custom domain) and accepts `slug` (set/change the hosted address)

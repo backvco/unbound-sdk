@@ -572,16 +572,31 @@ export class PortalsService {
   }
 
   /**
-   * Staff-only portal credential status for a person. Never includes hashes.
+   * Staff-only portal credential + access status for a person. Never
+   * includes hashes or tokens.
    *
    * @param {string} peopleId
    * @returns {Promise<{
+   *   status: "none"|"invited"|"active"|"locked",
    *   hasPassword: boolean,
    *   ssoLinked: boolean,
    *   lastLoginAt: string|null,
    *   lastLoginMethod: string|null,
-   *   mustReset: boolean
-   * }>}
+   *   mustReset: boolean,
+   *   invitedAt: string|null,
+   *   lockedUntil: string|null,
+   *   portals: Array<{
+   *     id: string,
+   *     name: string,
+   *     kind: "support"|"partner",
+   *     hostedDomain: string,
+   *     domain: string|null,
+   *     matches: boolean
+   *   }>
+   * }>} `portals` lists only support/partner portals on the account (a
+   *   portal with no login surface, e.g. `marketing`, is never included);
+   *   `matches` is whether this person currently passes that portal's
+   *   people-access filter.
    */
   async getPeopleAccess(peopleId) {
     this.sdk.validateParams(
@@ -622,6 +637,106 @@ export class PortalsService {
       this.sdk,
       `/portals/people/${encodeURIComponent(peopleId)}/access/force-reset`,
       "POST",
+    );
+  }
+
+  /**
+   * Invites a person to sign in to a support/partner portal: upserts their
+   * portal credential (`mustReset=1`), stamps `invitedAt`/`invitedBy`, and
+   * sends the account's `portal-welcome` email with a fresh 30-minute
+   * single-use set-password link.
+   *
+   * The person must pass the target portal's people-access filter — see
+   * `getPeopleAccess(peopleId).portals[].matches` — or the call 400s.
+   *
+   * @param {string} peopleId
+   * @param {object} params
+   * @param {string} params.portalId - The support/partner portal to invite them to.
+   * @returns {Promise<{
+   *   status: "invited",
+   *   hasPassword: boolean,
+   *   ssoLinked: boolean,
+   *   lastLoginAt: string|null,
+   *   lastLoginMethod: string|null,
+   *   mustReset: boolean,
+   *   invitedAt: string,
+   *   lockedUntil: string|null
+   * }>}
+   */
+  async invitePerson(peopleId, { portalId }) {
+    this.sdk.validateParams(
+      { peopleId, portalId },
+      {
+        peopleId: { type: "string", required: true },
+        portalId: { type: "string", required: true },
+      },
+    );
+
+    return internalRequest(
+      this.sdk,
+      `/portals/people/${encodeURIComponent(peopleId)}/invite`,
+      "POST",
+      { body: { portalId } },
+    );
+  }
+
+  /**
+   * Sends a person a fresh password-reset email for a support/partner
+   * portal (the account's `portal-password-reset` template) with a new
+   * 30-minute single-use set-password link. Works whether they were
+   * previously invited or already active.
+   *
+   * @param {string} peopleId
+   * @param {object} params
+   * @param {string} params.portalId - The support/partner portal to send the reset for.
+   * @returns {Promise<{
+   *   status: "none"|"invited"|"active"|"locked",
+   *   hasPassword: boolean,
+   *   ssoLinked: boolean,
+   *   lastLoginAt: string|null,
+   *   lastLoginMethod: string|null,
+   *   mustReset: boolean,
+   *   invitedAt: string|null,
+   *   lockedUntil: string|null
+   * }>}
+   */
+  async resetPersonPassword(peopleId, { portalId }) {
+    this.sdk.validateParams(
+      { peopleId, portalId },
+      {
+        peopleId: { type: "string", required: true },
+        portalId: { type: "string", required: true },
+      },
+    );
+
+    return internalRequest(
+      this.sdk,
+      `/portals/people/${encodeURIComponent(peopleId)}/reset-password`,
+      "POST",
+      { body: { portalId } },
+    );
+  }
+
+  /**
+   * Revokes a person's portal access (soft-deletes their credential across
+   * every portal on the account). Idempotent — revoking someone with no
+   * credential is a no-op, not an error.
+   *
+   * @param {string} peopleId
+   * @returns {Promise<{ ok: true }>}
+   */
+  async revokePeopleAccess(peopleId) {
+    this.sdk.validateParams(
+      { peopleId },
+      {
+        peopleId: { type: "string", required: true },
+      },
+    );
+
+    return internalRequest(
+      this.sdk,
+      `/portals/people/${encodeURIComponent(peopleId)}/access`,
+      "DELETE",
     );
   }
 
