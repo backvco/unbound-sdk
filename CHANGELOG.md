@@ -1,3 +1,7 @@
+## 4.13.20
+
+- fix: `sdk.portals.update` forwards `domain: null` (remove custom domain) and accepts `slug` (set/change the hosted address)
+
 ## 4.13.19
 
 - feat: `sdk.portals.listTicketStatuses()` / `sdk.portals.updateTicketStatuses({ statuses })` — per-status customer-facing labels for engagement statuses (`GET`/`PUT /portals/ticket-statuses`)
@@ -217,9 +221,9 @@
 ```javascript
 // Generate and attach LOA automatically
 const result = await sdk.phoneNumbers.generateLoa({
-  portingOrderId: 'port-123',
-  signerName: 'John Smith',
-  signerTitle: 'IT Director',
+  portingOrderId: "port-123",
+  signerName: "John Smith",
+  signerTitle: "IT Director",
 });
 
 console.log(result);
@@ -257,24 +261,24 @@ console.log(result);
 ```javascript
 // 1. Create porting order
 const order = await sdk.phoneNumbers.createPortingOrder({
-  customerReference: 'CUST-123',
+  customerReference: "CUST-123",
   endUser: {
-    admin: { entityName: 'Acme Corp' },
-    location: { streetAddress: '123 Main St' },
+    admin: { entityName: "Acme Corp" },
+    location: { streetAddress: "123 Main St" },
   },
 });
 
 // 2. Add phone numbers
 await sdk.phoneNumbers.checkPortability({
-  phoneNumbers: ['+15551234567'],
+  phoneNumbers: ["+15551234567"],
   portingOrderId: order.id,
 });
 
 // 3. Generate LOA automatically
 const loa = await sdk.phoneNumbers.generateLoa({
   portingOrderId: order.id,
-  signerName: 'John Smith',
-  signerTitle: 'IT Director',
+  signerName: "John Smith",
+  signerTitle: "IT Director",
 });
 
 // LOA is now generated, uploaded, and attached to order
@@ -306,7 +310,7 @@ const loa = await sdk.phoneNumbers.generateLoa({
 ```javascript
 // Fast internal validation using LRN lookup
 await sdk.phoneNumbers.checkPortability({
-  phoneNumbers: ['+15551234567'],
+  phoneNumbers: ["+15551234567"],
   portingOrderId: order.id,
   // runPortabilityCheck: false (default)
 });
@@ -324,7 +328,7 @@ await sdk.phoneNumbers.checkPortability({
 ```javascript
 // Run full external portability check when ready
 await sdk.phoneNumbers.checkPortability({
-  phoneNumbers: ['+15551234567'],
+  phoneNumbers: ["+15551234567"],
   portingOrderId: order.id,
   runPortabilityCheck: true,
 });
@@ -352,13 +356,13 @@ No breaking changes - existing code continues to work. New `runPortabilityCheck`
 ```javascript
 // Step 1: Add numbers with internal validation (draft phase)
 await sdk.phoneNumbers.checkPortability({
-  phoneNumbers: ['+15551234567', '+15559876543'],
+  phoneNumbers: ["+15551234567", "+15559876543"],
   portingOrderId: order.id,
 });
 
 // Step 2: Run external validation before submission
 await sdk.phoneNumbers.checkPortability({
-  phoneNumbers: ['+15551234567', '+15559876543'],
+  phoneNumbers: ["+15551234567", "+15559876543"],
   portingOrderId: order.id,
   runPortabilityCheck: true,
 });
@@ -401,9 +405,9 @@ await sdk.phoneNumbers.checkPortability({
 ```javascript
 // Old way - phone numbers in order creation
 const order = await sdk.phoneNumbers.createPortingOrder({
-  phoneNumbers: ['+15551234567', '+15559876543'],
-  customerReference: 'CUST-123',
-  endUser: { admin: { entityName: 'My Company' } },
+  phoneNumbers: ["+15551234567", "+15559876543"],
+  customerReference: "CUST-123",
+  endUser: { admin: { entityName: "My Company" } },
 });
 ```
 
@@ -412,13 +416,13 @@ const order = await sdk.phoneNumbers.createPortingOrder({
 ```javascript
 // Step 1: Create empty order
 const order = await sdk.phoneNumbers.createPortingOrder({
-  customerReference: 'CUST-123',
-  endUser: { admin: { entityName: 'My Company' } },
+  customerReference: "CUST-123",
+  endUser: { admin: { entityName: "My Company" } },
 });
 
 // Step 2: Add validated phone numbers
 await sdk.phoneNumbers.checkPortability({
-  phoneNumbers: ['+15551234567', '+15559876543'],
+  phoneNumbers: ["+15551234567", "+15559876543"],
   portingOrderId: order.id,
 });
 
@@ -439,8 +443,8 @@ const completeOrder = await sdk.phoneNumbers.getPortingOrder(order.id);
 ```javascript
 try {
   await sdk.phoneNumbers.checkPortability({
-    phoneNumbers: ['+15551234567'], // US local
-    portingOrderId: 'existing-order-with-uk-numbers',
+    phoneNumbers: ["+15551234567"], // US local
+    portingOrderId: "existing-order-with-uk-numbers",
   });
 } catch (error) {
   // Error: "Cannot add these numbers to the existing porting order.
