@@ -1,3 +1,19 @@
+## Unreleased
+
+- docs: `sdk.portals.update`/`create` JSDoc documents the new `settings.profile`
+  shape (P11.2 — visitor profile field allowlist + company-edit permission)
+  and the `companyTicketsMode`/`companyTicketsFilter` 3-way that supersedes
+  the `companyTickets` boolean. No new endpoint/method — staff already
+  configures both through the existing `settings` object.
+
+## 4.13.22
+
+- feat: `sdk.messaging.sms.send({ ..., relatedId })` — optional task/engagement
+  (or other record) id so the sent SMS lands on that record's feed
+- feat: `sdk.messaging.sms.getByRelated(relatedId)` — list SMS/MMS tied to a
+  record (`GET /messaging/sms/related/:relatedId`), feed read path for the
+  contact-center interaction timeline
+
 ## 4.13.21
 
 - feat: `sdk.portals.invitePerson(peopleId, { portalId })` / `sdk.portals.resetPersonPassword(peopleId, { portalId })` — staff invite/reset-password for a support/partner portal (`POST /portals/people/:peopleId/invite` / `.../reset-password`), each sending a fresh 30-min single-use set-password link

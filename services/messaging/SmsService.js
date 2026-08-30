@@ -17,6 +17,8 @@ export class SmsService {
    * @param {Object} [params.variables] - Template variables
    * @param {Array<string>} [params.mediaUrls] - Media URLs for MMS
    * @param {string} [params.webhookUrl] - Webhook URL for delivery status
+   * @param {string} [params.relatedId] - Task/engagement (or other record) id
+   *   to attach this message to, so it surfaces on that record's feed
    * @returns {Promise<Object>} Message details
    */
   async send({
@@ -27,6 +29,7 @@ export class SmsService {
     variables,
     mediaUrls,
     webhookUrl,
+    relatedId,
   }) {
     const messageData = {};
     if (from) messageData.from = from;
@@ -35,6 +38,7 @@ export class SmsService {
     if (variables) messageData.variables = variables;
     if (mediaUrls) messageData.mediaUrls = mediaUrls;
     if (webhookUrl) messageData.webhookUrl = webhookUrl;
+    if (relatedId) messageData.relatedId = relatedId;
 
     this.sdk.validateParams(
       { to, ...messageData },
@@ -46,6 +50,7 @@ export class SmsService {
         variables: { type: 'object', required: false },
         mediaUrls: { type: 'array', required: false },
         webhookUrl: { type: 'string', required: false },
+        relatedId: { type: 'string', required: false },
       },
     );
 
@@ -71,6 +76,28 @@ export class SmsService {
     );
 
     const result = await internalRequest(this.sdk, `/messaging/sms/${id}`, 'GET');
+    return result;
+  }
+
+  /**
+   * List SMS/MMS messages tied to a task/engagement (or other record) id —
+   * feed read path for the contact-center interaction timeline.
+   * @param {string} relatedId - Related record id
+   * @returns {Promise<Object>} { messages: [...] }
+   */
+  async getByRelated(relatedId) {
+    this.sdk.validateParams(
+      { relatedId },
+      {
+        relatedId: { type: 'string', required: true },
+      },
+    );
+
+    const result = await internalRequest(
+      this.sdk,
+      `/messaging/sms/related/${relatedId}`,
+      'GET',
+    );
     return result;
   }
 }
