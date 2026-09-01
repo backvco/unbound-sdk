@@ -236,6 +236,51 @@ export class WebchatConversationsService {
     this.sdk = sdk;
     this.messages = new WebchatConversationMessagesService(sdk);
   }
+
+  /**
+   * Send a typing indicator into a webchat conversation as an agent.
+   * @param {string} widgetId
+   * @param {string} engagementSessionId
+   * @param {boolean} isTyping
+   * @returns {Promise<Object>}
+   */
+  async typing(widgetId, engagementSessionId, isTyping) {
+    this.sdk.validateParams(
+      { widgetId, engagementSessionId },
+      {
+        widgetId: { type: 'string', required: true },
+        engagementSessionId: { type: 'string', required: true },
+      },
+    );
+
+    const params = { body: { isTyping: isTyping !== false } };
+
+    return internalRequest(
+      this.sdk,
+      `/webchat/widgets/${widgetId}/conversations/${engagementSessionId}/typing`,
+      'POST',
+      params,
+    );
+  }
+
+  /**
+   * Look up a webchat conversation by engagementSessionId -- resolves the
+   * widgetId + verified-visitor badge data for the agent thread.
+   * @param {string} engagementSessionId
+   * @returns {Promise<Object>}
+   */
+  async get(engagementSessionId) {
+    this.sdk.validateParams(
+      { engagementSessionId },
+      { engagementSessionId: { type: 'string', required: true } },
+    );
+
+    return internalRequest(
+      this.sdk,
+      `/webchat/widgets/conversations/${engagementSessionId}`,
+      'GET',
+    );
+  }
 }
 
 export class WebchatService {
