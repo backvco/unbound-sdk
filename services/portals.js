@@ -86,6 +86,26 @@ export class PortalsService {
    * @param {string} [updates.name] - New display name for the portal.
    * @param {string} [updates.domain] - New custom domain for the portal.
    * @param {object} [updates.settings] - Updated portal configuration settings.
+   * @param {object} [updates.settings.profile] - P11.2: visitor-editable
+   *   profile fields. `{ people: { enabled, fields: [{ name, editable }] },
+   *   company: { enabled, fields: [{ name, editable }], editorMode,
+   *   editorFilter } }`. `fields` (max 40 each) is the allowlist of
+   *   people/company columns exposed on the portal's `GET /portal-profile` —
+   *   never system columns (id/*At/*By/isDeleted/recordTypeId), foreign
+   *   keys, or encrypted fields (the API 400s on save otherwise).
+   *   `company.editorMode` is `'none'|'all'|'rules'` — whether a signed-in
+   *   visitor may edit their OWN company record: nobody / everyone signed
+   *   in / only people matching `editorFilter` (same `{'<field>::<op>':
+   *   value}` AND-map as `settings.peopleFilter`, ≥1 rule required for
+   *   `'rules'`). A per-person override (people custom field
+   *   `portalCompanyEdit__c`, `'allow'|'deny'`, set via `sdk.objects.update`)
+   *   wins over `editorMode`/`editorFilter` when present.
+   * @param {string} [updates.settings.companyTicketsMode] - `'none'|'all'|'rules'`
+   *   — successor to the legacy `settings.companyTickets` boolean
+   *   (`true`→`'all'`, `false`→`'none'`); same 3-way shape as
+   *   `settings.profile.company.editorMode` above, paired with
+   *   `settings.companyTicketsFilter`. Prefer this over the boolean going
+   *   forward — both may be sent, `companyTicketsMode` wins.
    * @param {boolean} [updates.isPublic] - Updated public accessibility flag.
    * @param {string} [updates.customCss] - Updated custom CSS for the portal.
    * @param {string} [updates.customJs] - Updated custom JavaScript for the portal.

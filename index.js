@@ -20,6 +20,7 @@ import { ContentService } from './services/content.js';
 import { VerificationService } from './services/verification.js';
 import { PortalsService } from './services/portals.js';
 import { SipEndpointsService } from './services/sipEndpoints.js';
+import { WebchatService } from './services/webchat.js';
 import { ExternalOAuthService } from './services/externalOAuth.js';
 import { GoogleCalendarService } from './services/googleCalendar.js';
 import { DriveService } from './services/drive.js';
@@ -105,6 +106,7 @@ class UnboundSDK extends BaseSDK {
     this.verification = new VerificationService(this);
     this.portals = new PortalsService(this);
     this.sipEndpoints = new SipEndpointsService(this);
+    this.webchat = new WebchatService(this);
     this.externalOAuth = new ExternalOAuthService(this);
     this.googleCalendar = new GoogleCalendarService(this);
     this.drive = new DriveService(this);
@@ -297,6 +299,11 @@ export {
 export { VerificationService } from './services/verification.js';
 export { PortalsService } from './services/portals.js';
 export { SipEndpointsService } from './services/sipEndpoints.js';
+export {
+  WebchatService,
+  WebchatWidgetsService,
+  WebchatWidgetKeysService,
+} from './services/webchat.js';
 export { ExternalOAuthService } from './services/externalOAuth.js';
 export { GoogleCalendarService } from './services/googleCalendar.js';
 export { DriveService } from './services/drive.js';
