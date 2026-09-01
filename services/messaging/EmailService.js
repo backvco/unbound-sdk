@@ -63,6 +63,8 @@ export class EmailService {
    * @param {boolean} [params.tracking=true] - Enable email tracking (opens, clicks)
    * @param {string} [params.mailboxId] - Specific mailbox to send from
    * @param {string} [params.draftId] - Convert existing draft to sent email
+   * @param {string} [params.engagementSessionId] - Engagement to attach this email to
+   * @param {string} [params.taskId] - Task the email was sent under (multi-channel-per-task attribution)
    * @returns {Promise<Object>} Email send result with ID and threading info
    */
   async send({
@@ -86,6 +88,7 @@ export class EmailService {
     mailboxId,
     draftId,
     engagementSessionId,
+    taskId,
   }) {
     // Validate required params (relaxed when using draftId)
     if (!draftId) {
@@ -118,6 +121,7 @@ export class EmailService {
         mailboxId,
         draftId,
         engagementSessionId,
+        taskId,
       },
       {
         html: { type: 'string', required: false },
@@ -135,6 +139,7 @@ export class EmailService {
         mailboxId: { type: 'string', required: false },
         draftId: { type: 'string', required: false },
         engagementSessionId: { type: 'string', required: false },
+        taskId: { type: 'string', required: false },
       },
     );
 
@@ -161,6 +166,7 @@ export class EmailService {
     if (draftId) emailData.draftId = draftId;
     if (engagementSessionId)
       emailData.engagementSessionId = engagementSessionId;
+    if (taskId) emailData.taskId = taskId;
 
     const options = {
       body: emailData,

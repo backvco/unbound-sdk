@@ -19,6 +19,8 @@ export class SmsService {
    * @param {string} [params.webhookUrl] - Webhook URL for delivery status
    * @param {string} [params.relatedId] - Task/engagement (or other record) id
    *   to attach this message to, so it surfaces on that record's feed
+   * @param {string} [params.engagementSessionId] - Engagement to attach this message to
+   * @param {string} [params.taskId] - Task the message was sent under (multi-channel-per-task attribution)
    * @returns {Promise<Object>} Message details
    */
   async send({
@@ -30,6 +32,8 @@ export class SmsService {
     mediaUrls,
     webhookUrl,
     relatedId,
+    engagementSessionId,
+    taskId,
   }) {
     const messageData = {};
     if (from) messageData.from = from;
@@ -39,6 +43,8 @@ export class SmsService {
     if (mediaUrls) messageData.mediaUrls = mediaUrls;
     if (webhookUrl) messageData.webhookUrl = webhookUrl;
     if (relatedId) messageData.relatedId = relatedId;
+    if (engagementSessionId) messageData.engagementSessionId = engagementSessionId;
+    if (taskId) messageData.taskId = taskId;
 
     this.sdk.validateParams(
       { to, ...messageData },
@@ -51,6 +57,8 @@ export class SmsService {
         mediaUrls: { type: 'array', required: false },
         webhookUrl: { type: 'string', required: false },
         relatedId: { type: 'string', required: false },
+        engagementSessionId: { type: 'string', required: false },
+        taskId: { type: 'string', required: false },
       },
     );
 
