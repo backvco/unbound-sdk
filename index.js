@@ -299,11 +299,7 @@ export {
 export { VerificationService } from './services/verification.js';
 export { PortalsService } from './services/portals.js';
 export { SipEndpointsService } from './services/sipEndpoints.js';
-export {
-  WebchatService,
-  WebchatWidgetsService,
-  WebchatWidgetKeysService,
-} from './services/webchat.js';
+export { WebchatService, WebchatWidgetsService } from './services/webchat.js';
 export { WebchatVisitorService } from './services/webchat/VisitorService.js';
 export { ExternalOAuthService } from './services/externalOAuth.js';
 export { GoogleCalendarService } from './services/googleCalendar.js';

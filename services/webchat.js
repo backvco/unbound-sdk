@@ -5,80 +5,9 @@ import { WebchatVisitorService } from './webchat/VisitorService.js';
 // /webchat/widgets/ (checkApiAuth) -- deliberately not bare /webchat/, which
 // is the (now-implemented, P7) unauthenticated visitor surface -- see
 // `sdk.webchat.visitor` (./webchat/VisitorService.js) (plan §5/§10 Q7).
-export class WebchatWidgetKeysService {
-  constructor(sdk) {
-    this.sdk = sdk;
-  }
-
-  /**
-   * List signing keys for a widget.
-   * @param {string} widgetId
-   * @returns {Promise<Array<Object>>}
-   */
-  async list(widgetId) {
-    this.sdk.validateParams(
-      { widgetId },
-      { widgetId: { type: 'string', required: true } },
-    );
-
-    return internalRequest(
-      this.sdk,
-      `/webchat/widgets/${widgetId}/keys`,
-      'GET',
-    );
-  }
-
-  /**
-   * Create a signing key for a widget. The token is server-generated and
-   * returned once in this response only.
-   * @param {string} widgetId
-   * @param {Object} [options]
-   * @param {string[]} [options.urls] - allowlisted origins/domains for this key
-   * @returns {Promise<Object>}
-   */
-  async create(widgetId, options = {}) {
-    this.sdk.validateParams(
-      { widgetId },
-      { widgetId: { type: 'string', required: true } },
-    );
-
-    const params = { body: { ...options } };
-
-    return internalRequest(
-      this.sdk,
-      `/webchat/widgets/${widgetId}/keys`,
-      'POST',
-      params,
-    );
-  }
-
-  /**
-   * Delete (soft) a widget signing key.
-   * @param {string} widgetId
-   * @param {string} keyId
-   * @returns {Promise<Object>}
-   */
-  async delete(widgetId, keyId) {
-    this.sdk.validateParams(
-      { widgetId, keyId },
-      {
-        widgetId: { type: 'string', required: true },
-        keyId: { type: 'string', required: true },
-      },
-    );
-
-    return internalRequest(
-      this.sdk,
-      `/webchat/widgets/${widgetId}/keys/${keyId}`,
-      'DELETE',
-    );
-  }
-}
-
 export class WebchatWidgetsService {
   constructor(sdk) {
     this.sdk = sdk;
-    this.keys = new WebchatWidgetKeysService(sdk);
   }
 
   /**
