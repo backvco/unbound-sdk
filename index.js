@@ -304,6 +304,7 @@ export {
   WebchatWidgetsService,
   WebchatWidgetKeysService,
 } from './services/webchat.js';
+export { WebchatVisitorService } from './services/webchat/VisitorService.js';
 export { ExternalOAuthService } from './services/externalOAuth.js';
 export { GoogleCalendarService } from './services/googleCalendar.js';
 export { DriveService } from './services/drive.js';

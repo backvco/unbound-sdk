@@ -1,8 +1,10 @@
 import { internalRequest } from '../base.js';
+import { WebchatVisitorService } from './webchat/VisitorService.js';
 
 // WebChat P0: agent-facing widget CRUD. Endpoints live under
 // /webchat/widgets/ (checkApiAuth) -- deliberately not bare /webchat/, which
-// is reserved for the future unauthenticated visitor surface (plan §5).
+// is the (now-implemented, P7) unauthenticated visitor surface -- see
+// `sdk.webchat.visitor` (./webchat/VisitorService.js) (plan §5/§10 Q7).
 export class WebchatWidgetKeysService {
   constructor(sdk) {
     this.sdk = sdk;
@@ -288,5 +290,9 @@ export class WebchatService {
     this.sdk = sdk;
     this.widgets = new WebchatWidgetsService(sdk);
     this.conversations = new WebchatConversationsService(sdk);
+    // Public visitor surface (plan §10 Q7, esign.public pattern) -- no
+    // agent token required; a custom-UI integration constructs its own sdk
+    // instance with just `{namespace}` and uses only this namespace.
+    this.visitor = new WebchatVisitorService(sdk);
   }
 }
