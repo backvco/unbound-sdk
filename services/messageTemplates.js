@@ -96,9 +96,13 @@ export class MessageTemplatesCrudService {
    */
   async list(options = {}) {
     const { groupId } = options;
-    return internalRequest(this.sdk, '/messageTemplates/templates', 'GET', {
-      query: { groupId },
-    });
+    // Omit unset groupId — URLSearchParams would send "undefined" and
+    // the API would 404 looking up that string as a group id.
+    const params = {};
+    if (groupId !== undefined && groupId !== null && groupId !== '') {
+      params.query = { groupId };
+    }
+    return internalRequest(this.sdk, '/messageTemplates/templates', 'GET', params);
   }
 
   /**
