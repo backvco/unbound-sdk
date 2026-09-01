@@ -164,9 +164,84 @@ export class WebchatWidgetsService {
   }
 }
 
+export class WebchatConversationMessagesService {
+  constructor(sdk) {
+    this.sdk = sdk;
+  }
+
+  /**
+   * List messages for a webchat conversation (agent view).
+   * @param {string} widgetId
+   * @param {string} engagementSessionId
+   * @param {Object} [options]
+   * @param {string} [options.before] - cursor: return messages created before this
+   * @param {number} [options.limit]
+   * @returns {Promise<Array<Object>>}
+   */
+  async list(widgetId, engagementSessionId, options = {}) {
+    this.sdk.validateParams(
+      { widgetId, engagementSessionId },
+      {
+        widgetId: { type: 'string', required: true },
+        engagementSessionId: { type: 'string', required: true },
+      },
+    );
+
+    const { before, limit } = options;
+
+    return internalRequest(
+      this.sdk,
+      `/webchat/widgets/${widgetId}/conversations/${engagementSessionId}/messages`,
+      'GET',
+      { query: { before, limit } },
+    );
+  }
+
+  /**
+   * Send a message into a webchat conversation as an agent.
+   * @param {string} widgetId
+   * @param {string} engagementSessionId
+   * @param {Object} options
+   * @param {string} options.message
+   * @param {Object} [options.media]
+   * @returns {Promise<Object>}
+   */
+  async send(widgetId, engagementSessionId, options) {
+    this.sdk.validateParams(
+      {
+        widgetId,
+        engagementSessionId,
+        message: options?.message,
+      },
+      {
+        widgetId: { type: 'string', required: true },
+        engagementSessionId: { type: 'string', required: true },
+        message: { type: 'string', required: true },
+      },
+    );
+
+    const params = { body: { ...options } };
+
+    return internalRequest(
+      this.sdk,
+      `/webchat/widgets/${widgetId}/conversations/${engagementSessionId}/messages`,
+      'POST',
+      params,
+    );
+  }
+}
+
+export class WebchatConversationsService {
+  constructor(sdk) {
+    this.sdk = sdk;
+    this.messages = new WebchatConversationMessagesService(sdk);
+  }
+}
+
 export class WebchatService {
   constructor(sdk) {
     this.sdk = sdk;
     this.widgets = new WebchatWidgetsService(sdk);
+    this.conversations = new WebchatConversationsService(sdk);
   }
 }
