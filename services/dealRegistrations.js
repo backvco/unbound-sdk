@@ -44,4 +44,27 @@ export class DealRegistrationsService {
       body: { reason },
     });
   }
+
+  /**
+   * Immediate staff-side conflict check against a prospect company, used by
+   * the create-mode form's Company lookup field to warn before submit —
+   * runs the same conflict engine the create handler stamps onto the
+   * record at save time, without creating anything. Session-less staff
+   * endpoint (checkApiAuth), not part of the portal registration flow.
+   * @param {string} companyId - company record id (the prospect, not the
+   *   partner)
+   * @returns {Promise<Object>} { conflict: boolean, reasons: string[] }
+   */
+  async conflictCheck(companyId) {
+    this.sdk.validateParams(
+      { companyId },
+      { companyId: { type: 'string', required: true } },
+    );
+    return internalRequest(
+      this.sdk,
+      '/deal-registrations/conflict-check',
+      'GET',
+      { query: { companyId } },
+    );
+  }
 }

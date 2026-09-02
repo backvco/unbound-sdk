@@ -37,7 +37,14 @@ class WebchatVisitorSessionService {
    * @param {string} [params.pageUrl]
    * @returns {Promise<{engagementSessionId:string, token:string, resumeToken:string, status:'created'}>}
    */
-  async create({ widgetId, embedGrant, visitorData, pageUrl } = {}) {
+  async create({
+    widgetId,
+    embedGrant,
+    visitorData,
+    pageUrl,
+    trackingId,
+    initialMessage,
+  } = {}) {
     this.sdk.validateParams(
       { widgetId, embedGrant },
       {
@@ -49,7 +56,40 @@ class WebchatVisitorSessionService {
       this.sdk,
       `/webchat/${widgetId}/session`,
       'POST',
-      { body: { embedGrant, visitorData, pageUrl } },
+      {
+        body: {
+          embedGrant,
+          visitorData,
+          pageUrl,
+          trackingId,
+          initialMessage,
+        },
+      },
+      true,
+    );
+  }
+
+  /**
+   * Prefill the pre-chat form from a marketing `_tid` cookie.
+   * @param {Object} params
+   * @param {string} params.widgetId
+   * @param {string} params.embedGrant
+   * @param {string} [params.trackingId]
+   * @returns {Promise<{values: Object}>}
+   */
+  async profile({ widgetId, embedGrant, trackingId } = {}) {
+    this.sdk.validateParams(
+      { widgetId, embedGrant },
+      {
+        widgetId: { type: 'string', required: true },
+        embedGrant: { type: 'string', required: true },
+      },
+    );
+    return internalRequest(
+      this.sdk,
+      `/webchat/${widgetId}/visitor-profile`,
+      'POST',
+      { body: { embedGrant, trackingId } },
       true,
     );
   }

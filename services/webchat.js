@@ -133,8 +133,9 @@ export class WebchatConversationMessagesService {
    * @param {string} widgetId
    * @param {string} engagementSessionId
    * @param {Object} options
-   * @param {string} options.message
+   * @param {string} [options.message]
    * @param {Object} [options.media]
+   * @param {Object|Array} [options.card] - v1 chat card `{schemaVersion, blocks}` or a blocks array
    * @returns {Promise<Object>}
    */
   async send(widgetId, engagementSessionId, options) {
@@ -143,11 +144,15 @@ export class WebchatConversationMessagesService {
         widgetId,
         engagementSessionId,
         message: options?.message,
+        media: options?.media,
+        card: options?.card,
       },
       {
         widgetId: { type: 'string', required: true },
         engagementSessionId: { type: 'string', required: true },
-        message: { type: 'string', required: true },
+        message: { type: 'string', required: false },
+        media: { type: 'object', required: false },
+        card: { type: 'object', required: false },
       },
     );
 

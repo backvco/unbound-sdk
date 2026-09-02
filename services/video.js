@@ -413,6 +413,31 @@ export class VideoService {
     return result;
   }
 
+  /**
+   * Send the brand-level Meet invite email to one or more addresses.
+   *
+   * @param {string} roomId
+   * @param {Object} input
+   * @param {string[]} input.to
+   * @param {string} [input.peopleId]
+   * @param {string} [input.engagementSessionId]
+   */
+  async inviteByEmail(roomId, { to, peopleId, engagementSessionId } = {}) {
+    this.sdk.validateParams(
+      { roomId, to },
+      {
+        roomId: { type: 'string', required: true },
+        to: { type: 'array', required: true },
+      },
+    );
+    const body = { to };
+    if (peopleId) body.peopleId = peopleId;
+    if (engagementSessionId) body.engagementSessionId = engagementSessionId;
+    return internalRequest(this.sdk, `/video/${roomId}/invite`, 'POST', {
+      body,
+    });
+  }
+
   async placeCall(roomId, phoneNumber, callerIdNumber) {
     this.sdk.validateParams(
       { roomId, phoneNumber, callerIdNumber },
