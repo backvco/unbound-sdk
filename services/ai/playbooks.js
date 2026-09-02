@@ -114,7 +114,13 @@ export class PlaybooksService {
    *   isPublished: true
    * });
    */
-  async updatePlaybook({ playbookId, name, isPublished, recordTypeId }) {
+  async updatePlaybook({
+    playbookId,
+    name,
+    isPublished,
+    recordTypeId,
+    passScore,
+  }) {
     this.sdk.validateParams(
       { playbookId },
       {
@@ -122,11 +128,12 @@ export class PlaybooksService {
         name: { type: 'string', required: false },
         isPublished: { type: 'boolean', required: false },
         recordTypeId: { type: 'string', required: false },
+        passScore: { type: 'number', required: false },
       },
     );
 
     const params = {
-      body: { name, isPublished, recordTypeId },
+      body: { name, isPublished, recordTypeId, passScore },
     };
 
     const result = await internalRequest(this.sdk, 
@@ -202,6 +209,8 @@ export class PlaybooksService {
     requiredForPass,
     role,
     signal,
+    window,
+    windowTurns,
     recordTypeId,
   }) {
     this.sdk.validateParams(
@@ -229,6 +238,8 @@ export class PlaybooksService {
         requiredForPass: { type: 'boolean', required: false },
         role: { type: 'string', required: false },
         signal: { type: 'string', required: false },
+        window: { type: 'string', required: false },
+        windowTurns: { type: 'number', required: false },
         recordTypeId: { type: 'string', required: false },
       },
     );
@@ -244,6 +255,8 @@ export class PlaybooksService {
         requiredForPass,
         role,
         signal,
+        window,
+        windowTurns,
         recordTypeId,
       },
     };
@@ -345,6 +358,8 @@ export class PlaybooksService {
     requiredForPass,
     role,
     signal,
+    window,
+    windowTurns,
     recordTypeId,
   }) {
     this.sdk.validateParams(
@@ -372,6 +387,8 @@ export class PlaybooksService {
         requiredForPass: { type: 'boolean', required: false },
         role: { type: 'string', required: false },
         signal: { type: 'string', required: false },
+        window: { type: 'string', required: false },
+        windowTurns: { type: 'number', required: false },
         recordTypeId: { type: 'string', required: false },
       },
     );
@@ -387,6 +404,8 @@ export class PlaybooksService {
         requiredForPass,
         role,
         signal,
+        window,
+        windowTurns,
         recordTypeId,
       },
     };
@@ -491,6 +510,8 @@ export class PlaybooksService {
     description,
     keywords,
     recommendedPhase,
+    window,
+    windowTurns,
     role,
     signal,
     recordTypeId,
@@ -502,6 +523,8 @@ export class PlaybooksService {
         description: { type: 'string', required: false },
         keywords: { type: 'array', required: false },
         recommendedPhase: { type: 'string', required: false },
+        window: { type: 'string', required: false },
+        windowTurns: { type: 'number', required: false },
         role: { type: 'string', required: false },
         signal: { type: 'string', required: false },
         recordTypeId: { type: 'string', required: false },
@@ -509,7 +532,17 @@ export class PlaybooksService {
     );
 
     const params = {
-      body: { name, description, keywords, recommendedPhase, role, signal, recordTypeId },
+      body: {
+        name,
+        description,
+        keywords,
+        recommendedPhase,
+        window,
+        windowTurns,
+        role,
+        signal,
+        recordTypeId,
+      },
     };
 
     const result = await internalRequest(this.sdk, 
@@ -604,22 +637,28 @@ export class PlaybooksService {
    */
   async updatePlaybookGoalType({
     goalTypeId,
+    playbookGoalTypeId,
     name,
     description,
     keywords,
     recommendedPhase,
+    window,
+    windowTurns,
     role,
     signal,
     recordTypeId,
   }) {
+    const id = goalTypeId || playbookGoalTypeId;
     this.sdk.validateParams(
-      { goalTypeId },
+      { goalTypeId: id },
       {
         goalTypeId: { type: 'string', required: true },
         name: { type: 'string', required: false },
         description: { type: 'string', required: false },
         keywords: { type: 'array', required: false },
         recommendedPhase: { type: 'string', required: false },
+        window: { type: 'string', required: false },
+        windowTurns: { type: 'number', required: false },
         role: { type: 'string', required: false },
         signal: { type: 'string', required: false },
         recordTypeId: { type: 'string', required: false },
@@ -627,11 +666,21 @@ export class PlaybooksService {
     );
 
     const params = {
-      body: { name, description, keywords, recommendedPhase, role, signal, recordTypeId },
+      body: {
+        name,
+        description,
+        keywords,
+        recommendedPhase,
+        window,
+        windowTurns,
+        role,
+        signal,
+        recordTypeId,
+      },
     };
 
     const result = await internalRequest(this.sdk, 
-      `/ai/playbooks/goalTypes/${goalTypeId}`,
+      `/ai/playbooks/goalTypes/${id}`,
       'PUT',
       params,
     );

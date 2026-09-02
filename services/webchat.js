@@ -165,6 +165,32 @@ export class WebchatConversationMessagesService {
       params,
     );
   }
+
+  /**
+   * Hide a link preview on a webchat message (same as chat.hideUnfurl).
+   * @param {string} widgetId
+   * @param {string} engagementSessionId
+   * @param {string} messageId
+   * @param {Object} options
+   * @param {string} options.url
+   */
+  async hideUnfurl(widgetId, engagementSessionId, messageId, { url } = {}) {
+    this.sdk.validateParams(
+      { widgetId, engagementSessionId, messageId, url },
+      {
+        widgetId: { type: 'string', required: true },
+        engagementSessionId: { type: 'string', required: true },
+        messageId: { type: 'string', required: true },
+        url: { type: 'string', required: true },
+      },
+    );
+    return internalRequest(
+      this.sdk,
+      `/webchat/widgets/${widgetId}/conversations/${engagementSessionId}/messages/${messageId}/unfurls/hide`,
+      'POST',
+      { body: { url } },
+    );
+  }
 }
 
 export class WebchatConversationsService {

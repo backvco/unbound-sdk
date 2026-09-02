@@ -448,6 +448,36 @@ export class TenDlcCampaignManagementService {
   }
 
   /**
+   * Bulk-add/move phone numbers onto a campaign
+   * @param {string} campaignId - Campaign ID
+   * @param {Object} options
+   * @param {string[]} options.phoneNumbers - Phone numbers in E.164 format (1-200)
+   * @param {boolean} [options.force] - Move numbers off another campaign instead
+   *   of returning a 409 conflict
+   * @returns {Promise<Object>} `{ id, results: [{ phoneNumber, status, ... }] }`
+   */
+  async addPhoneNumbers(campaignId, { phoneNumbers, force } = {}) {
+    this.sdk.validateParams(
+      { campaignId, phoneNumbers },
+      {
+        campaignId: { type: 'string', required: true },
+        phoneNumbers: { type: 'array', required: true },
+      },
+    );
+
+    const options = {
+      body: { phoneNumbers, force },
+    };
+
+    const result = await internalRequest(this.sdk,
+      `/messaging/campaigns/10dlc/campaign/${campaignId}/phoneNumbers`,
+      'POST',
+      options,
+    );
+    return result;
+  }
+
+  /**
    * Remove phone number from campaign
    */
   async removePhoneNumber(campaignId, phoneNumberData) {
