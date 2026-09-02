@@ -1,3 +1,8 @@
+## 4.13.37
+
+- feat: `sdk.ai.battleCards` — pack/card CRUD (`/ai/battleCards/packs`, `/ai/battleCards/cards`) and queue pack assignment (`GET`/`PUT /ai/battleCards/queues/:queueId`)
+- feat: `sdk.ai.assist.evaluate` / `getLast` — live assist (`POST /ai/assist/evaluate`, `GET /ai/assist/last/:taskId`)
+
 ## Unreleased
 
 - docs: `sdk.portals.update`/`create` JSDoc documents the new `settings.profile`

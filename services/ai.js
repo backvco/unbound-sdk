@@ -1,5 +1,7 @@
 import { internalRequest } from '../base.js';
 import { PlaybooksService } from './ai/playbooks.js';
+import { BattleCardsService } from './ai/battleCards.js';
+import { AssistService } from './ai/assist.js';
 import { VocabularyService } from './ai/vocabulary.js';
 import { EmailService } from './ai/email.js';
 import { translate as translateItems } from './ai/translate.js';
@@ -16,6 +18,8 @@ export class AIService {
     this.stt = new SpeechToTextService(sdk);
     this.extract = new ExtractService(sdk);
     this.playbooks = new PlaybooksService(sdk);
+    this.battleCards = new BattleCardsService(sdk);
+    this.assist = new AssistService(sdk);
     this.vocabulary = new VocabularyService(sdk);
     this.email = new EmailService(sdk);
   }
