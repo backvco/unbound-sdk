@@ -1007,6 +1007,7 @@ export class PlaybooksService {
     confidence,
     evidence,
     role,
+    missed,
   }) {
     this.sdk.validateParams(
       { sessionId, goalId },
@@ -1019,6 +1020,7 @@ export class PlaybooksService {
         confidence: { type: 'number', required: false },
         evidence: { type: 'array', required: false },
         role: { type: 'string', required: false },
+        missed: { type: 'boolean', required: false },
       },
     );
 
@@ -1031,6 +1033,7 @@ export class PlaybooksService {
         confidence,
         evidence,
         role,
+        missed,
       },
     };
 
