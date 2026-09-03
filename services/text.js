@@ -97,6 +97,56 @@ export class TextConversationsService {
       body: { queueId, workflowId, workflowVersionId },
     });
   }
+
+  /**
+   * Move a TASK-owned conversation to a user (or UC Chat group) or to a
+   * workflow (sms-routing-plan.md K4, plan §3.4 "task -> user"/"task ->
+   * workflow"). Caller must be the task's current worker or a manager --
+   * enforced server-side. Moving to a user creates/reuses the UC Chat
+   * channel for that (identity, counterparty) pair starting from now --
+   * prior message history is NOT backfilled into the channel.
+   * @param {string} id - textConversations id (required)
+   * @param {Object} options - Parameters
+   * @param {'user'|'workflow'} options.to - Move target (required)
+   * @param {string} [options.userId] - Target user (required if to:'user' and no groupId)
+   * @param {string} [options.groupId] - Target UC Chat group (required if to:'user' and no userId)
+   * @param {'private'|'public'} [options.visibility] - New channel visibility (to:'user' only)
+   * @param {string} [options.workflowId] - Move to a workflow's current version
+   * @param {string} [options.workflowVersionId] - Move to a pinned workflow version
+   * @returns {Promise<Object>} The updated conversation row
+   */
+  async move(id, options = {}) {
+    const { to, userId, groupId, visibility, workflowId, workflowVersionId } =
+      options;
+
+    this.sdk.validateParams(
+      { id, to, userId, groupId, visibility, workflowId, workflowVersionId },
+      {
+        id: { type: 'string', required: true },
+        to: { type: 'string', required: true },
+        userId: { type: 'string', required: false },
+        groupId: { type: 'string', required: false },
+        visibility: { type: 'string', required: false },
+        workflowId: { type: 'string', required: false },
+        workflowVersionId: { type: 'string', required: false },
+      },
+    );
+    if (to !== 'user' && to !== 'workflow') {
+      throw new Error("move requires to: 'user' or 'workflow'");
+    }
+    if (to === 'user' && !userId && !groupId) {
+      throw new Error("move to:'user' requires userId or groupId");
+    }
+    if (to === 'workflow' && !workflowId && !workflowVersionId) {
+      throw new Error(
+        "move to:'workflow' requires workflowId or workflowVersionId",
+      );
+    }
+
+    return internalRequest(this.sdk, `/text/conversations/${id}/move`, 'POST', {
+      body: { to, userId, groupId, visibility, workflowId, workflowVersionId },
+    });
+  }
 }
 
 export class TextService {

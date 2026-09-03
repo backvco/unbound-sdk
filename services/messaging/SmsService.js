@@ -10,7 +10,8 @@ export class SmsService {
   /**
    * Send an SMS/MMS message
    * @param {Object} params - Message parameters
-   * @param {string} params.to - Recipient phone number (required)
+   * @param {string|string[]} params.to - Recipient phone number, or an
+   *   array of up to 8 for a group MMS send (required)
    * @param {string} [params.from] - Sender phone number
    * @param {string} [params.message] - Message text
    * @param {string} [params.templateId] - Template ID to use
@@ -50,10 +51,24 @@ export class SmsService {
     if (taskId) messageData.taskId = taskId;
     if (force !== undefined) messageData.force = force;
 
+    // `to` is string | string[] (group MMS, up to 8 recipients) --
+    // validated by hand since sdk.validateParams has no multi-type support
+    // (see TaskService.js's ['string','array'] usage, which hits the same
+    // gap) rather than compounding that on a new call site.
+    if (to === undefined || to === null) {
+      throw new Error('Missing required parameter to');
+    }
+    if (Array.isArray(to)) {
+      if (!to.length || !to.every((n) => typeof n === 'string')) {
+        throw new Error('Invalid type for parameter to: expected string or string[]');
+      }
+    } else if (typeof to !== 'string') {
+      throw new Error('Invalid type for parameter to: expected string or string[]');
+    }
+
     this.sdk.validateParams(
-      { to, ...messageData },
+      { ...messageData },
       {
-        to: { type: 'string', required: true },
         from: { type: 'string', required: false },
         message: { type: 'string', required: false },
         templateId: { type: 'string', required: false },
