@@ -1032,14 +1032,25 @@ export class ObjectsService {
     isBotAccessible = null,
     isPublicBot = null,
     description = null,
+    feedPostChanges = null,
+    feedPostWindowSeconds = null,
   }) {
     this.sdk.validateParams(
-      { objectName, isBotAccessible, isPublicBot, description },
+      {
+        objectName,
+        isBotAccessible,
+        isPublicBot,
+        description,
+        feedPostChanges,
+        feedPostWindowSeconds,
+      },
       {
         objectName: { type: 'string', required: true },
         isBotAccessible: { type: 'boolean', required: false },
         isPublicBot: { type: 'boolean', required: false },
         description: { type: 'string', required: false },
+        feedPostChanges: { type: 'boolean', required: false },
+        feedPostWindowSeconds: { type: 'number', required: false },
       },
     );
 
@@ -1047,6 +1058,9 @@ export class ObjectsService {
     if (isBotAccessible !== null) body.isBotAccessible = isBotAccessible;
     if (isPublicBot !== null) body.isPublicBot = isPublicBot;
     if (description !== null) body.description = description;
+    if (feedPostChanges !== null) body.feedPostChanges = feedPostChanges;
+    if (feedPostWindowSeconds !== null)
+      body.feedPostWindowSeconds = feedPostWindowSeconds;
 
     const params = { body };
 

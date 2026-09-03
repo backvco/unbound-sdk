@@ -18,11 +18,21 @@ export class DealRegistrationsService {
    * company/people/opportunity records (reusing matched records where
    * possible) and stamps the registration approved.
    * @param {string} id - dealRegistrations record id
+   * @param {Object} [options]
+   * @param {string} [options.notes] - shared with the partner (approval email + portal)
+   * @param {boolean} [options.force] - override a detected conflict; required
+   *   when conflictStatus === 'conflict', otherwise the API answers 200
+   *   with converted:false and leaves the registration pending.
    * @returns {Promise<Object>} { registration, converted }
    */
-  async approve(id) {
+  async approve(id, { notes, force } = {}) {
     this.sdk.validateParams({ id }, { id: { type: 'string', required: true } });
-    return internalRequest(this.sdk, `/deal-registrations/${id}/approve`, 'POST');
+    const body = {};
+    if (notes !== undefined) body.notes = notes;
+    if (force !== undefined) body.force = force;
+    return internalRequest(this.sdk, `/deal-registrations/${id}/approve`, 'POST', {
+      body,
+    });
   }
 
   /**
