@@ -108,4 +108,26 @@ export class SmsService {
     );
     return result;
   }
+
+  /**
+   * Re-send a failed message as a new row, linked back via retryOfId
+   * (sms-routing-plan.md §5.1, contract C2).
+   * @param {string} id - The failed message's id (required)
+   * @returns {Promise<Object>} The new message's { id, status }
+   */
+  async retry(id) {
+    this.sdk.validateParams(
+      { id },
+      {
+        id: { type: 'string', required: true },
+      },
+    );
+
+    const result = await internalRequest(
+      this.sdk,
+      `/messaging/sms/${id}/retry`,
+      'POST',
+    );
+    return result;
+  }
 }
