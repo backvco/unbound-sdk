@@ -9,7 +9,16 @@ export class MetricsService {
    * Retrieves real-time metrics for task router queues, tasks, and workers.
    * This provides insights into queue performance, wait times, task counts, and worker activity.
    *
-   * @param {Object} params - Metric parameters
+   * Accepts either `(params)` or `(accountId, params)` -- every client
+   * caller uses the former (e.g. `getCurrent({ queueId })`), and
+   * `accountId` is optional (the API route scopes by the authenticated
+   * account already). Sent as a query string, not a body: this hits
+   * `/taskRouter/metrics/current` over GET, and base.js's `_httpRequest`
+   * deletes `body` on any GET request, so a body-only payload here was
+   * silently discarded before ever reaching the server.
+   *
+   * @param {Object|string} [paramsOrAccountId] - Either the params object (preferred) or an accountId string
+   * @param {Object} [maybeParams] - Metric parameters, when the first argument is an accountId
    * @param {string} [params.period] - Time period for metrics calculation. Options: '5min', '15min', '30min', '1hour', '24hour'
    * @param {string} [params.queueId] - Specific queue ID to filter metrics. If not provided, returns metrics for all queues
    * @param {string} [params.metricType] - Type of metrics to retrieve: 'queue', 'task', 'worker', or 'all' (default: 'all')
@@ -71,7 +80,11 @@ export class MetricsService {
    * console.log(taskMetrics.metrics.task.created); // 150
    * console.log(taskMetrics.metrics.task.completed); // 142
    */
-  async getCurrent(accountId, params = {}) {
+  async getCurrent(paramsOrAccountId, maybeParams) {
+    const isParamsFirst =
+      paramsOrAccountId !== null && typeof paramsOrAccountId === 'object';
+    const accountId = isParamsFirst ? undefined : paramsOrAccountId;
+    const params = (isParamsFirst ? paramsOrAccountId : maybeParams) || {};
     const { period, queueId, metricType, limit = 100 } = params;
 
     this.sdk.validateParams(
@@ -84,28 +97,28 @@ export class MetricsService {
       },
     );
 
-    const requestParams = {
-      body: {
-        limit,
-      },
-    };
+    const query = { limit };
+
+    if (accountId !== undefined) {
+      query.accountId = accountId;
+    }
 
     if (period !== undefined) {
-      requestParams.body.period = period;
+      query.period = period;
     }
 
     if (queueId !== undefined) {
-      requestParams.body.queueId = queueId;
+      query.queueId = queueId;
     }
 
     if (metricType !== undefined) {
-      requestParams.body.metricType = metricType;
+      query.metricType = metricType;
     }
 
-    const result = await internalRequest(this.sdk, 
+    const result = await internalRequest(this.sdk,
       '/taskRouter/metrics/current',
       'GET',
-      requestParams,
+      { query },
     );
     return result;
   }
