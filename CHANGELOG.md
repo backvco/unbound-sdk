@@ -1,3 +1,7 @@
+## 4.13.43
+
+- feat: `sdk.text.conversations.callThread(cdrId)` / `.openCallThread(cdrId)` — "SMS from an active call": check whether the current user may open the UC Chat text channel for a call's (our number, other party) pair, and open/join it (`GET`/`POST /text/call-thread`)
+
 ## 4.13.37
 
 - feat: `sdk.ai.battleCards` — pack/card CRUD (`/ai/battleCards/packs`, `/ai/battleCards/cards`) and queue pack assignment (`GET`/`PUT /ai/battleCards/queues/:queueId`)

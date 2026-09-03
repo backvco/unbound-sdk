@@ -147,6 +147,42 @@ export class TextConversationsService {
       body: { to, userId, groupId, visibility, workflowId, workflowVersionId },
     });
   }
+
+  /**
+   * "SMS from an active call": check whether the current user may open the
+   * UC Chat text channel for a call's (our number, other party) pair.
+   * Never throws for an unavailable result -- check `available`/`reason`.
+   * @param {string} cdrId - cdr_acct id for the call (required)
+   * @returns {Promise<Object>} { available, reason, phoneNumberId, ourNumber, counterparty, conversationId, channelId, isMember }
+   */
+  async callThread(cdrId) {
+    this.sdk.validateParams(
+      { cdrId },
+      { cdrId: { type: 'string', required: true } },
+    );
+
+    return internalRequest(this.sdk, '/text/call-thread', 'GET', {
+      query: { cdrId },
+    });
+  }
+
+  /**
+   * Open (or join) the UC Chat text channel for a call's (our number,
+   * other party) pair, minting the conversation/channel if none is open
+   * yet. 403s if callThread(cdrId) would report `available: false`.
+   * @param {string} cdrId - cdr_acct id for the call (required)
+   * @returns {Promise<Object>} { channel, conversationId }
+   */
+  async openCallThread(cdrId) {
+    this.sdk.validateParams(
+      { cdrId },
+      { cdrId: { type: 'string', required: true } },
+    );
+
+    return internalRequest(this.sdk, '/text/call-thread', 'POST', {
+      body: { cdrId },
+    });
+  }
 }
 
 export class TextService {
