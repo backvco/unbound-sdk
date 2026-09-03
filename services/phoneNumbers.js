@@ -112,6 +112,9 @@ export class PhoneNumbersService {
       voiceRecordTypeId,
       messagingRecordTypeId,
       recordCalls,
+      textApp,
+      textAppMetaData,
+      textChatVisibility,
     },
   ) {
     this.sdk.validateParams(
@@ -125,6 +128,9 @@ export class PhoneNumbersService {
         voiceRecordTypeId,
         messagingRecordTypeId,
         recordCalls,
+        textApp,
+        textAppMetaData,
+        textChatVisibility,
       },
       {
         id: { type: 'string', required: true },
@@ -137,6 +143,9 @@ export class PhoneNumbersService {
         voiceRecordTypeId: { type: 'string', required: false },
         messagingRecordTypeId: { type: 'string', required: false },
         recordCalls: { type: 'boolean', required: false },
+        textApp: { type: 'string', required: false },
+        textAppMetaData: { type: 'string', required: false },
+        textChatVisibility: { type: 'string', required: false },
       },
     );
 
@@ -155,6 +164,11 @@ export class PhoneNumbersService {
     if (messagingRecordTypeId)
       updateData.messagingRecordTypeId = messagingRecordTypeId;
     if (recordCalls !== undefined) updateData.recordCalls = recordCalls;
+    if (textApp !== undefined) updateData.textApp = textApp;
+    if (textAppMetaData !== undefined)
+      updateData.textAppMetaData = textAppMetaData;
+    if (textChatVisibility !== undefined)
+      updateData.textChatVisibility = textChatVisibility;
 
     const params = {
       body: updateData,

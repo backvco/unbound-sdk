@@ -43,6 +43,7 @@ import { SearchService } from './services/search.js';
 import { DirectoryService } from './services/directory.js';
 import { ChatService } from './services/chat.js';
 import { DeveloperApisService } from './services/developerApis.js';
+import { TextService } from './services/text.js';
 import {
   DataImportService,
   DataExportService,
@@ -120,6 +121,7 @@ class UnboundSDK extends BaseSDK {
     this.generateId = new GenerateIdService(this);
     this.engagementMetrics = new EngagementMetricsService(this);
     this.taskRouter = new TaskRouterService(this);
+    this.text = new TextService(this);
     this.knowledgeBase = new KnowledgeBaseService(this);
     this.fax = new FaxService(this);
     this.documents = new DocumentsService(this);

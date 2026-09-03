@@ -846,6 +846,67 @@ export class TaskService {
   }
 
   /**
+   * Park a task ("waiting for customer"). Clears the worker (freeing
+   * capacity) and stamps preferredWorkerId with the parking worker so
+   * unpark can offer the task back to them first.
+   *
+   * @param {Object} options - Parameters
+   * @param {string} options.taskId - The task ID to park (required)
+   * @returns {Promise<Object>} { taskId, status: 'parked' }
+   */
+  async park(options = {}) {
+    const { taskId } = options;
+
+    this.sdk.validateParams(
+      { taskId },
+      { taskId: { type: 'string', required: true } },
+    );
+
+    const params = { body: { taskId } };
+
+    return await internalRequest(
+      this.sdk,
+      '/taskRouter/tasks/park',
+      'PUT',
+      params,
+    );
+  }
+
+  /**
+   * Transfer a task to a different queue and/or worker. Passing queueId
+   * moves the task back to 'pending' status for re-distribution.
+   *
+   * @param {Object} options - Parameters
+   * @param {string} options.taskId - The task ID to transfer (required)
+   * @param {string} [options.queueId] - Destination queue ID
+   * @param {string} [options.workerId] - Destination worker ID
+   * @returns {Promise<Object>} { taskId }
+   */
+  async transfer(options = {}) {
+    const { taskId, queueId, workerId } = options;
+
+    this.sdk.validateParams(
+      { taskId, queueId, workerId },
+      {
+        taskId: { type: 'string', required: true },
+        queueId: { type: 'string', required: false },
+        workerId: { type: 'string', required: false },
+      },
+    );
+
+    const params = { body: { taskId } };
+    if (queueId !== undefined) params.body.queueId = queueId;
+    if (workerId !== undefined) params.body.workerId = workerId;
+
+    return await internalRequest(
+      this.sdk,
+      '/taskRouter/tasks/transfer',
+      'PUT',
+      params,
+    );
+  }
+
+  /**
    * Get the voice transcript for a task, keyed by the media-manager
    * bridgeId (not sipCallId) so it works across requeue/transfer.
    *
