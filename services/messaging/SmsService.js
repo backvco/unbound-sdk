@@ -21,6 +21,8 @@ export class SmsService {
    *   to attach this message to, so it surfaces on that record's feed
    * @param {string} [params.engagementSessionId] - Engagement to attach this message to
    * @param {string} [params.taskId] - Task the message was sent under (multi-channel-per-task attribution)
+   * @param {boolean} [params.force] - Force-send past a busy-conversation
+   *   (409 TEXT_CONVERSATION_BUSY) collision
    * @returns {Promise<Object>} Message details
    */
   async send({
@@ -34,6 +36,7 @@ export class SmsService {
     relatedId,
     engagementSessionId,
     taskId,
+    force,
   }) {
     const messageData = {};
     if (from) messageData.from = from;
@@ -45,6 +48,7 @@ export class SmsService {
     if (relatedId) messageData.relatedId = relatedId;
     if (engagementSessionId) messageData.engagementSessionId = engagementSessionId;
     if (taskId) messageData.taskId = taskId;
+    if (force !== undefined) messageData.force = force;
 
     this.sdk.validateParams(
       { to, ...messageData },
@@ -59,6 +63,7 @@ export class SmsService {
         relatedId: { type: 'string', required: false },
         engagementSessionId: { type: 'string', required: false },
         taskId: { type: 'string', required: false },
+        force: { type: 'boolean', required: false },
       },
     );
 
