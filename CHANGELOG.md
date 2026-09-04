@@ -1,3 +1,8 @@
+## 4.13.51
+
+- feat: `sdk.objects.listParticipants(recordId)` — engagement roster (`GET /object/:id/participants`)
+- feat: `sdk.taskRouter.task.create({ source })` — pass engagement `source` when `createEngagement` is true (portal tickets: `'portal'`)
+
 ## 4.13.50
 
 - feat: `sdk.ai.assist.listQueueKnowledgeBases` / `setQueueKnowledgeBases` / `listQueueObjects` / `setQueueObjects` — per-queue Assist KB + CRM object allow-list

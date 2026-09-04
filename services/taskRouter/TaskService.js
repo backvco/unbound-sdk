@@ -25,6 +25,7 @@ export class TaskService {
    * @param {string} [options.relatedId] - Related object ID for metadata tracking (automatically set if createEngagement is true)
    * @param {string} [options.parentTaskId] - Parent task id (wrapUp follow-up / requeue)
    * @param {string} [options.preferredWorkerId] - Preferred worker id persisted on create INSERT
+   * @param {string} [options.source] - Engagement `source` when `createEngagement` is true (e.g. `'portal'`)
    * @param {Object} [options.metadata] - Arbitrary metadata to attach to the task at creation (e.g. `{ textConversationId }`). Passed through as-is; whether it is persisted depends on the receiving endpoint honoring `metadata` in the request body.
    * @returns {Promise<Object>} Object containing the created task information
    * @returns {string} result.id - The unique identifier for the created task
@@ -89,6 +90,7 @@ export class TaskService {
       parentTaskId,
       preferredWorkerId,
       metadata,
+      source,
     } = options;
 
     this.sdk.validateParams(
@@ -111,6 +113,7 @@ export class TaskService {
         parentTaskId,
         preferredWorkerId,
         metadata,
+        source,
       },
       {
         type: { type: 'string', required: true },
@@ -131,6 +134,7 @@ export class TaskService {
         parentTaskId: { type: 'string', required: false },
         preferredWorkerId: { type: 'string', required: false },
         metadata: { type: 'object', required: false },
+        source: { type: 'string', required: false },
       },
     );
 
@@ -203,6 +207,10 @@ export class TaskService {
 
     if (metadata !== undefined) {
       params.body.metadata = metadata;
+    }
+
+    if (source !== undefined) {
+      params.body.source = source;
     }
 
     const result = await internalRequest(this.sdk, '/taskRouter/tasks', 'POST', params);

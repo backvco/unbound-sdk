@@ -1292,6 +1292,36 @@ export class ObjectsService {
   }
 
   /**
+   * Engagement-session participant roster (requester + durable CCs).
+   * `recordId` is an engagement session id.
+   *
+   * GET /object/:id/participants
+   *
+   * @param {string} recordId
+   * @returns {Promise<{participants: Array<{
+   *   id: string,
+   *   engagementSessionId: string,
+   *   role: string,
+   *   email: string|null,
+   *   peopleId: string|null,
+   *   displayName: string|null,
+   *   addedBy: {id: string, name: string|null}|null,
+   *   createdAt: string
+   * }>}>}
+   */
+  async listParticipants(recordId) {
+    this.sdk.validateParams(
+      { recordId },
+      { recordId: { type: 'string', required: true } },
+    );
+    return internalRequest(
+      this.sdk,
+      `/object/${recordId}/participants`,
+      'GET',
+    );
+  }
+
+  /**
    * Marketing programs dashboard (programs + totals).
    * @returns {Promise<object>}
    */
