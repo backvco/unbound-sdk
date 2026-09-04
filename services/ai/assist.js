@@ -27,7 +27,7 @@ export class AssistService {
       { taskId, utterances },
       {
         taskId: { type: 'string', required: true },
-        utterances: { type: 'array', required: true },
+        utterances: { type: 'array', required: false },
       },
     );
 
@@ -61,5 +61,61 @@ export class AssistService {
 
     const result = await internalRequest(this.sdk, `/ai/assist/last/${taskId}`, 'GET');
     return result;
+  }
+
+  async listQueueKnowledgeBases({ queueId }) {
+    this.sdk.validateParams(
+      { queueId },
+      { queueId: { type: 'string', required: true } },
+    );
+    return internalRequest(
+      this.sdk,
+      `/ai/assist/queues/${queueId}/knowledgeBases`,
+      'GET',
+    );
+  }
+
+  async setQueueKnowledgeBases({ queueId, knowledgeBaseIds }) {
+    this.sdk.validateParams(
+      { queueId, knowledgeBaseIds },
+      {
+        queueId: { type: 'string', required: true },
+        knowledgeBaseIds: { type: 'array', required: true },
+      },
+    );
+    return internalRequest(
+      this.sdk,
+      `/ai/assist/queues/${queueId}/knowledgeBases`,
+      'PUT',
+      { body: { knowledgeBaseIds } },
+    );
+  }
+
+  async listQueueObjects({ queueId }) {
+    this.sdk.validateParams(
+      { queueId },
+      { queueId: { type: 'string', required: true } },
+    );
+    return internalRequest(
+      this.sdk,
+      `/ai/assist/queues/${queueId}/objects`,
+      'GET',
+    );
+  }
+
+  async setQueueObjects({ queueId, objectNames }) {
+    this.sdk.validateParams(
+      { queueId, objectNames },
+      {
+        queueId: { type: 'string', required: true },
+        objectNames: { type: 'array', required: true },
+      },
+    );
+    return internalRequest(
+      this.sdk,
+      `/ai/assist/queues/${queueId}/objects`,
+      'PUT',
+      { body: { objectNames } },
+    );
   }
 }

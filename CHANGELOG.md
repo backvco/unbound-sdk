@@ -1,3 +1,8 @@
+## 4.13.50
+
+- feat: `sdk.ai.assist.listQueueKnowledgeBases` / `setQueueKnowledgeBases` / `listQueueObjects` / `setQueueObjects` — per-queue Assist KB + CRM object allow-list
+- fix: `sdk.ai.assist.evaluate` utterances is optional (live STT can pass `taskId` only)
+
 ## 4.13.49
 
 - feat: `sdk.taskRouter.task.channelState({ taskId })` — read a task's live channel mix (`GET /taskRouter/tasks/:id/channelState`): `{hasOpenText, webchatLive, callLive, canPark}`, used to show/hide Park and webchat "End chat" without polling
