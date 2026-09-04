@@ -881,6 +881,65 @@ export class TaskService {
   }
 
   /**
+   * Mark a task's inbound messages as read for one channel (or all).
+   * Channel ids: sms | webchat | email | whatsApp | rcs | all.
+   * Clearing SMS also clears whatsApp/rcs until those get their own
+   * timeline threads (`channel` may also be the group name `sms`).
+   *
+   * @param {Object} options
+   * @param {string} options.taskId
+   * @param {string} [options.channel='all']
+   * @returns {Promise<{taskId:string, unreadByChannel:object, unreadTotal:number}>}
+   */
+  async markChannelRead(options = {}) {
+    const { taskId, channel } = options;
+
+    this.sdk.validateParams(
+      { taskId, channel },
+      {
+        taskId: { type: 'string', required: true },
+        channel: { type: 'string', required: false },
+      },
+    );
+
+    const params = { body: { taskId } };
+    if (channel !== undefined) params.body.channel = channel;
+
+    return await internalRequest(
+      this.sdk,
+      '/taskRouter/tasks/unread/read',
+      'PUT',
+      params,
+    );
+  }
+
+  /**
+   * Read a task's live channel mix -- whether it has an open text
+   * conversation, a live webchat session, or an active call, and whether
+   * it's currently eligible to be parked (`canPark`). Used to show/hide
+   * Park and webchat "End chat" without polling (task-park-webchat-endchat
+   * decisions, 2026-09-04).
+   *
+   * @param {Object} options
+   * @param {string} options.taskId
+   * @returns {Promise<{channelState:{hasOpenText:boolean, webchatLive:boolean, callLive:boolean, canPark:boolean}}>}
+   */
+  async channelState(options = {}) {
+    const { taskId } = options;
+
+    this.sdk.validateParams(
+      { taskId },
+      { taskId: { type: 'string', required: true } },
+    );
+
+    return await internalRequest(
+      this.sdk,
+      `/taskRouter/tasks/${taskId}/channelState`,
+      'GET',
+    );
+  }
+
+  /**
    * Transfer a task to a different queue and/or worker. Passing queueId
    * moves the task back to 'pending' status for re-distribution.
    *

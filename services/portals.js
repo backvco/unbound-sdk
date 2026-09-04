@@ -617,6 +617,18 @@ export class PortalsService {
    *   portal with no login surface, e.g. `marketing`, is never included);
    *   `matches` is whether this person currently passes that portal's
    *   people-access filter.
+   *   sessions: Array<{
+   *     id: string,
+   *     portalId: string,
+   *     portalName: string,
+   *     ip: string,
+   *     browser: string,
+   *     os: string,
+   *     device: string,
+   *     createdAt: string|null,
+   *     lastSeenAt: string|null,
+   *     expiresAt: string|null
+   *   }>
    */
   async getPeopleAccess(peopleId) {
     this.sdk.validateParams(
@@ -738,8 +750,54 @@ export class PortalsService {
   }
 
   /**
+   * Revokes one portal login session for the person (logs that browser out).
+   *
+   * @param {string} peopleId
+   * @param {string} sessionId
+   * @returns {Promise<{ ok: true }>}
+   */
+  async revokePeoplePortalSession(peopleId, sessionId) {
+    this.sdk.validateParams(
+      { peopleId, sessionId },
+      {
+        peopleId: { type: "string", required: true },
+        sessionId: { type: "string", required: true },
+      },
+    );
+
+    return internalRequest(
+      this.sdk,
+      `/portals/people/${encodeURIComponent(peopleId)}/sessions/${encodeURIComponent(sessionId)}`,
+      "DELETE",
+    );
+  }
+
+  /**
+   * Revokes every active portal login session for the person (logs them
+   * out of all browsers). Does not delete their credential — they can
+   * sign in again.
+   *
+   * @param {string} peopleId
+   * @returns {Promise<{ ok: true }>}
+   */
+  async revokeAllPeoplePortalSessions(peopleId) {
+    this.sdk.validateParams(
+      { peopleId },
+      {
+        peopleId: { type: "string", required: true },
+      },
+    );
+
+    return internalRequest(
+      this.sdk,
+      `/portals/people/${encodeURIComponent(peopleId)}/sessions`,
+      "DELETE",
+    );
+  }
+
+  /**
    * Revokes a person's portal access (soft-deletes their credential across
-   * every portal on the account). Idempotent — revoking someone with no
+   * every portal on this account). Idempotent — revoking someone with no
    * credential is a no-op, not an error.
    *
    * @param {string} peopleId

@@ -243,6 +243,32 @@ export class WebchatConversationsService {
       'GET',
     );
   }
+
+  /**
+   * Agent-initiated "End chat" -- ends the webchat session only (same
+   * completeConversation() path as visitor end / idle timeout, reason
+   * 'agentEnded'). Only offered client-side when another channel (open
+   * text conversation or a live call) is still open on the task; the task
+   * itself keeps running (task-park-webchat-endchat-plan.md R2).
+   * @param {string} widgetId
+   * @param {string} engagementSessionId
+   * @returns {Promise<Object>}
+   */
+  async end(widgetId, engagementSessionId) {
+    this.sdk.validateParams(
+      { widgetId, engagementSessionId },
+      {
+        widgetId: { type: 'string', required: true },
+        engagementSessionId: { type: 'string', required: true },
+      },
+    );
+
+    return internalRequest(
+      this.sdk,
+      `/webchat/widgets/${widgetId}/conversations/${engagementSessionId}/end`,
+      'POST',
+    );
+  }
 }
 
 export class WebchatService {

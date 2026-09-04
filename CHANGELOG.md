@@ -1,3 +1,23 @@
+## 4.13.49
+
+- feat: `sdk.taskRouter.task.channelState({ taskId })` — read a task's live channel mix (`GET /taskRouter/tasks/:id/channelState`): `{hasOpenText, webchatLive, callLive, canPark}`, used to show/hide Park and webchat "End chat" without polling
+
+## 4.13.48
+
+- feat: `sdk.taskRouter.cc.unlockWorker({ workerId })` — recover a worker stuck out of routing (`POST /taskRouter/cc/workers/:workerId/unlock`)
+
+## 4.13.47
+
+- feat: `sdk.webchat.conversations.end(widgetId, engagementSessionId)` — agent-initiated "End chat" (`POST /webchat/widgets/:widgetId/conversations/:engagementSessionId/end`), ends the webchat session only, task stays live
+
+## 4.13.46
+
+- feat: `sdk.taskRouter.task.markChannelRead({ taskId, channel })` — clear per-channel inbound unread on a CC task (`PUT /taskRouter/tasks/unread/read`). `channel` is `sms` | `webchat` | `email` | `whatsApp` | `rcs` | `all`.
+
+## 4.13.45
+
+- feat: `sdk.portals.revokePeoplePortalSession` / `revokeAllPeoplePortalSessions`; `getPeopleAccess` includes `sessions` (browser, OS, IP)
+
 ## 4.13.43
 
 - feat: `sdk.text.conversations.callThread(cdrId)` / `.openCallThread(cdrId)` — "SMS from an active call": check whether the current user may open the UC Chat text channel for a call's (our number, other party) pair, and open/join it (`GET`/`POST /text/call-thread`)

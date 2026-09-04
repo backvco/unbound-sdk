@@ -300,4 +300,29 @@ export class CCService {
     );
     return result;
   }
+
+  /**
+   * Recover a worker stuck out of routing (ghost Redis capacity, leftover
+   * lock, expired wrap-up). Self or manager. Does not force offline.
+   *
+   * @param {Object} options
+   * @param {string} options.workerId
+   * @returns {Promise<Object>}
+   */
+  async unlockWorker(options = {}) {
+    const { workerId } = options;
+
+    this.sdk.validateParams(
+      { workerId },
+      { workerId: { type: 'string', required: true } },
+    );
+
+    const result = await internalRequest(
+      this.sdk,
+      `/taskRouter/cc/workers/${workerId}/unlock`,
+      'POST',
+      {},
+    );
+    return result;
+  }
 }
