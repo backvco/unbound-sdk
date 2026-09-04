@@ -23,6 +23,8 @@ export class TaskService {
    * @param {boolean} [options.createEngagement=false] - Whether to automatically create an engagement session for this task
    * @param {string} [options.relatedObject] - Related object type for metadata tracking (automatically set if createEngagement is true)
    * @param {string} [options.relatedId] - Related object ID for metadata tracking (automatically set if createEngagement is true)
+   * @param {string} [options.parentTaskId] - Parent task id (wrapUp follow-up / requeue)
+   * @param {string} [options.preferredWorkerId] - Preferred worker id persisted on create INSERT
    * @param {Object} [options.metadata] - Arbitrary metadata to attach to the task at creation (e.g. `{ textConversationId }`). Passed through as-is; whether it is persisted depends on the receiving endpoint honoring `metadata` in the request body.
    * @returns {Promise<Object>} Object containing the created task information
    * @returns {string} result.id - The unique identifier for the created task
@@ -84,6 +86,8 @@ export class TaskService {
       cdrId,
       sipCallId,
       aiChatSessionId,
+      parentTaskId,
+      preferredWorkerId,
       metadata,
     } = options;
 
@@ -104,6 +108,8 @@ export class TaskService {
         relatedId,
         sipCallId,
         aiChatSessionId,
+        parentTaskId,
+        preferredWorkerId,
         metadata,
       },
       {
@@ -122,6 +128,8 @@ export class TaskService {
         relatedId: { type: 'string', required: false },
         sipCallId: { type: 'string', required: false },
         aiChatSessionId: { type: 'string', required: false },
+        parentTaskId: { type: 'string', required: false },
+        preferredWorkerId: { type: 'string', required: false },
         metadata: { type: 'object', required: false },
       },
     );
@@ -183,6 +191,14 @@ export class TaskService {
 
     if (aiChatSessionId !== undefined) {
       params.body.aiChatSessionId = aiChatSessionId;
+    }
+
+    if (parentTaskId !== undefined) {
+      params.body.parentTaskId = parentTaskId;
+    }
+
+    if (preferredWorkerId !== undefined) {
+      params.body.preferredWorkerId = preferredWorkerId;
     }
 
     if (metadata !== undefined) {
