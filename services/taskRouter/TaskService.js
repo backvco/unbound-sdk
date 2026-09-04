@@ -905,6 +905,63 @@ export class TaskService {
   }
 
   /**
+   * Public reply on a ticket task: writes the customer-visible post and
+   * emails requester + CCs (transactional) from the queue mailbox.
+   *
+   * POST /taskRouter/tasks/:id/public-reply
+   *
+   * @param {Object} options
+   * @param {string} options.taskId
+   * @param {string} [options.html]
+   * @param {string} [options.text]
+   * @param {string|string[]} [options.extraTo]
+   * @param {string|string[]} [options.extraCc]
+   * @param {string|string[]} [options.extraBcc]
+   * @param {string|string[]} [options.attachments]
+   * @param {boolean} [options.addExtrasToTicket]
+   * @param {string} [options.retryVisitorMessageId]
+   */
+  async publicReply(options = {}) {
+    const {
+      taskId,
+      html,
+      text,
+      extraTo,
+      extraCc,
+      extraBcc,
+      attachments,
+      addExtrasToTicket,
+      retryVisitorMessageId,
+    } = options;
+
+    this.sdk.validateParams(
+      { taskId },
+      { taskId: { type: 'string', required: true } },
+    );
+
+    const body = {};
+    if (html !== undefined) body.html = html;
+    if (text !== undefined) body.text = text;
+    if (extraTo !== undefined) body.extraTo = extraTo;
+    if (extraCc !== undefined) body.extraCc = extraCc;
+    if (extraBcc !== undefined) body.extraBcc = extraBcc;
+    if (attachments !== undefined) body.attachments = attachments;
+    if (addExtrasToTicket !== undefined) {
+      body.addExtrasToTicket = addExtrasToTicket;
+    }
+    if (retryVisitorMessageId !== undefined) {
+      body.retryVisitorMessageId = retryVisitorMessageId;
+    }
+
+    return await internalRequest(
+      this.sdk,
+      `/taskRouter/tasks/${taskId}/public-reply`,
+      'POST',
+      { body },
+    );
+  }
+
+  /**
    * Mark a task's inbound messages as read for one channel (or all).
    * Channel ids: sms | webchat | email | whatsApp | rcs | all.
    * Clearing SMS also clears whatsApp/rcs until those get their own
