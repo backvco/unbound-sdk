@@ -1322,6 +1322,51 @@ export class ObjectsService {
   }
 
   /**
+   * Add a durable CC on an engagement session (PR5).
+   * PUT /object/:id/participants
+   *
+   * @param {string} recordId engagement session id
+   * @param {{email: string, displayName?: string, peopleId?: string}} body
+   */
+  async addParticipant(recordId, body = {}) {
+    this.sdk.validateParams(
+      { recordId, email: body.email },
+      {
+        recordId: { type: 'string', required: true },
+        email: { type: 'string', required: true },
+      },
+    );
+    return internalRequest(
+      this.sdk,
+      `/object/${recordId}/participants`,
+      'PUT',
+      { body },
+    );
+  }
+
+  /**
+   * Remove a durable CC from an engagement session (PR5).
+   * DELETE /object/:id/participants/:participantId
+   *
+   * @param {string} recordId engagement session id
+   * @param {string} participantId
+   */
+  async removeParticipant(recordId, participantId) {
+    this.sdk.validateParams(
+      { recordId, participantId },
+      {
+        recordId: { type: 'string', required: true },
+        participantId: { type: 'string', required: true },
+      },
+    );
+    return internalRequest(
+      this.sdk,
+      `/object/${recordId}/participants/${participantId}`,
+      'DELETE',
+    );
+  }
+
+  /**
    * Marketing programs dashboard (programs + totals).
    * @returns {Promise<object>}
    */

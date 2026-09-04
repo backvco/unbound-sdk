@@ -642,6 +642,7 @@ export class EmailService {
       limit = 25,
       offset = 0,
       assignedUserId,
+      includeTasked = false,
     } = {},
   ) {
     this.sdk.validateParams(
@@ -655,6 +656,7 @@ export class EmailService {
         limit,
         offset,
         assignedUserId,
+        includeTasked,
       },
       {
         mailboxId: { type: 'string', required: true },
@@ -666,12 +668,14 @@ export class EmailService {
         limit: { type: 'number', required: false },
         offset: { type: 'number', required: false },
         assignedUserId: { type: 'string', required: false },
+        includeTasked: { type: 'boolean', required: false },
       },
     );
 
     const query = { folder, includeDrafts, sortBy, sortOrder, limit, offset };
     if (search) query.search = search;
     if (assignedUserId) query.assignedUserId = assignedUserId;
+    if (includeTasked) query.includeTasked = true;
 
     const params = {
       query,
