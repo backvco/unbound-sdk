@@ -89,6 +89,7 @@ export class TaskService {
       aiChatSessionId,
       parentTaskId,
       preferredWorkerId,
+      isRoutable,
       metadata,
       source,
     } = options;
@@ -112,6 +113,7 @@ export class TaskService {
         aiChatSessionId,
         parentTaskId,
         preferredWorkerId,
+        isRoutable,
         metadata,
         source,
       },
@@ -133,6 +135,7 @@ export class TaskService {
         aiChatSessionId: { type: 'string', required: false },
         parentTaskId: { type: 'string', required: false },
         preferredWorkerId: { type: 'string', required: false },
+        isRoutable: { type: 'boolean', required: false },
         metadata: { type: 'object', required: false },
         source: { type: 'string', required: false },
       },
@@ -203,6 +206,10 @@ export class TaskService {
 
     if (preferredWorkerId !== undefined) {
       params.body.preferredWorkerId = preferredWorkerId;
+    }
+
+    if (isRoutable !== undefined) {
+      params.body.isRoutable = isRoutable;
     }
 
     if (metadata !== undefined) {
@@ -468,44 +475,53 @@ export class TaskService {
   }
 
   /**
-   * Toggle task hold status
+   * Toggle or set task hold status
    * Place a connected task on hold or resume a held task.
-   * If the task is currently 'connected', it will be set to 'hold'.
-   * If the task is currently 'hold', it will be set back to 'connected'.
+   * If `held` is omitted, the current status is toggled: 'connected' -> 'hold'
+   * and 'hold' -> 'connected'. If `held` is a boolean, it explicitly sets the
+   * target status: `true` -> 'hold', `false` -> 'connected'.
    *
    * @param {Object} options - Parameters
    * @param {string} options.taskId - The task ID to hold/resume (required)
+   * @param {boolean} [options.held] - Explicit target hold state; omit for legacy toggle behavior
    * @returns {Promise<Object>} Object containing the task ID and new status
    * @returns {string} result.taskId - The task ID that was modified
    * @returns {string} result.status - The new status ('hold' or 'connected')
+   * @returns {boolean} result.changed - Whether the status actually changed
    *
    * @example
    * // Put a connected task on hold
-   * const result = await sdk.taskRouter.task.hold({ taskId: 'task123' });
+   * const result = await sdk.taskRouter.task.hold({ taskId: 'task123', held: true });
    * console.log(result.status); // "hold"
    *
    * @example
    * // Resume a held task
-   * const result = await sdk.taskRouter.task.hold({ taskId: 'task123' });
+   * const result = await sdk.taskRouter.task.hold({ taskId: 'task123', held: false });
    * console.log(result.status); // "connected"
+   *
+   * @example
+   * // Legacy toggle (no `held`)
+   * const result = await sdk.taskRouter.task.hold({ taskId: 'task123' });
    */
   async hold(options = {}) {
-    const { taskId } = options;
+    const { taskId, held } = options;
 
     this.sdk.validateParams(
-      { taskId },
+      { taskId, held },
       {
         taskId: { type: 'string', required: true },
+        held: { type: 'boolean', required: false },
       },
     );
 
     const params = {
       body: {
         taskId,
+        ...(typeof held === 'boolean' && { held }),
       },
     };
 
-    const result = await internalRequest(this.sdk, 
+    const result = await internalRequest(this.sdk,
       '/taskRouter/tasks/hold',
       'PUT',
       params,
@@ -899,6 +915,35 @@ export class TaskService {
     return await internalRequest(
       this.sdk,
       '/taskRouter/tasks/park',
+      'PUT',
+      params,
+    );
+  }
+
+  /**
+   * Resume a parked task ("customer is back"). Flips the task back to
+   * pending so the distributor re-offers it; preferredWorkerId (stamped by
+   * park) is left alone so the parking worker gets first refusal.
+   *
+   * PUT /taskRouter/tasks/unpark
+   *
+   * @param {Object} options - Parameters
+   * @param {string} options.taskId - The parked task ID (required)
+   * @returns {Promise<Object>} { taskId, status: 'pending' }
+   */
+  async unpark(options = {}) {
+    const { taskId } = options;
+
+    this.sdk.validateParams(
+      { taskId },
+      { taskId: { type: 'string', required: true } },
+    );
+
+    const params = { body: { taskId } };
+
+    return await internalRequest(
+      this.sdk,
+      '/taskRouter/tasks/unpark',
       'PUT',
       params,
     );
