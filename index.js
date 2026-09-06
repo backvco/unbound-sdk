@@ -74,10 +74,17 @@ class UnboundSDK extends BaseSDK {
       }
     } else {
       // New object-based parameters
-      const { namespace, callId, token, fwRequestId, url, socketStore } =
-        options;
+      const {
+        namespace,
+        callId,
+        token,
+        fwRequestId,
+        url,
+        socketStore,
+        baseURL,
+      } = options;
 
-      super({ namespace, callId, token, fwRequestId });
+      super({ namespace, callId, token, fwRequestId, baseURL });
 
       // Handle client-side specific parameters
       if (url) {

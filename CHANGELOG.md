@@ -1,3 +1,8 @@
+## 4.13.52
+
+- fix: `new UnboundSDK({ baseURL })` is now honored (constructor previously dropped it, so Node callers fell back to `API_BASE_URL`/`api.unbound.cx`)
+- fix: request query strings drop `undefined`/`null` values instead of sending `limit=undefined` (broke `sdk.ai.battleCards.listPacks({})` with a 500)
+
 ## 4.13.51
 
 - feat: `sdk.objects.listParticipants(recordId)` — engagement roster (`GET /object/:id/participants`)
