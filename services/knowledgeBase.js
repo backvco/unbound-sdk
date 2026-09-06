@@ -17,9 +17,11 @@ export class KnowledgeBaseService {
    * @param {string} [params.filters.sourceType] - Filter by source type (article, document, source)
    * @param {Array} [params.filters.tags] - Filter by tags
    * @param {boolean} [params.rerank] - Whether to apply LLM reranking (default: true)
+   * @param {'all'|'public'} [params.visibility] - Result visibility scope: 'all' (default) or 'public' only.
+   *   Each result's source now also includes isPublic, knowledgeBaseId, knowledgeBaseName.
    * @returns {Promise<Object>} Search results with source attribution
    */
-  async search({ query, knowledgeBaseId, limit, filters, rerank }) {
+  async search({ query, knowledgeBaseId, limit, filters, rerank, visibility }) {
     this.sdk.validateParams(
       { query },
       {
@@ -28,7 +30,7 @@ export class KnowledgeBaseService {
     );
 
     const params = {
-      body: { query, knowledgeBaseId, limit, filters, rerank },
+      body: { query, knowledgeBaseId, limit, filters, rerank, visibility },
     };
 
     const result = await internalRequest(this.sdk, 

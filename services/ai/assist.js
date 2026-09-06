@@ -14,7 +14,12 @@ export class AssistService {
    * @param {Object} options - Evaluate options
    * @param {string} options.taskId - Task ID
    * @param {Array} options.utterances - Utterances to evaluate
-   * @returns {Promise<Object>} Evaluation result
+   * @returns {Promise<Object>} Evaluation result. Beyond the existing fields, now includes:
+   *   @returns {string} result.coach - Agent-only guidance (may draw on internal + public KB, cards, playbook)
+   *   @returns {Array<{sourceId:string,title:string,visibility:'internal'|'public',knowledgeBaseId:string}>} result.citations
+   *   @returns {'ok'|'legacy'|'blocked:citation'|'blocked:overlap'|'blocked:dontSay'} result.guardResult
+   *   @returns {'legacy'|'split'} result.visibilityMode
+   *   @returns {string} result.reply - Insertable customer-facing text; empty when guardResult is blocked:*
    *
    * @example
    * const result = await sdk.ai.assist.evaluate({
@@ -44,7 +49,8 @@ export class AssistService {
    *
    * @param {Object} options - Options
    * @param {string} options.taskId - Task ID
-   * @returns {Promise<Object>} Last evaluation
+   * @returns {Promise<Object>} Last evaluation. Same shape as evaluate()'s result, including
+   *   coach, citations, guardResult, visibilityMode, reply (see evaluate() for field docs).
    *
    * @example
    * const last = await sdk.ai.assist.getLast({
@@ -60,6 +66,41 @@ export class AssistService {
     );
 
     const result = await internalRequest(this.sdk, `/ai/assist/last/${taskId}`, 'GET');
+    return result;
+  }
+
+  /**
+   * List persisted AI Assist suggestions (assistSuggestions table), optionally scoped to a queue.
+   *
+   * @param {Object} [options] - Options
+   * @param {string} [options.queueId] - Filter by queue
+   * @param {number} [options.limit] - Max rows to return
+   * @returns {Promise<Object>} List of suggestion rows
+   *
+   * @example
+   * const { suggestions } = await sdk.ai.assist.listSuggestions({ queueId: 'queue_123', limit: 50 });
+   */
+  async listSuggestions({ queueId, limit } = {}) {
+    const result = await internalRequest(this.sdk, '/ai/assist/suggestions', 'GET', {
+      query: { queueId, limit },
+    });
+    return result;
+  }
+
+  /**
+   * Get aggregate stats for AI Assist suggestions (counts by guardResult, top blocked citations).
+   *
+   * @param {Object} [options] - Options
+   * @param {string} [options.queueId] - Filter by queue
+   * @returns {Promise<Object>} Stats { byGuardResult, topBlockedCitations, ... }
+   *
+   * @example
+   * const stats = await sdk.ai.assist.suggestionStats({ queueId: 'queue_123' });
+   */
+  async suggestionStats({ queueId } = {}) {
+    const result = await internalRequest(this.sdk, '/ai/assist/suggestions/stats', 'GET', {
+      query: { queueId },
+    });
     return result;
   }
 

@@ -1,3 +1,9 @@
+## 4.13.57
+
+- feat: `sdk.knowledgeBase.search({ visibility: 'public' })` restricts results to public articles; each result `source` now carries `isPublic`, `knowledgeBaseId`, `knowledgeBaseName`
+- feat: Assist payloads (`sdk.ai.assist.evaluate` / `getLast`) add `coach`, `citations[{sourceId,title,visibility,knowledgeBaseId}]`, `guardResult`, `visibilityMode`
+- feat: `sdk.ai.assist.listSuggestions({ queueId, limit })` and `suggestionStats({ queueId })` (`GET /ai/assist/suggestions`, `/stats`)
+
 ## 4.13.56
 
 - feat: `sdk.taskRouter.offer.accept({ offerId })` (`PUT /taskRouter/offers/accept`) and `sdk.taskRouter.offer.decline({ offerId })` (`PUT /taskRouter/offers/decline`) — accept/decline a direct offer (transfer/invite/help)
