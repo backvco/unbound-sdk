@@ -1066,34 +1066,96 @@ export class TaskService {
   }
 
   /**
-   * Transfer a task to a different queue and/or worker. Passing queueId
-   * moves the task back to 'pending' status for re-distribution.
+   * Transfer a task to a different queue and/or worker. Creates a new task
+   * in the target queue and re-points live channels to it; the old task is
+   * completed (blind) or left connected pending completeTransfer/cancelTransfer
+   * (attended).
    *
    * @param {Object} options - Parameters
    * @param {string} options.taskId - The task ID to transfer (required)
    * @param {string} [options.queueId] - Destination queue ID
    * @param {string} [options.workerId] - Destination worker ID
-   * @returns {Promise<Object>} { taskId }
+   * @param {string} [options.mode='blind'] - 'blind' or 'attended'. Attended is only
+   *   meaningful when a live voice leg exists; otherwise treated as blind.
+   * @param {string} [options.note] - Optional note for the receiving agent
+   * @returns {Promise<Object>} { taskId, newTaskId, mode }
    */
   async transfer(options = {}) {
-    const { taskId, queueId, workerId } = options;
+    const { taskId, queueId, workerId, mode, note } = options;
 
     this.sdk.validateParams(
-      { taskId, queueId, workerId },
+      { taskId, queueId, workerId, mode, note },
       {
         taskId: { type: 'string', required: true },
         queueId: { type: 'string', required: false },
         workerId: { type: 'string', required: false },
+        mode: { type: 'string', required: false },
+        note: { type: 'string', required: false },
       },
     );
 
     const params = { body: { taskId } };
     if (queueId !== undefined) params.body.queueId = queueId;
     if (workerId !== undefined) params.body.workerId = workerId;
+    if (mode !== undefined) params.body.mode = mode;
+    if (note !== undefined) params.body.note = note;
 
     return await internalRequest(
       this.sdk,
       '/taskRouter/tasks/transfer',
+      'PUT',
+      params,
+    );
+  }
+
+  /**
+   * Complete an attended transfer: unhold the caller, hang up the old
+   * agent's leg, and complete the old task.
+   *
+   * @param {Object} options - Parameters
+   * @param {string} options.taskId - The old task ID (required)
+   * @returns {Promise<Object>} { taskId }
+   */
+  async transferComplete(options = {}) {
+    const { taskId } = options;
+
+    this.sdk.validateParams(
+      { taskId },
+      { taskId: { type: 'string', required: true } },
+    );
+
+    const params = { body: { taskId } };
+
+    return await internalRequest(
+      this.sdk,
+      '/taskRouter/tasks/transfer/complete',
+      'PUT',
+      params,
+    );
+  }
+
+  /**
+   * Cancel an attended transfer: complete/hang up the new task, re-point
+   * channels back to the old task, unhold the caller, and clear the old
+   * task's transfer state.
+   *
+   * @param {Object} options - Parameters
+   * @param {string} options.taskId - The old task ID (required)
+   * @returns {Promise<Object>} { taskId }
+   */
+  async transferCancel(options = {}) {
+    const { taskId } = options;
+
+    this.sdk.validateParams(
+      { taskId },
+      { taskId: { type: 'string', required: true } },
+    );
+
+    const params = { body: { taskId } };
+
+    return await internalRequest(
+      this.sdk,
+      '/taskRouter/tasks/transfer/cancel',
       'PUT',
       params,
     );
