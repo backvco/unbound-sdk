@@ -1,3 +1,7 @@
+## 4.13.56
+
+- feat: `sdk.taskRouter.offer.accept({ offerId })` (`PUT /taskRouter/offers/accept`) and `sdk.taskRouter.offer.decline({ offerId })` (`PUT /taskRouter/offers/decline`) — accept/decline a direct offer (transfer/invite/help)
+
 ## 4.13.55
 
 - feat: `sdk.taskRouter.task.transfer({ taskId, target: { queueId, workerId }, note })` — target is now a nested object; every transfer creates a new task in the target queue (`{ taskId, newTaskId }`)
