@@ -1,3 +1,16 @@
+## 4.13.55
+
+- feat: `sdk.taskRouter.task.transfer({ taskId, target: { queueId, workerId }, note })` — target is now a nested object; every transfer creates a new task in the target queue (`{ taskId, newTaskId }`)
+- removed: `sdk.taskRouter.task.transferComplete` / `transferCancel` — chain-everywhere transfer replaces the attended consult flow
+
+## 4.13.54
+
+- feat: `sdk.taskRouter.task.hold({ held })` / `sdk.taskRouter.task.unpark()`; `isRoutable` helper
+
+## 4.13.53
+
+- feat: `sdk.taskRouter.task.transfer` mode/note options (superseded in 4.13.55)
+
 ## 4.13.52
 
 - fix: `new UnboundSDK({ baseURL })` is now honored (constructor previously dropped it, so Node callers fell back to `API_BASE_URL`/`api.unbound.cx`)
