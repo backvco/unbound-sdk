@@ -1,3 +1,7 @@
+## 4.13.58
+
+- feat: `sdk.taskRouter.worker.search({ queueId, q, skills, limit })` (`GET /taskRouter/workers/search`) — find workers scoped to a queue with name/email/extension text search and skill-match flagging (status, capacity, queues, skills per row)
+
 ## 4.13.57
 
 - feat: `sdk.knowledgeBase.search({ visibility: 'public' })` restricts results to public articles; each result `source` now carries `isPublic`, `knowledgeBaseId`, `knowledgeBaseName`

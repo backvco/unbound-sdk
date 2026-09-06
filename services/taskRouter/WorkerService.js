@@ -385,11 +385,60 @@ export class WorkerService {
       params.body.userId = userId;
     }
 
-    const result = await internalRequest(this.sdk, 
+    const result = await internalRequest(this.sdk,
       '/taskRouter/worker/queueLogout',
       'PUT',
       params,
     );
+    return result;
+  }
+
+  /**
+   * Search for workers within a queue's scope
+   * Finds workers a caller can act on (transfer/invite/DM) for a given queue, with optional
+   * name/email/extension text search and skill-match flagging.
+   *
+   * @param {Object} options - Parameters
+   * @param {string} options.queueId - The queue ID to scope the search to (required)
+   * @param {string} [options.q] - Free-text filter matching name, email, or extension
+   * @param {string[]} [options.skills] - Skill IDs to flag matches for (joined as a comma-separated list)
+   * @param {number} [options.limit] - Max rows to return (default 50, max 200)
+   * @returns {Promise<Object>} Object containing the matching worker rows
+   * @returns {Array<Object>} result.rows - Worker rows with status/capacity/skills info
+   * @returns {number} result.total - Total matching rows
+   *
+   * @example
+   * const { rows, total } = await sdk.taskRouter.worker.search({ queueId: 'queue123', q: 'sam' });
+   * console.log(rows.length, total);
+   */
+  async search(options = {}) {
+    const { queueId, q, skills, limit } = options;
+
+    this.sdk.validateParams(
+      { queueId, q, skills, limit },
+      {
+        queueId: { type: 'string', required: true },
+        q: { type: 'string', required: false },
+        skills: { type: 'array', required: false },
+        limit: { type: 'number', required: false },
+      },
+    );
+
+    const query = { queueId };
+
+    if (q) {
+      query.q = q;
+    }
+
+    if (skills && skills.length) {
+      query.skills = skills.join(',');
+    }
+
+    if (limit) {
+      query.limit = limit;
+    }
+
+    const result = await internalRequest(this.sdk, '/taskRouter/workers/search', 'GET', { query });
     return result;
   }
 }
