@@ -1,3 +1,8 @@
+## 4.13.61
+
+- feat: `sdk.taskRouter.participants.add` accepts `kind: 'external'` with `phoneNumber` | `peopleId` | `companyId` (+ optional `displayName`) — dial an external caller onto a task's live voice bridge
+- feat: `sdk.fax.send` accepts optional `taskId` — server stamps the outbound fax to the task and resolves the from-number chain
+
 ## 4.13.60
 
 - feat: `sdk.taskRouter.task.typing({ taskId, channel, isTyping })` (`POST /taskRouter/tasks/:id/typing`) — broadcast a typing indicator to the task's other participants (owner + joined helpers) on a channel (`sms` | `email` | `webchat` | `team`)

@@ -86,6 +86,7 @@ export class FaxService {
    * @param {boolean} [options.ecm] - Enable Error Correction Mode (default: true)
    * @param {number} [options.timeout] - Dial timeout in seconds (defaults to mailbox dialTimeout)
    * @param {string} [options.relatedId] - Record (e.g. engagement/task) id; server posts a fax card into that record's activity feed
+   * @param {string} [options.taskId] - Task the outbound fax is sent from; server resolves the from-number chain (queue/user/account fax caller ID) and stamps the fax document to the task
    * @returns {Promise<Object>} Send result
    * @returns {string} result.id - The fax document ID
    * @returns {string} result.status - 'sending' on success, 'failed' on NATS error
@@ -133,9 +134,10 @@ export class FaxService {
     ecm,
     timeout,
     relatedId,
+    taskId,
   }) {
     this.sdk.validateParams(
-      { faxMailboxId, toNumber, fromNumber, coverStorageId, paperSize },
+      { faxMailboxId, toNumber, fromNumber, coverStorageId, paperSize, taskId },
       {
         faxMailboxId: { type: 'string', required: true },
         toNumber: { type: 'string', required: true },
@@ -145,6 +147,7 @@ export class FaxService {
         tiffStorageId: { type: 'string', required: false },
         coverStorageId: { type: 'string', required: false },
         paperSize: { type: 'string', required: false },
+        taskId: { type: 'string', required: false },
       },
     );
 

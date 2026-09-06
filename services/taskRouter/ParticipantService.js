@@ -36,31 +36,63 @@ export class ParticipantService {
   }
 
   /**
-   * Add a participant to a task: invite a specific user to join, or request
-   * help from a queue.
+   * Add a participant to a task: invite a specific user to join, request
+   * help from a queue, or dial an external caller onto the live voice bridge.
    *
    * @param {Object} options - Options
    * @param {string} options.taskId - Task ID
-   * @param {string} options.kind - 'user' | 'queue'
+   * @param {string} options.kind - 'user' | 'queue' | 'external'
    * @param {string} [options.userId] - Required when kind is 'user'
    * @param {string} [options.queueId] - Required when kind is 'queue'
+   * @param {string} [options.phoneNumber] - External caller's phone number (kind 'external'; alternative to peopleId/companyId)
+   * @param {string} [options.peopleId] - External caller resolved from a person record (kind 'external'; alternative to phoneNumber/companyId)
+   * @param {string} [options.companyId] - External caller resolved from a company record (kind 'external'; alternative to phoneNumber/peopleId)
+   * @param {string} [options.displayName] - Optional display name shown for the external caller (kind 'external')
    * @param {string} [options.note] - Optional note shown to the invitee
    * @param {string} [options.bridgeRole='main'] - Voice bridge role (only 'main' is supported until the media update)
-   * @returns {Promise<Object>} { participant, offerId } for kind 'user'; { helpTaskId } for kind 'queue'
+   * @returns {Promise<Object>} { participant, offerId } for kind 'user'; { helpTaskId } for kind 'queue'; { participant } for kind 'external'
    *
    * @example
    * await sdk.taskRouter.participants.add({ taskId: 'task_123', kind: 'user', userId: 'user_456', note: 'Need a hand' });
    * @example
    * await sdk.taskRouter.participants.add({ taskId: 'task_123', kind: 'queue', queueId: 'queue_789' });
+   * @example
+   * await sdk.taskRouter.participants.add({ taskId: 'task_123', kind: 'external', phoneNumber: '+15551234567', displayName: 'Jane Doe' });
    */
-  async add({ taskId, kind, userId, queueId, note, bridgeRole } = {}) {
+  async add({
+    taskId,
+    kind,
+    userId,
+    queueId,
+    phoneNumber,
+    peopleId,
+    companyId,
+    displayName,
+    note,
+    bridgeRole,
+  } = {}) {
     this.sdk.validateParams(
-      { taskId, kind, userId, queueId, note, bridgeRole },
+      {
+        taskId,
+        kind,
+        userId,
+        queueId,
+        phoneNumber,
+        peopleId,
+        companyId,
+        displayName,
+        note,
+        bridgeRole,
+      },
       {
         taskId: { type: 'string', required: true },
         kind: { type: 'string', required: true },
         userId: { type: 'string', required: false },
         queueId: { type: 'string', required: false },
+        phoneNumber: { type: 'string', required: false },
+        peopleId: { type: 'string', required: false },
+        companyId: { type: 'string', required: false },
+        displayName: { type: 'string', required: false },
         note: { type: 'string', required: false },
         bridgeRole: { type: 'string', required: false },
       },
@@ -69,6 +101,10 @@ export class ParticipantService {
     const params = { body: { kind } };
     if (userId !== undefined) params.body.userId = userId;
     if (queueId !== undefined) params.body.queueId = queueId;
+    if (phoneNumber !== undefined) params.body.phoneNumber = phoneNumber;
+    if (peopleId !== undefined) params.body.peopleId = peopleId;
+    if (companyId !== undefined) params.body.companyId = companyId;
+    if (displayName !== undefined) params.body.displayName = displayName;
     if (note !== undefined) params.body.note = note;
     if (bridgeRole !== undefined) params.body.bridgeRole = bridgeRole;
 
