@@ -1122,4 +1122,35 @@ export class TaskService {
       {},
     );
   }
+
+  /**
+   * Broadcast a typing indicator to the other participants (owner + joined
+   * helpers) on a task's channel. Fire-and-forget signal, not persisted;
+   * app1-socket forwards it to each participant as a `task_typing` event.
+   *
+   * @param {Object} options - Parameters
+   * @param {string} options.taskId - The task ID (required)
+   * @param {string} options.channel - 'sms' | 'email' | 'webchat' | 'team' (required)
+   * @param {boolean} options.isTyping - Whether the caller is currently typing (required)
+   * @returns {Promise<Object>} { ok: true }
+   */
+  async typing(options = {}) {
+    const { taskId, channel, isTyping } = options;
+
+    this.sdk.validateParams(
+      { taskId, channel, isTyping },
+      {
+        taskId: { type: 'string', required: true },
+        channel: { type: 'string', required: true },
+        isTyping: { type: 'boolean', required: true },
+      },
+    );
+
+    return await internalRequest(
+      this.sdk,
+      `/taskRouter/tasks/${taskId}/typing`,
+      'POST',
+      { body: { channel, isTyping } },
+    );
+  }
 }

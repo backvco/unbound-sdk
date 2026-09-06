@@ -1,3 +1,7 @@
+## 4.13.60
+
+- feat: `sdk.taskRouter.task.typing({ taskId, channel, isTyping })` (`POST /taskRouter/tasks/:id/typing`) — broadcast a typing indicator to the task's other participants (owner + joined helpers) on a channel (`sms` | `email` | `webchat` | `team`)
+
 ## 4.13.58
 
 - feat: `sdk.taskRouter.worker.search({ queueId, q, skills, limit })` (`GET /taskRouter/workers/search`) — find workers scoped to a queue with name/email/extension text search and skill-match flagging (status, capacity, queues, skills per row)
