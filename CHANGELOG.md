@@ -1,3 +1,7 @@
+## 4.13.63
+
+- feat: KB article version history. `sdk.knowledgeBase.listArticleVersions({ id })` (`GET /knowledgeBase/articles/:id/versions`), `getArticleVersion({ id, versionId })` (`GET /knowledgeBase/articles/:id/versions/:versionId`), and `restoreArticleVersion({ id, versionId })` (`POST /knowledgeBase/articles/:id/versions/:versionId/restore`, snapshots current content then reprocesses if published)
+
 ## 4.13.62
 
 - feat: `sdk.taskRouter.participants.control` accepts optional `queueId` — cross-queue give/take control chain (creates a new task in the target queue and makes the helper its owner); when omitted and the helper has access to more than one queue, server responds 409 `{ needsQueue: true, queues }`

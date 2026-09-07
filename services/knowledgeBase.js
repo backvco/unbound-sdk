@@ -174,6 +174,81 @@ export class KnowledgeBaseService {
   }
 
   /**
+   * List version snapshots for a KB article, newest first
+   *
+   * @param {Object} params
+   * @param {string} params.id - Article ID
+   * @returns {Promise<Object>} { results: [{ id, version, createdAt, createdBy, contentLength, preview }] }
+   */
+  async listArticleVersions({ id }) {
+    this.sdk.validateParams(
+      { id },
+      {
+        id: { type: 'string', required: true },
+      },
+    );
+
+    const result = await internalRequest(
+      this.sdk,
+      `/knowledgeBase/articles/${id}/versions`,
+      'GET',
+    );
+    return result;
+  }
+
+  /**
+   * Get one full version snapshot (with content) for a KB article
+   *
+   * @param {Object} params
+   * @param {string} params.id - Article ID
+   * @param {string} params.versionId - Version snapshot ID
+   * @returns {Promise<Object>} Full version row including content
+   */
+  async getArticleVersion({ id, versionId }) {
+    this.sdk.validateParams(
+      { id, versionId },
+      {
+        id: { type: 'string', required: true },
+        versionId: { type: 'string', required: true },
+      },
+    );
+
+    const result = await internalRequest(
+      this.sdk,
+      `/knowledgeBase/articles/${id}/versions/${versionId}`,
+      'GET',
+    );
+    return result;
+  }
+
+  /**
+   * Restore a KB article's content to a prior version snapshot.
+   * Snapshots the article's current content as a new version before
+   * overwriting it, then reprocesses if the article is published.
+   *
+   * @param {Object} params
+   * @param {string} params.id - Article ID
+   * @param {string} params.versionId - Version snapshot ID to restore
+   * @returns {Promise<Object>} Updated article record
+   */
+  async restoreArticleVersion({ id, versionId }) {
+    this.sdk.validateParams(
+      { id, versionId },
+      {
+        id: { type: 'string', required: true },
+        versionId: { type: 'string', required: true },
+      },
+    );
+
+    const result = await internalRequest(
+      this.sdk,
+      `/knowledgeBase/articles/${id}/versions/${versionId}/restore`,
+      'POST',
+    );
+    return result;
+  }
+
+  /**
    * Get analytics for a knowledge base
    *
    * @param {Object} params
