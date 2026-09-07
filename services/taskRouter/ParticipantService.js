@@ -211,28 +211,38 @@ export class ParticipantService {
   }
 
   /**
-   * Swap task ownership between the current owner and a joined helper.
+   * Swap task ownership between the current owner and a joined helper. When
+   * the helper has no access to the task's queue, this chains: it creates a
+   * new task in the helper's queue and makes them its owner. If `queueId` is
+   * omitted and the helper has access to more than one queue, the server
+   * responds 409 with `{ needsQueue: true, queues }` — retry with a chosen
+   * `queueId`.
    *
    * @param {Object} options - Options
    * @param {string} options.taskId - Task ID
    * @param {string} options.participantId - The helper participant taking/giving control
    * @param {string} options.action - 'give' | 'take'
-   * @returns {Promise<Object>} { taskId, workerId }
+   * @param {string} [options.queueId] - Target queue for a cross-queue control chain (only relevant when the helper lacks access to the task's own queue)
+   * @returns {Promise<Object>} { taskId, workerId } for a same-queue swap; { taskId, newTaskId, workerId } for a cross-queue chain
    *
    * @example
    * await sdk.taskRouter.participants.control({ taskId: 'task_123', participantId: 'tp_456', action: 'give' });
+   * @example
+   * await sdk.taskRouter.participants.control({ taskId: 'task_123', participantId: 'tp_456', action: 'take', queueId: 'queue_789' });
    */
-  async control({ taskId, participantId, action }) {
+  async control({ taskId, participantId, action, queueId }) {
     this.sdk.validateParams(
-      { taskId, participantId, action },
+      { taskId, participantId, action, queueId },
       {
         taskId: { type: 'string', required: true },
         participantId: { type: 'string', required: true },
         action: { type: 'string', required: true },
+        queueId: { type: 'string', required: false },
       },
     );
 
     const params = { body: { action } };
+    if (queueId !== undefined) params.body.queueId = queueId;
 
     return await internalRequest(
       this.sdk,

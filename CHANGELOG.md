@@ -1,3 +1,7 @@
+## 4.13.62
+
+- feat: `sdk.taskRouter.participants.control` accepts optional `queueId` — cross-queue give/take control chain (creates a new task in the target queue and makes the helper its owner); when omitted and the helper has access to more than one queue, server responds 409 `{ needsQueue: true, queues }`
+
 ## 4.13.61
 
 - feat: `sdk.taskRouter.participants.add` accepts `kind: 'external'` with `phoneNumber` | `peopleId` | `companyId` (+ optional `displayName`) — dial an external caller onto a task's live voice bridge
