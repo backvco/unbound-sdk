@@ -263,4 +263,31 @@ export class FaxService {
 
     return await internalRequest(this.sdk, '/fax/status', 'POST', params);
   }
+
+  /**
+   * Retry a failed outbound fax. Resets the same fax document row (status
+   * back to 'pending', clears isError/errorMessage/sipCallId, bumps
+   * sendAttempts) and re-dispatches it through the same media-manager path
+   * as sdk.fax.send() -- only valid for outbound documents currently in
+   * status 'failed'.
+   *
+   * @param {string} id - The fax document ID to retry (required)
+   * @returns {Promise<Object>} Retry result
+   * @returns {string} result.id - The fax document ID
+   * @returns {string} result.status - 'sending' on success, 'failed' on NATS error
+   *
+   * @example
+   * const result = await sdk.fax.retry('158abc123...');
+   * console.log(result.status); // 'sending'
+   */
+  async retry(id) {
+    this.sdk.validateParams(
+      { id },
+      {
+        id: { type: 'string', required: true },
+      },
+    );
+
+    return await internalRequest(this.sdk, `/fax/${id}/retry`, 'POST', {});
+  }
 }

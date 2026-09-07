@@ -196,6 +196,84 @@ export class WorkerService {
   }
 
   /**
+   * Set the authenticated user's own worker paused state
+   * Pauses (or unpauses) the caller's own worker so it stays logged into its queues
+   * but stops receiving new task offers. Requires Contact Center access.
+   *
+   * @param {Object} options - Parameters
+   * @param {boolean} options.paused - Whether the worker should be paused
+   * @returns {Promise<Object>} The updated worker
+   *
+   * @example
+   * // Pause the authenticated user's own worker
+   * const worker = await sdk.taskRouter.worker.setPaused({ paused: true });
+   *
+   * @example
+   * // Unpause
+   * const worker = await sdk.taskRouter.worker.setPaused({ paused: false });
+   */
+  async setPaused(options = {}) {
+    const { paused } = options;
+
+    this.sdk.validateParams(
+      { paused },
+      {
+        paused: { type: 'boolean', required: true },
+      },
+    );
+
+    const params = {
+      body: { paused },
+    };
+
+    const result = await internalRequest(this.sdk,
+      '/taskRouter/workers/me/paused',
+      'PUT',
+      params,
+    );
+    return result;
+  }
+
+  /**
+   * Set another worker's paused state
+   * Pauses (or unpauses) a specific worker by workerId. The caller must be a queue
+   * manager for at least one queue that worker is logged into or assigned to.
+   *
+   * @param {Object} options - Parameters
+   * @param {string} options.workerId - The worker ID to update (required)
+   * @param {boolean} options.paused - Whether the worker should be paused
+   * @returns {Promise<Object>} The updated worker
+   *
+   * @example
+   * const worker = await sdk.taskRouter.worker.setWorkerPaused({
+   *   workerId: '0860002026012400000006665842155429980',
+   *   paused: true,
+   * });
+   */
+  async setWorkerPaused(options = {}) {
+    const { workerId, paused } = options;
+
+    this.sdk.validateParams(
+      { workerId, paused },
+      {
+        workerId: { type: 'string', required: true },
+        paused: { type: 'boolean', required: true },
+      },
+    );
+
+    const params = {
+      body: { paused },
+    };
+
+    const result = await internalRequest(this.sdk,
+      `/taskRouter/workers/${workerId}/paused`,
+      'PUT',
+      params,
+    );
+    return result;
+  }
+
+  /**
    * Automatically login all auto-login queues for a worker
    * When a worker goes available, this logs them into all queues marked with autoLogin = true.
    * If userId is not provided, it will use the authenticated user's ID from the session.

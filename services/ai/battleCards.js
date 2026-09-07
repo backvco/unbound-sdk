@@ -366,6 +366,33 @@ export class BattleCardsService {
    *   queueId: 'queue_123'
    * });
    */
+  /**
+   * Search (or list) battle cards assigned to a queue's packs.
+   * Empty query returns the full pack list; a query ranks title/trigger/body.
+   *
+   * @param {Object} options
+   * @param {string} options.queueId
+   * @param {string} [options.query]
+   * @param {string} [options.q]
+   * @returns {Promise<Object>} { results, query }
+   */
+  async searchQueueCards({ queueId, query, q } = {}) {
+    this.sdk.validateParams(
+      { queueId },
+      {
+        queueId: { type: 'string', required: true },
+      },
+    );
+
+    const result = await internalRequest(
+      this.sdk,
+      `/ai/battleCards/queues/${queueId}/cards`,
+      'GET',
+      { query: { q: query || q || '' } },
+    );
+    return result;
+  }
+
   async listQueuePacks({ queueId }) {
     this.sdk.validateParams(
       { queueId },

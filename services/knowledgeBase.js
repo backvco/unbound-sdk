@@ -21,7 +21,15 @@ export class KnowledgeBaseService {
    *   Each result's source now also includes isPublic, knowledgeBaseId, knowledgeBaseName.
    * @returns {Promise<Object>} Search results with source attribution
    */
-  async search({ query, knowledgeBaseId, limit, filters, rerank, visibility }) {
+  async search({
+    query,
+    knowledgeBaseId,
+    limit,
+    filters,
+    rerank,
+    visibility,
+    taskId,
+  }) {
     this.sdk.validateParams(
       { query },
       {
@@ -30,7 +38,15 @@ export class KnowledgeBaseService {
     );
 
     const params = {
-      body: { query, knowledgeBaseId, limit, filters, rerank, visibility },
+      body: {
+        query,
+        knowledgeBaseId,
+        limit,
+        filters,
+        rerank,
+        visibility,
+        taskId,
+      },
     };
 
     const result = await internalRequest(this.sdk, 
@@ -39,6 +55,34 @@ export class KnowledgeBaseService {
       params,
     );
     return result;
+  }
+
+  async listQueueKnowledgeBases({ queueId }) {
+    this.sdk.validateParams(
+      { queueId },
+      { queueId: { type: 'string', required: true } },
+    );
+    return internalRequest(
+      this.sdk,
+      `/knowledgeBase/queues/${queueId}/knowledgeBases`,
+      'GET',
+    );
+  }
+
+  async setQueueKnowledgeBases({ queueId, knowledgeBaseIds }) {
+    this.sdk.validateParams(
+      { queueId, knowledgeBaseIds },
+      {
+        queueId: { type: 'string', required: true },
+        knowledgeBaseIds: { type: 'array', required: true },
+      },
+    );
+    return internalRequest(
+      this.sdk,
+      `/knowledgeBase/queues/${queueId}/knowledgeBases`,
+      'PUT',
+      { body: { knowledgeBaseIds } },
+    );
   }
 
   /**
@@ -256,6 +300,12 @@ export class KnowledgeBaseService {
    * @param {Object} [params.filters] - Optional date range, source type filters
    * @returns {Promise<Object>} Analytics data
    */
+  async getAccountAnalytics(filters = {}) {
+    return internalRequest(this.sdk, '/knowledgeBase/analytics', 'GET', {
+      query: filters,
+    });
+  }
+
   async getAnalytics({ knowledgeBaseId, ...filters }) {
     this.sdk.validateParams(
       { knowledgeBaseId },
@@ -303,5 +353,56 @@ export class KnowledgeBaseService {
       params,
     );
     return result;
+  }
+
+  async listTaskPins({ taskId }) {
+    this.sdk.validateParams(
+      { taskId },
+      { taskId: { type: 'string', required: true } },
+    );
+    return internalRequest(
+      this.sdk,
+      `/knowledgeBase/tasks/${taskId}/pins`,
+      'GET',
+    );
+  }
+
+  async pinTaskSource({
+    taskId,
+    sourceId,
+    sourceType,
+    knowledgeBaseId,
+    title,
+  }) {
+    this.sdk.validateParams(
+      { taskId, sourceId },
+      {
+        taskId: { type: 'string', required: true },
+        sourceId: { type: 'string', required: true },
+      },
+    );
+    return internalRequest(
+      this.sdk,
+      `/knowledgeBase/tasks/${taskId}/pins`,
+      'POST',
+      {
+        body: { sourceId, sourceType, knowledgeBaseId, title },
+      },
+    );
+  }
+
+  async unpinTaskSource({ taskId, pinId }) {
+    this.sdk.validateParams(
+      { taskId, pinId },
+      {
+        taskId: { type: 'string', required: true },
+        pinId: { type: 'string', required: true },
+      },
+    );
+    return internalRequest(
+      this.sdk,
+      `/knowledgeBase/tasks/${taskId}/pins/${pinId}`,
+      'DELETE',
+    );
   }
 }
