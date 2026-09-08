@@ -186,6 +186,7 @@ export class PlaybooksService {
    * @param {string} [options.scoreType='boolean'] - Score type ('boolean' or 'scale')
    * @param {number} [options.weight=0] - Goal weight (0-100)
    * @param {boolean} [options.requiredForPass=false] - Whether required for pass
+   * @param {string} [options.visibility] - 'live' or 'reviewOnly'
    * @param {string} [options.recordTypeId] - Record type ID
    * @returns {Promise<Object>} Created goal with id
    *
@@ -211,6 +212,7 @@ export class PlaybooksService {
     signal,
     window,
     windowTurns,
+    visibility,
     recordTypeId,
   }) {
     this.sdk.validateParams(
@@ -240,6 +242,7 @@ export class PlaybooksService {
         signal: { type: 'string', required: false },
         window: { type: 'string', required: false },
         windowTurns: { type: 'number', required: false },
+        visibility: { type: 'string', required: false },
         recordTypeId: { type: 'string', required: false },
       },
     );
@@ -257,6 +260,7 @@ export class PlaybooksService {
         signal,
         window,
         windowTurns,
+        visibility,
         recordTypeId,
       },
     };
@@ -337,6 +341,7 @@ export class PlaybooksService {
    * @param {string} [options.scoreType] - Score type ('boolean' or 'scale')
    * @param {number} [options.weight] - Goal weight (0-100)
    * @param {boolean} [options.requiredForPass] - Whether required for pass
+   * @param {string} [options.visibility] - 'live' or 'reviewOnly'
    * @param {string} [options.recordTypeId] - Record type ID
    * @returns {Promise<Object>} Updated goal object
    *
@@ -360,6 +365,7 @@ export class PlaybooksService {
     signal,
     window,
     windowTurns,
+    visibility,
     recordTypeId,
   }) {
     this.sdk.validateParams(
@@ -389,6 +395,7 @@ export class PlaybooksService {
         signal: { type: 'string', required: false },
         window: { type: 'string', required: false },
         windowTurns: { type: 'number', required: false },
+        visibility: { type: 'string', required: false },
         recordTypeId: { type: 'string', required: false },
       },
     );
@@ -406,6 +413,7 @@ export class PlaybooksService {
         signal,
         window,
         windowTurns,
+        visibility,
         recordTypeId,
       },
     };
