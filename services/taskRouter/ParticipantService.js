@@ -50,6 +50,8 @@ export class ParticipantService {
    * @param {string} [options.displayName] - Optional display name shown for the external caller (kind 'external')
    * @param {string} [options.note] - Optional note shown to the invitee
    * @param {string} [options.bridgeRole='main'] - Voice bridge role (only 'main' is supported until the media update)
+   * @param {boolean} [options.self] - When kind is 'user', true to join the CALLER onto the task themselves (R1 self-join) instead of inviting `userId`
+   * @param {string} [options.role] - Self-join role: 'helper' (visible) or 'monitor' (private/observe, gated server-side)
    * @returns {Promise<Object>} { participant, offerId } for kind 'user'; { helpTaskId } for kind 'queue'; { participant } for kind 'external'
    *
    * @example
@@ -58,6 +60,8 @@ export class ParticipantService {
    * await sdk.taskRouter.participants.add({ taskId: 'task_123', kind: 'queue', queueId: 'queue_789' });
    * @example
    * await sdk.taskRouter.participants.add({ taskId: 'task_123', kind: 'external', phoneNumber: '+15551234567', displayName: 'Jane Doe' });
+   * @example
+   * await sdk.taskRouter.participants.add({ taskId: 'task_123', kind: 'user', self: true, role: 'helper' });
    */
   async add({
     taskId,
@@ -70,6 +74,8 @@ export class ParticipantService {
     displayName,
     note,
     bridgeRole,
+    self,
+    role,
   } = {}) {
     this.sdk.validateParams(
       {
@@ -83,6 +89,8 @@ export class ParticipantService {
         displayName,
         note,
         bridgeRole,
+        self,
+        role,
       },
       {
         taskId: { type: 'string', required: true },
@@ -95,6 +103,8 @@ export class ParticipantService {
         displayName: { type: 'string', required: false },
         note: { type: 'string', required: false },
         bridgeRole: { type: 'string', required: false },
+        self: { type: 'boolean', required: false },
+        role: { type: 'string', required: false },
       },
     );
 
@@ -107,6 +117,8 @@ export class ParticipantService {
     if (displayName !== undefined) params.body.displayName = displayName;
     if (note !== undefined) params.body.note = note;
     if (bridgeRole !== undefined) params.body.bridgeRole = bridgeRole;
+    if (self !== undefined) params.body.self = self;
+    if (role !== undefined) params.body.role = role;
 
     return await internalRequest(
       this.sdk,
@@ -184,7 +196,42 @@ export class ParticipantService {
   }
 
   /**
+   * Go public: promote the caller's own private (monitor) row to a normal
+   * (helper) participant. Self-only -- the server rejects this for any
+   * participant row other than the caller's own, and only when that row's
+   * current role is 'monitor'. Runs the normal helper-join chain server-side
+   * (worker session, task-router join, capacity, Team-channel membership)
+   * and unmutes the caller's voice leg when the task has one.
+   *
+   * @param {Object} options - Options
+   * @param {string} options.taskId - Task ID
+   * @param {string} options.participantId - The caller's own (monitor) participant ID
+   * @returns {Promise<Object>}
+   *
+   * @example
+   * await sdk.taskRouter.participants.goPublic({ taskId: 'task_123', participantId: 'tp_456' });
+   */
+  async goPublic({ taskId, participantId } = {}) {
+    this.sdk.validateParams(
+      { taskId, participantId },
+      {
+        taskId: { type: 'string', required: true },
+        participantId: { type: 'string', required: true },
+      },
+    );
+
+    return await internalRequest(
+      this.sdk,
+      `/taskRouter/tasks/${taskId}/participants/${participantId}`,
+      'PATCH',
+      { body: { role: 'helper' } },
+    );
+  }
+
+  /**
    * Remove a participant: drop them (owner/manager) or leave (self).
+   * Also used for a private (monitor) row's self-leave -- the server routes
+   * a caller's own row through the monitor leave/hangup path automatically.
    *
    * @param {Object} options - Options
    * @param {string} options.taskId - Task ID
@@ -193,6 +240,9 @@ export class ParticipantService {
    *
    * @example
    * await sdk.taskRouter.participants.remove({ taskId: 'task_123', participantId: 'tp_456' });
+   * @example
+   * // Self-leave a private (monitor) row -- same method, own participantId
+   * await sdk.taskRouter.participants.leave({ taskId: 'task_123', participantId: 'tp_456' });
    */
   async remove({ taskId, participantId }) {
     this.sdk.validateParams(
@@ -296,5 +346,23 @@ export class ParticipantService {
       '/taskRouter/tasks/participating',
       'GET',
     );
+  }
+
+  /**
+   * Leave the caller's own participant row (helper or private/monitor).
+   * Alias for {@link remove} scoped to your own row -- the server enforces
+   * self-only removal for a monitor row via the same DELETE route (media
+   * leg hangup, row left, `task_private_leave` audit for a monitor row).
+   *
+   * @param {Object} options - Options
+   * @param {string} options.taskId - Task ID
+   * @param {string} options.participantId - The caller's own participant ID
+   * @returns {Promise<Object>}
+   *
+   * @example
+   * await sdk.taskRouter.participants.leave({ taskId: 'task_123', participantId: 'tp_456' });
+   */
+  async leave({ taskId, participantId }) {
+    return await this.remove({ taskId, participantId });
   }
 }

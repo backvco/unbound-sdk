@@ -24,6 +24,29 @@ export class CCService {
   }
 
   /**
+   * Get the queueIds the caller manages (queueUsers.role='manager', direct
+   * or group-materialised) -- for UI that needs a single "is this user a
+   * manager of at least one queue" check without gating on the coarser,
+   * account-wide `getScope().isManager`.
+   *
+   * @returns {Promise<Object>} result
+   * @returns {string[]} result.queueIds - Queue ids the caller manages
+   *
+   * @example
+   * const { queueIds } = await sdk.taskRouter.cc.getManagedQueues();
+   * const isAnyQueueManager = queueIds.length > 0;
+   */
+  async getManagedQueues() {
+    const result = await internalRequest(
+      this.sdk,
+      '/taskRouter/queues/managed',
+      'GET',
+      {},
+    );
+    return result;
+  }
+
+  /**
    * Get a live Contact Center snapshot (KPIs, per-queue summaries, team roster
    * with active tasks) scoped to a set of queues.
    *

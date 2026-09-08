@@ -570,7 +570,7 @@ export class PermissionsService {
     });
   }
 
-  /** Queues this group grants. @returns {Promise<{results: Array<{queueId, access, autoLogin}>}>} */
+  /** Queues this group grants. @returns {Promise<{results: Array<{queueId, access, autoLogin, role}>}>} */
   async listGroupQueues(groupId) {
     groupId = String(groupId);
     this.sdk.validateParams(
@@ -582,10 +582,11 @@ export class PermissionsService {
 
   /**
    * Replace the group's full queue list.
-   * @param {Array<{queueId: string, access?: boolean, autoLogin?: boolean}>} queues
+   * @param {Array<{queueId: string, access?: boolean, autoLogin?: boolean, role?: string}>} queues
    *   `autoLogin` seeds the derived membership row and takes effect at the
    *   agent's next availability transition — it never logs anyone in
-   *   mid-session.
+   *   mid-session. `role` ('agent'|'manager', default 'agent') is the
+   *   queueUsers.role materialised for group members via this queue.
    */
   async setGroupQueues(groupId, queues) {
     groupId = String(groupId);
@@ -602,6 +603,7 @@ export class PermissionsService {
           queueId: String(q.queueId),
           access: q.access !== false,
           autoLogin: Boolean(q.autoLogin),
+          role: q.role || 'agent',
         })),
       },
     });

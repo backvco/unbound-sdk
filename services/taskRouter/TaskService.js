@@ -1,4 +1,5 @@
 import { internalRequest } from '../../base.js';
+import { taskWorkspaceMethods } from './TaskWorkspaceMethods.js';
 export class TaskService {
   constructor(sdk) {
     this.sdk = sdk;
@@ -1154,3 +1155,7 @@ export class TaskService {
     );
   }
 }
+
+// CC task-workspace methods (claim/observe/unobserve/observers/take/access)
+// live in TaskWorkspaceMethods.js to keep this file from growing further.
+Object.assign(TaskService.prototype, taskWorkspaceMethods);

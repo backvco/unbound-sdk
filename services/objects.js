@@ -118,6 +118,7 @@ export class ObjectsService {
         limit = 100,
         nextId = null,
         previousId = null,
+        orderBy = null,
         orderByDirection = 'DESC',
         expandDetails = false,
         meta = {},
@@ -131,6 +132,7 @@ export class ObjectsService {
           limit,
           nextId,
           previousId,
+          orderBy,
           orderByDirection,
           expandDetails,
           meta,
@@ -142,6 +144,7 @@ export class ObjectsService {
           limit: { type: 'number', required: false },
           nextId: { type: 'string', required: false },
           previousId: { type: 'string', required: false },
+          orderBy: { type: 'string', required: false }, // base-table column; ties break createdAt ASC, id ASC
           orderByDirection: { type: 'string', required: false },
           expandDetails: { type: 'boolean', required: false },
           meta: { type: 'object', required: false },
@@ -153,6 +156,7 @@ export class ObjectsService {
       if (limit !== 100) query.limit = limit;
       if (nextId !== null) query.nextId = nextId;
       if (previousId !== null) query.previousId = previousId;
+      if (orderBy !== null) query.orderBy = orderBy;
       if (orderByDirection !== 'DESC')
         query.orderByDirection = orderByDirection;
       if (expandDetails) query.expandDetails = expandDetails;
