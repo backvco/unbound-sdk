@@ -89,7 +89,7 @@ export class CobrowseVisitorService {
 /**
  * Host-agnostic cobrowse surface (`sdk.cobrowse.*`). v1 adapter is
  * WebChat; Meet later uses the same method names with `source:'meet'`.
- * No `sdk.webchat.cobrowse`. No `getRecording` in this box.
+ * No `sdk.webchat.cobrowse`.
  */
 export class CobrowseService {
   constructor(sdk) {
@@ -206,6 +206,54 @@ export class CobrowseService {
       this.sdk,
       conversationCobrowsePath(ids.widgetId, ids.engagementSessionId, '/active'),
       'GET',
+    );
+  }
+
+  /**
+   * Download the combined recording.ndjson for a finished cobrowse session.
+   * HTTP only (forceFetch) so the body is the event log, not JSON.
+   * @param {Object} params
+   * @param {'webchat'} params.source
+   * @param {string} params.widgetId
+   * @param {string} params.hostId
+   * @param {string} params.sid
+   * @param {string} [params.engagementSessionId]
+   */
+  async getRecording({
+    source,
+    widgetId,
+    hostId,
+    engagementSessionId,
+    sid,
+  } = {}) {
+    const ids = webchatHostIds(
+      { source, widgetId, hostId, engagementSessionId },
+      'getRecording',
+    );
+    this.sdk.validateParams(
+      {
+        source,
+        widgetId,
+        hostId: ids.engagementSessionId,
+        sid,
+      },
+      {
+        source: { type: 'string', required: true },
+        widgetId: { type: 'string', required: true },
+        hostId: { type: 'string', required: true },
+        sid: { type: 'string', required: true },
+      },
+    );
+    return internalRequest(
+      this.sdk,
+      conversationCobrowsePath(
+        ids.widgetId,
+        ids.engagementSessionId,
+        `/${sid}/recording`,
+      ),
+      'GET',
+      {},
+      true,
     );
   }
 }

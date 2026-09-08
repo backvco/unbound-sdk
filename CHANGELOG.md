@@ -1,3 +1,7 @@
+## 4.13.75
+
+- feat: `sdk.cobrowse.getRecording({ source, widgetId, hostId, sid })` (`GET /webchat/widgets/:id/conversations/:engagementSessionId/cobrowse/:sid/recording`) — combined `recording.ndjson` (HTTP only)
+
 ## 4.13.74
 
 - feat: `sdk.cobrowse.request` / `end` / `getActive` (webchat agent nested routes) and `sdk.cobrowse.visitor.accept` / `deny` / `end` (session JWT). No `getRecording` yet.

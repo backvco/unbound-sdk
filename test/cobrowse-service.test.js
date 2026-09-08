@@ -35,7 +35,7 @@ describe('UnboundSDK.cobrowse', () => {
     assert.equal(typeof sdk.cobrowse.visitor.accept, 'function');
     assert.equal(typeof sdk.cobrowse.visitor.deny, 'function');
     assert.equal(typeof sdk.cobrowse.visitor.end, 'function');
-    assert.equal(sdk.cobrowse.getRecording, undefined);
+    assert.equal(typeof sdk.cobrowse.getRecording, 'function');
   });
 });
 
@@ -116,6 +116,24 @@ describe('CobrowseService.getActive', () => {
       '/webchat/widgets/w1/conversations/es1/cobrowse/active',
     );
     assert.equal(calls[0].method, 'GET');
+  });
+});
+
+describe('CobrowseService.getRecording', () => {
+  test('GETs nested cobrowse/:sid/recording over HTTP', async () => {
+    const { fakeSdk, calls } = buildFakeSdk();
+    await new CobrowseService(fakeSdk).getRecording({
+      source: 'webchat',
+      widgetId: 'w1',
+      hostId: 'es1',
+      sid: 'cb1',
+    });
+    assert.equal(
+      calls[0].endpoint,
+      '/webchat/widgets/w1/conversations/es1/cobrowse/cb1/recording',
+    );
+    assert.equal(calls[0].method, 'GET');
+    assert.equal(calls[0].forceFetch, true);
   });
 });
 
