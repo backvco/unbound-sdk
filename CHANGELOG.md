@@ -1,3 +1,7 @@
+## 4.13.74
+
+- feat: `sdk.cobrowse.request` / `end` / `getActive` (webchat agent nested routes) and `sdk.cobrowse.visitor.accept` / `deny` / `end` (session JWT). No `getRecording` yet.
+
 ## 4.13.63
 
 - feat: KB article version history. `sdk.knowledgeBase.listArticleVersions({ id })` (`GET /knowledgeBase/articles/:id/versions`), `getArticleVersion({ id, versionId })` (`GET /knowledgeBase/articles/:id/versions/:versionId`), and `restoreArticleVersion({ id, versionId })` (`POST /knowledgeBase/articles/:id/versions/:versionId/restore`, snapshots current content then reprocesses if published)
