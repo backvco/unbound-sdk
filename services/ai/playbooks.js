@@ -1170,4 +1170,55 @@ export class PlaybooksService {
     );
     return result;
   }
+
+  /**
+   * Suggest a criteria/window rewrite from QA disagreements. Never auto-applies.
+   *
+   * @param {Object} options
+   * @param {string} options.playbookGoalId
+   * @returns {Promise<Object>} { suggestionId, status, current, proposed, rationale }
+   */
+  async suggestGoalDefinition({ playbookGoalId }) {
+    this.sdk.validateParams(
+      { playbookGoalId },
+      {
+        playbookGoalId: { type: 'string', required: true },
+      },
+    );
+
+    const result = await internalRequest(
+      this.sdk,
+      `/ai/playbooks/goals/${playbookGoalId}/suggest`,
+      'POST',
+      { body: {} },
+    );
+    return result;
+  }
+
+  /**
+   * Accept, edit, or reject a pending goal-definition suggestion.
+   *
+   * @param {Object} options
+   * @param {string} options.suggestionId
+   * @param {string} options.action - accept | reject | edit
+   * @param {Object} [options.proposed]
+   * @returns {Promise<Object>}
+   */
+  async resolveGoalSuggestion({ suggestionId, action, proposed }) {
+    this.sdk.validateParams(
+      { suggestionId, action },
+      {
+        suggestionId: { type: 'string', required: true },
+        action: { type: 'string', required: true },
+      },
+    );
+
+    const result = await internalRequest(
+      this.sdk,
+      `/ai/playbooks/suggestions/${suggestionId}/resolve`,
+      'POST',
+      { body: { action, proposed } },
+    );
+    return result;
+  }
 }
