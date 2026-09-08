@@ -1107,4 +1107,67 @@ export class PlaybooksService {
     );
     return result;
   }
+
+  /**
+   * List QA disagreements for a playbook goal (keyset on reviewedAt, id).
+   *
+   * @param {Object} options
+   * @param {string} options.playbookGoalId
+   * @param {number} [options.limit]
+   * @param {string} [options.beforeReviewedAt]
+   * @param {string} [options.beforeId]
+   * @returns {Promise<Object>} { results, agreeRate, reviewedCount, disagreeCount, next }
+   */
+  async listQaDisagreements({
+    playbookGoalId,
+    limit,
+    beforeReviewedAt,
+    beforeId,
+  }) {
+    this.sdk.validateParams(
+      { playbookGoalId },
+      {
+        playbookGoalId: { type: 'string', required: true },
+        limit: { type: 'number', required: false },
+        beforeReviewedAt: { type: 'string', required: false },
+        beforeId: { type: 'string', required: false },
+      },
+    );
+
+    const query = {};
+    if (limit != null) query.limit = limit;
+    if (beforeReviewedAt) query.beforeReviewedAt = beforeReviewedAt;
+    if (beforeId) query.beforeId = beforeId;
+
+    const result = await internalRequest(
+      this.sdk,
+      `/ai/playbooks/goals/${playbookGoalId}/disagreements`,
+      'GET',
+      { query },
+    );
+    return result;
+  }
+
+  /**
+   * Playbook-level QA agree-rate (exact integer match).
+   *
+   * @param {Object} options
+   * @param {string} options.playbookId
+   * @returns {Promise<Object>} agree-rate payload
+   */
+  async getQaAgreeRate({ playbookId }) {
+    this.sdk.validateParams(
+      { playbookId },
+      {
+        playbookId: { type: 'string', required: true },
+      },
+    );
+
+    const result = await internalRequest(
+      this.sdk,
+      `/ai/playbooks/${playbookId}/qa/agree-rate`,
+      'GET',
+    );
+    return result;
+  }
 }
