@@ -118,6 +118,7 @@ export class ObjectsService {
         limit = 100,
         nextId = null,
         previousId = null,
+        orderBy = null,
         orderByDirection = 'DESC',
         expandDetails = false,
         meta = {},
@@ -131,6 +132,7 @@ export class ObjectsService {
           limit,
           nextId,
           previousId,
+          orderBy,
           orderByDirection,
           expandDetails,
           meta,
@@ -142,6 +144,7 @@ export class ObjectsService {
           limit: { type: 'number', required: false },
           nextId: { type: 'string', required: false },
           previousId: { type: 'string', required: false },
+          orderBy: { type: 'string', required: false }, // base-table column; ties break createdAt ASC, id ASC
           orderByDirection: { type: 'string', required: false },
           expandDetails: { type: 'boolean', required: false },
           meta: { type: 'object', required: false },
@@ -153,6 +156,7 @@ export class ObjectsService {
       if (limit !== 100) query.limit = limit;
       if (nextId !== null) query.nextId = nextId;
       if (previousId !== null) query.previousId = previousId;
+      if (orderBy !== null) query.orderBy = orderBy;
       if (orderByDirection !== 'DESC')
         query.orderByDirection = orderByDirection;
       if (expandDetails) query.expandDetails = expandDetails;
@@ -372,6 +376,7 @@ export class ObjectsService {
    * @param {string} args.object
    * @param {object} args.where
    * @param {boolean} [args.skipTriggers=false] - Do not run triggers for this write
+   * @param {object} [args.options] - Extra delete options (e.g. { deleteEmails: true })
    * @returns {Promise} Delete result
    *
    * @example
@@ -379,15 +384,17 @@ export class ObjectsService {
    *   object: 'people',
    *   where: { id: '013…' },
    *   skipTriggers: true,
+   *   options: { deleteEmails: true },
    * });
    */
-  async delete({ object, where, skipTriggers = false }) {
+  async delete({ object, where, skipTriggers = false, options }) {
     this.sdk.validateParams(
-      { object, where, skipTriggers },
+      { object, where, skipTriggers, options },
       {
         object: { type: 'string', required: true },
         where: { type: 'object', required: true },
         skipTriggers: { type: 'boolean', required: false },
+        options: { type: 'object', required: false },
       },
     );
 
@@ -396,6 +403,7 @@ export class ObjectsService {
         where,
       },
     };
+    if (options) params.body.options = options;
     if (skipTriggers) params.query = { skipTriggers: true };
 
     const result = await internalRequest(this.sdk, `/object/${object}`, 'DELETE', params);
@@ -409,18 +417,25 @@ export class ObjectsService {
    * @param {string} args.object
    * @param {string} args.id
    * @param {boolean} [args.skipTriggers=false] - Do not run triggers for this write
+   * @param {object} [args.options] - Extra delete options (e.g. { deleteEmails: true })
    * @returns {Promise} Delete result
    *
    * @example
-   * await sdk.objects.deleteById({ object: 'people', id: '013…', skipTriggers: true });
+   * await sdk.objects.deleteById({
+   *   object: 'people',
+   *   id: '013…',
+   *   skipTriggers: true,
+   *   options: { deleteEmails: true },
+   * });
    */
-  async deleteById({ object, id, skipTriggers = false }) {
+  async deleteById({ object, id, skipTriggers = false, options }) {
     this.sdk.validateParams(
-      { object, id, skipTriggers },
+      { object, id, skipTriggers, options },
       {
         object: { type: 'string', required: true },
         id: { type: 'string', required: true },
         skipTriggers: { type: 'boolean', required: false },
+        options: { type: 'object', required: false },
       },
     );
 
@@ -431,9 +446,81 @@ export class ObjectsService {
         },
       },
     };
+    if (options) params.body.options = options;
     if (skipTriggers) params.query = { skipTriggers: true };
 
     const result = await internalRequest(this.sdk, `/object/${object}`, 'DELETE', params);
+    return result;
+  }
+
+  /**
+   * Merge 1–3 records into a survivor record. people|company only (v1 gate,
+   * enforced server-side). Related-record cleanup runs sync (owned child rows)
+   * + async (high-volume history) after the survivor is updated and the
+   * losers are deleted.
+   *
+   * @param {object} args
+   * @param {string} args.object
+   * @param {string} args.survivorId - Record that remains after the merge.
+   * @param {string[]} args.mergeIds - 1-3 ids to merge into the survivor (then deleted).
+   * @param {object} [args.fields] - Map of column -> the record id whose value wins.
+   *   Omitted columns keep the survivor's value.
+   * @returns {Promise<{survivorId: string, queued: boolean}>}
+   *
+   * @example
+   * await sdk.objects.merge({
+   *   object: 'people',
+   *   survivorId: '013…',
+   *   mergeIds: ['014…', '015…'],
+   *   fields: { firstName: '014…', email: '015…' },
+   * });
+   */
+  async merge({ object, survivorId, mergeIds, fields }) {
+    this.sdk.validateParams(
+      { object, survivorId, mergeIds, fields },
+      {
+        object: { type: 'string', required: true },
+        survivorId: { type: 'string', required: true },
+        mergeIds: { type: 'array', required: true },
+        fields: { type: 'object', required: false },
+      },
+    );
+
+    const body = { survivorId, mergeIds };
+    if (fields) body.fields = fields;
+
+    const params = { body };
+
+    const result = await internalRequest(this.sdk, `/object/${object}/merge`, 'POST', params);
+    return result;
+  }
+
+  /**
+   * Get merge backfill status for a record (pending Bucket B re-point count
+   * from the recordMerges ledger).
+   *
+   * @param {object} args
+   * @param {string} args.object
+   * @param {string} args.id
+   * @returns {Promise<{pending: number, lastMergedAt: string|null}>}
+   *
+   * @example
+   * await sdk.objects.mergeStatus({ object: 'people', id: '013…' });
+   */
+  async mergeStatus({ object, id }) {
+    this.sdk.validateParams(
+      { object, id },
+      {
+        object: { type: 'string', required: true },
+        id: { type: 'string', required: true },
+      },
+    );
+
+    const result = await internalRequest(
+      this.sdk,
+      `/object/${object}/merge-status/${id}`,
+      'GET',
+    );
     return result;
   }
 
@@ -949,14 +1036,25 @@ export class ObjectsService {
     isBotAccessible = null,
     isPublicBot = null,
     description = null,
+    feedPostChanges = null,
+    feedPostWindowSeconds = null,
   }) {
     this.sdk.validateParams(
-      { objectName, isBotAccessible, isPublicBot, description },
+      {
+        objectName,
+        isBotAccessible,
+        isPublicBot,
+        description,
+        feedPostChanges,
+        feedPostWindowSeconds,
+      },
       {
         objectName: { type: 'string', required: true },
         isBotAccessible: { type: 'boolean', required: false },
         isPublicBot: { type: 'boolean', required: false },
         description: { type: 'string', required: false },
+        feedPostChanges: { type: 'boolean', required: false },
+        feedPostWindowSeconds: { type: 'number', required: false },
       },
     );
 
@@ -964,6 +1062,9 @@ export class ObjectsService {
     if (isBotAccessible !== null) body.isBotAccessible = isBotAccessible;
     if (isPublicBot !== null) body.isPublicBot = isPublicBot;
     if (description !== null) body.description = description;
+    if (feedPostChanges !== null) body.feedPostChanges = feedPostChanges;
+    if (feedPostWindowSeconds !== null)
+      body.feedPostWindowSeconds = feedPostWindowSeconds;
 
     const params = { body };
 
@@ -1192,6 +1293,81 @@ export class ObjectsService {
     return internalRequest(this.sdk, `/object/${recordId}/emails`, 'GET', {
       query,
     });
+  }
+
+  /**
+   * Engagement-session participant roster (requester + durable CCs).
+   * `recordId` is an engagement session id.
+   *
+   * GET /object/:id/participants
+   *
+   * @param {string} recordId
+   * @returns {Promise<{participants: Array<{
+   *   id: string,
+   *   engagementSessionId: string,
+   *   role: string,
+   *   email: string|null,
+   *   peopleId: string|null,
+   *   displayName: string|null,
+   *   addedBy: {id: string, name: string|null}|null,
+   *   createdAt: string
+   * }>}>}
+   */
+  async listParticipants(recordId) {
+    this.sdk.validateParams(
+      { recordId },
+      { recordId: { type: 'string', required: true } },
+    );
+    return internalRequest(
+      this.sdk,
+      `/object/${recordId}/participants`,
+      'GET',
+    );
+  }
+
+  /**
+   * Add a durable CC on an engagement session (PR5).
+   * PUT /object/:id/participants
+   *
+   * @param {string} recordId engagement session id
+   * @param {{email: string, displayName?: string, peopleId?: string}} body
+   */
+  async addParticipant(recordId, body = {}) {
+    this.sdk.validateParams(
+      { recordId, email: body.email },
+      {
+        recordId: { type: 'string', required: true },
+        email: { type: 'string', required: true },
+      },
+    );
+    return internalRequest(
+      this.sdk,
+      `/object/${recordId}/participants`,
+      'PUT',
+      { body },
+    );
+  }
+
+  /**
+   * Remove a durable CC from an engagement session (PR5).
+   * DELETE /object/:id/participants/:participantId
+   *
+   * @param {string} recordId engagement session id
+   * @param {string} participantId
+   */
+  async removeParticipant(recordId, participantId) {
+    this.sdk.validateParams(
+      { recordId, participantId },
+      {
+        recordId: { type: 'string', required: true },
+        participantId: { type: 'string', required: true },
+      },
+    );
+    return internalRequest(
+      this.sdk,
+      `/object/${recordId}/participants/${participantId}`,
+      'DELETE',
+    );
   }
 
   /**

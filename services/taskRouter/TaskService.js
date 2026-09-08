@@ -1,4 +1,5 @@
 import { internalRequest } from '../../base.js';
+import { taskWorkspaceMethods } from './TaskWorkspaceMethods.js';
 export class TaskService {
   constructor(sdk) {
     this.sdk = sdk;
@@ -23,6 +24,10 @@ export class TaskService {
    * @param {boolean} [options.createEngagement=false] - Whether to automatically create an engagement session for this task
    * @param {string} [options.relatedObject] - Related object type for metadata tracking (automatically set if createEngagement is true)
    * @param {string} [options.relatedId] - Related object ID for metadata tracking (automatically set if createEngagement is true)
+   * @param {string} [options.parentTaskId] - Parent task id (wrapUp follow-up / requeue)
+   * @param {string} [options.preferredWorkerId] - Preferred worker id persisted on create INSERT
+   * @param {string} [options.source] - Engagement `source` when `createEngagement` is true (e.g. `'portal'`)
+   * @param {Object} [options.metadata] - Arbitrary metadata to attach to the task at creation (e.g. `{ textConversationId }`). Passed through as-is; whether it is persisted depends on the receiving endpoint honoring `metadata` in the request body.
    * @returns {Promise<Object>} Object containing the created task information
    * @returns {string} result.id - The unique identifier for the created task
    *
@@ -83,6 +88,11 @@ export class TaskService {
       cdrId,
       sipCallId,
       aiChatSessionId,
+      parentTaskId,
+      preferredWorkerId,
+      isRoutable,
+      metadata,
+      source,
     } = options;
 
     this.sdk.validateParams(
@@ -102,6 +112,11 @@ export class TaskService {
         relatedId,
         sipCallId,
         aiChatSessionId,
+        parentTaskId,
+        preferredWorkerId,
+        isRoutable,
+        metadata,
+        source,
       },
       {
         type: { type: 'string', required: true },
@@ -119,6 +134,11 @@ export class TaskService {
         relatedId: { type: 'string', required: false },
         sipCallId: { type: 'string', required: false },
         aiChatSessionId: { type: 'string', required: false },
+        parentTaskId: { type: 'string', required: false },
+        preferredWorkerId: { type: 'string', required: false },
+        isRoutable: { type: 'boolean', required: false },
+        metadata: { type: 'object', required: false },
+        source: { type: 'string', required: false },
       },
     );
 
@@ -179,6 +199,26 @@ export class TaskService {
 
     if (aiChatSessionId !== undefined) {
       params.body.aiChatSessionId = aiChatSessionId;
+    }
+
+    if (parentTaskId !== undefined) {
+      params.body.parentTaskId = parentTaskId;
+    }
+
+    if (preferredWorkerId !== undefined) {
+      params.body.preferredWorkerId = preferredWorkerId;
+    }
+
+    if (isRoutable !== undefined) {
+      params.body.isRoutable = isRoutable;
+    }
+
+    if (metadata !== undefined) {
+      params.body.metadata = metadata;
+    }
+
+    if (source !== undefined) {
+      params.body.source = source;
     }
 
     const result = await internalRequest(this.sdk, '/taskRouter/tasks', 'POST', params);
@@ -436,44 +476,53 @@ export class TaskService {
   }
 
   /**
-   * Toggle task hold status
+   * Toggle or set task hold status
    * Place a connected task on hold or resume a held task.
-   * If the task is currently 'connected', it will be set to 'hold'.
-   * If the task is currently 'hold', it will be set back to 'connected'.
+   * If `held` is omitted, the current status is toggled: 'connected' -> 'hold'
+   * and 'hold' -> 'connected'. If `held` is a boolean, it explicitly sets the
+   * target status: `true` -> 'hold', `false` -> 'connected'.
    *
    * @param {Object} options - Parameters
    * @param {string} options.taskId - The task ID to hold/resume (required)
+   * @param {boolean} [options.held] - Explicit target hold state; omit for legacy toggle behavior
    * @returns {Promise<Object>} Object containing the task ID and new status
    * @returns {string} result.taskId - The task ID that was modified
    * @returns {string} result.status - The new status ('hold' or 'connected')
+   * @returns {boolean} result.changed - Whether the status actually changed
    *
    * @example
    * // Put a connected task on hold
-   * const result = await sdk.taskRouter.task.hold({ taskId: 'task123' });
+   * const result = await sdk.taskRouter.task.hold({ taskId: 'task123', held: true });
    * console.log(result.status); // "hold"
    *
    * @example
    * // Resume a held task
-   * const result = await sdk.taskRouter.task.hold({ taskId: 'task123' });
+   * const result = await sdk.taskRouter.task.hold({ taskId: 'task123', held: false });
    * console.log(result.status); // "connected"
+   *
+   * @example
+   * // Legacy toggle (no `held`)
+   * const result = await sdk.taskRouter.task.hold({ taskId: 'task123' });
    */
   async hold(options = {}) {
-    const { taskId } = options;
+    const { taskId, held } = options;
 
     this.sdk.validateParams(
-      { taskId },
+      { taskId, held },
       {
         taskId: { type: 'string', required: true },
+        held: { type: 'boolean', required: false },
       },
     );
 
     const params = {
       body: {
         taskId,
+        ...(typeof held === 'boolean' && { held }),
       },
     };
 
-    const result = await internalRequest(this.sdk, 
+    const result = await internalRequest(this.sdk,
       '/taskRouter/tasks/hold',
       'PUT',
       params,
@@ -846,6 +895,215 @@ export class TaskService {
   }
 
   /**
+   * Park a task ("waiting for customer"). Clears the worker (freeing
+   * capacity) and stamps preferredWorkerId with the parking worker so
+   * unpark can offer the task back to them first.
+   *
+   * @param {Object} options - Parameters
+   * @param {string} options.taskId - The task ID to park (required)
+   * @returns {Promise<Object>} { taskId, status: 'parked' }
+   */
+  async park(options = {}) {
+    const { taskId } = options;
+
+    this.sdk.validateParams(
+      { taskId },
+      { taskId: { type: 'string', required: true } },
+    );
+
+    const params = { body: { taskId } };
+
+    return await internalRequest(
+      this.sdk,
+      '/taskRouter/tasks/park',
+      'PUT',
+      params,
+    );
+  }
+
+  /**
+   * Resume a parked task ("customer is back"). Flips the task back to
+   * pending so the distributor re-offers it; preferredWorkerId (stamped by
+   * park) is left alone so the parking worker gets first refusal.
+   *
+   * PUT /taskRouter/tasks/unpark
+   *
+   * @param {Object} options - Parameters
+   * @param {string} options.taskId - The parked task ID (required)
+   * @returns {Promise<Object>} { taskId, status: 'pending' }
+   */
+  async unpark(options = {}) {
+    const { taskId } = options;
+
+    this.sdk.validateParams(
+      { taskId },
+      { taskId: { type: 'string', required: true } },
+    );
+
+    const params = { body: { taskId } };
+
+    return await internalRequest(
+      this.sdk,
+      '/taskRouter/tasks/unpark',
+      'PUT',
+      params,
+    );
+  }
+
+  /**
+   * Public reply on a ticket task: writes the customer-visible post and
+   * emails requester + CCs (transactional) from the queue mailbox.
+   *
+   * POST /taskRouter/tasks/:id/public-reply
+   *
+   * @param {Object} options
+   * @param {string} options.taskId
+   * @param {string} [options.html]
+   * @param {string} [options.text]
+   * @param {string|string[]} [options.extraTo]
+   * @param {string|string[]} [options.extraCc]
+   * @param {string|string[]} [options.extraBcc]
+   * @param {string|string[]} [options.attachments]
+   * @param {boolean} [options.addExtrasToTicket]
+   * @param {string} [options.retryVisitorMessageId]
+   */
+  async publicReply(options = {}) {
+    const {
+      taskId,
+      html,
+      text,
+      extraTo,
+      extraCc,
+      extraBcc,
+      attachments,
+      addExtrasToTicket,
+      retryVisitorMessageId,
+    } = options;
+
+    this.sdk.validateParams(
+      { taskId },
+      { taskId: { type: 'string', required: true } },
+    );
+
+    const body = {};
+    if (html !== undefined) body.html = html;
+    if (text !== undefined) body.text = text;
+    if (extraTo !== undefined) body.extraTo = extraTo;
+    if (extraCc !== undefined) body.extraCc = extraCc;
+    if (extraBcc !== undefined) body.extraBcc = extraBcc;
+    if (attachments !== undefined) body.attachments = attachments;
+    if (addExtrasToTicket !== undefined) {
+      body.addExtrasToTicket = addExtrasToTicket;
+    }
+    if (retryVisitorMessageId !== undefined) {
+      body.retryVisitorMessageId = retryVisitorMessageId;
+    }
+
+    return await internalRequest(
+      this.sdk,
+      `/taskRouter/tasks/${taskId}/public-reply`,
+      'POST',
+      { body },
+    );
+  }
+
+  /**
+   * Mark a task's inbound messages as read for one channel (or all).
+   * Channel ids: sms | webchat | email | whatsApp | rcs | all.
+   * Clearing SMS also clears whatsApp/rcs until those get their own
+   * timeline threads (`channel` may also be the group name `sms`).
+   *
+   * @param {Object} options
+   * @param {string} options.taskId
+   * @param {string} [options.channel='all']
+   * @returns {Promise<{taskId:string, unreadByChannel:object, unreadTotal:number}>}
+   */
+  async markChannelRead(options = {}) {
+    const { taskId, channel } = options;
+
+    this.sdk.validateParams(
+      { taskId, channel },
+      {
+        taskId: { type: 'string', required: true },
+        channel: { type: 'string', required: false },
+      },
+    );
+
+    const params = { body: { taskId } };
+    if (channel !== undefined) params.body.channel = channel;
+
+    return await internalRequest(
+      this.sdk,
+      '/taskRouter/tasks/unread/read',
+      'PUT',
+      params,
+    );
+  }
+
+  /**
+   * Read a task's live channel mix -- whether it has an open text
+   * conversation, a live webchat session, or an active call, and whether
+   * it's currently eligible to be parked (`canPark`). Used to show/hide
+   * Park and webchat "End chat" without polling (task-park-webchat-endchat
+   * decisions, 2026-09-04).
+   *
+   * @param {Object} options
+   * @param {string} options.taskId
+   * @returns {Promise<{channelState:{hasOpenText:boolean, webchatLive:boolean, callLive:boolean, canPark:boolean}}>}
+   */
+  async channelState(options = {}) {
+    const { taskId } = options;
+
+    this.sdk.validateParams(
+      { taskId },
+      { taskId: { type: 'string', required: true } },
+    );
+
+    return await internalRequest(
+      this.sdk,
+      `/taskRouter/tasks/${taskId}/channelState`,
+      'GET',
+    );
+  }
+
+  /**
+   * Transfer a task to a different queue and/or worker. Every transfer
+   * creates a new task in the target queue and re-points live channels to
+   * it; the old task is completed with the target queue's transfer
+   * disposition.
+   *
+   * @param {Object} options - Parameters
+   * @param {string} options.taskId - The task ID to transfer (required)
+   * @param {Object} options.target - Transfer target (required)
+   * @param {string} [options.target.queueId] - Destination queue ID
+   * @param {string} [options.target.workerId] - Destination worker ID
+   * @param {string} [options.note] - Optional note for the receiving agent
+   * @returns {Promise<Object>} { taskId, newTaskId }
+   */
+  async transfer(options = {}) {
+    const { taskId, target, note } = options;
+
+    this.sdk.validateParams(
+      { taskId, target, note },
+      {
+        taskId: { type: 'string', required: true },
+        target: { type: 'object', required: true },
+        note: { type: 'string', required: false },
+      },
+    );
+
+    const params = { body: { taskId, target } };
+    if (note !== undefined) params.body.note = note;
+
+    return await internalRequest(
+      this.sdk,
+      '/taskRouter/tasks/transfer',
+      'PUT',
+      params,
+    );
+  }
+
+  /**
    * Get the voice transcript for a task, keyed by the media-manager
    * bridgeId (not sipCallId) so it works across requeue/transfer.
    *
@@ -865,4 +1123,39 @@ export class TaskService {
       {},
     );
   }
+
+  /**
+   * Broadcast a typing indicator to the other participants (owner + joined
+   * helpers) on a task's channel. Fire-and-forget signal, not persisted;
+   * app1-socket forwards it to each participant as a `task_typing` event.
+   *
+   * @param {Object} options - Parameters
+   * @param {string} options.taskId - The task ID (required)
+   * @param {string} options.channel - 'sms' | 'email' | 'webchat' | 'team' (required)
+   * @param {boolean} options.isTyping - Whether the caller is currently typing (required)
+   * @returns {Promise<Object>} { ok: true }
+   */
+  async typing(options = {}) {
+    const { taskId, channel, isTyping } = options;
+
+    this.sdk.validateParams(
+      { taskId, channel, isTyping },
+      {
+        taskId: { type: 'string', required: true },
+        channel: { type: 'string', required: true },
+        isTyping: { type: 'boolean', required: true },
+      },
+    );
+
+    return await internalRequest(
+      this.sdk,
+      `/taskRouter/tasks/${taskId}/typing`,
+      'POST',
+      { body: { channel, isTyping } },
+    );
+  }
 }
+
+// CC task-workspace methods (claim/observe/unobserve/observers/take/access)
+// live in TaskWorkspaceMethods.js to keep this file from growing further.
+Object.assign(TaskService.prototype, taskWorkspaceMethods);

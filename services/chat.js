@@ -498,6 +498,49 @@ export class ChatService {
   }
 
   /**
+   * Send a message on a kind:'text' channel (sms-routing-plan.md §3.3.1).
+   * Plain body only — no ProseMirror `message`, no threads/cards. The API
+   * intercepts this route for text channels and sends the plain-text body
+   * as a real SMS/MMS via the same pipeline as sdk.messaging.sms.send
+   * (unless `internal` is set, which stays a regular chat message).
+   * @param {string} channelId
+   * @param {Object} params
+   * @param {string} [params.text] - Plain message text
+   * @param {string[]} [params.storageIds] - Image attachment storage ids
+   * @param {boolean} [params.internal] - Internal note; never sent as SMS
+   * @param {boolean} [params.force] - Force-send past a busy-conversation
+   *   (409 TEXT_CONVERSATION_BUSY) collision
+   * @returns {Promise<Object>} Created message
+   */
+  async sendTextMessage(channelId, { text, storageIds, internal, force } = {}) {
+    this.sdk.validateParams(
+      { channelId, text, storageIds, internal, force },
+      {
+        channelId: { type: "string", required: true },
+        text: { type: "string", required: false },
+        storageIds: { type: "array", required: false },
+        internal: { type: "boolean", required: false },
+        force: { type: "boolean", required: false },
+      },
+    );
+
+    const body = {};
+    if (text !== undefined) body.text = text;
+    if (storageIds !== undefined) body.storageIds = storageIds;
+    if (internal !== undefined) body.internal = internal;
+    if (force !== undefined) body.force = force;
+
+    return internalRequest(
+      this.sdk,
+      `/chat/channels/${channelId}/messages`,
+      "POST",
+      {
+        body,
+      },
+    );
+  }
+
+  /**
    * Edit a message body (ProseMirror JSON).
    * @param {string} id
    * @param {Object} params
@@ -844,7 +887,11 @@ export class ChatService {
    *   reason"; channel must be a non-archived public/private channel.
    * @returns {Promise<Object>} `{allowReports, reportReasons, reportNotifications}`
    */
-  async adminPutSettings({ allowReports, reportReasons, reportNotifications } = {}) {
+  async adminPutSettings({
+    allowReports,
+    reportReasons,
+    reportNotifications,
+  } = {}) {
     this.sdk.validateParams(
       { allowReports, reportReasons, reportNotifications },
       {
@@ -1145,7 +1192,10 @@ export class ChatService {
    * @param {'open'|'in_review'} [params.status]
    * @returns {Promise<Object>}
    */
-  async adminUpdateCase(id, { title, category, description, ownerId, status } = {}) {
+  async adminUpdateCase(
+    id,
+    { title, category, description, ownerId, status } = {},
+  ) {
     this.sdk.validateParams(
       { id, title, category, description, ownerId, status },
       {

@@ -24,6 +24,29 @@ export class CCService {
   }
 
   /**
+   * Get the queueIds the caller manages (queueUsers.role='manager', direct
+   * or group-materialised) -- for UI that needs a single "is this user a
+   * manager of at least one queue" check without gating on the coarser,
+   * account-wide `getScope().isManager`.
+   *
+   * @returns {Promise<Object>} result
+   * @returns {string[]} result.queueIds - Queue ids the caller manages
+   *
+   * @example
+   * const { queueIds } = await sdk.taskRouter.cc.getManagedQueues();
+   * const isAnyQueueManager = queueIds.length > 0;
+   */
+  async getManagedQueues() {
+    const result = await internalRequest(
+      this.sdk,
+      '/taskRouter/queues/managed',
+      'GET',
+      {},
+    );
+    return result;
+  }
+
+  /**
    * Get a live Contact Center snapshot (KPIs, per-queue summaries, team roster
    * with active tasks) scoped to a set of queues.
    *
@@ -295,6 +318,31 @@ export class CCService {
 
     const result = await internalRequest(this.sdk, 
       `/taskRouter/cc/workers/${workerId}/forceLogout`,
+      'POST',
+      {},
+    );
+    return result;
+  }
+
+  /**
+   * Recover a worker stuck out of routing (ghost Redis capacity, leftover
+   * lock, expired wrap-up). Self or manager. Does not force offline.
+   *
+   * @param {Object} options
+   * @param {string} options.workerId
+   * @returns {Promise<Object>}
+   */
+  async unlockWorker(options = {}) {
+    const { workerId } = options;
+
+    this.sdk.validateParams(
+      { workerId },
+      { workerId: { type: 'string', required: true } },
+    );
+
+    const result = await internalRequest(
+      this.sdk,
+      `/taskRouter/cc/workers/${workerId}/unlock`,
       'POST',
       {},
     );

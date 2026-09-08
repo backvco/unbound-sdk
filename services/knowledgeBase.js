@@ -17,9 +17,19 @@ export class KnowledgeBaseService {
    * @param {string} [params.filters.sourceType] - Filter by source type (article, document, source)
    * @param {Array} [params.filters.tags] - Filter by tags
    * @param {boolean} [params.rerank] - Whether to apply LLM reranking (default: true)
+   * @param {'all'|'public'} [params.visibility] - Result visibility scope: 'all' (default) or 'public' only.
+   *   Each result's source now also includes isPublic, knowledgeBaseId, knowledgeBaseName.
    * @returns {Promise<Object>} Search results with source attribution
    */
-  async search({ query, knowledgeBaseId, limit, filters, rerank }) {
+  async search({
+    query,
+    knowledgeBaseId,
+    limit,
+    filters,
+    rerank,
+    visibility,
+    taskId,
+  }) {
     this.sdk.validateParams(
       { query },
       {
@@ -28,7 +38,15 @@ export class KnowledgeBaseService {
     );
 
     const params = {
-      body: { query, knowledgeBaseId, limit, filters, rerank },
+      body: {
+        query,
+        knowledgeBaseId,
+        limit,
+        filters,
+        rerank,
+        visibility,
+        taskId,
+      },
     };
 
     const result = await internalRequest(this.sdk, 
@@ -37,6 +55,34 @@ export class KnowledgeBaseService {
       params,
     );
     return result;
+  }
+
+  async listQueueKnowledgeBases({ queueId }) {
+    this.sdk.validateParams(
+      { queueId },
+      { queueId: { type: 'string', required: true } },
+    );
+    return internalRequest(
+      this.sdk,
+      `/knowledgeBase/queues/${queueId}/knowledgeBases`,
+      'GET',
+    );
+  }
+
+  async setQueueKnowledgeBases({ queueId, knowledgeBaseIds }) {
+    this.sdk.validateParams(
+      { queueId, knowledgeBaseIds },
+      {
+        queueId: { type: 'string', required: true },
+        knowledgeBaseIds: { type: 'array', required: true },
+      },
+    );
+    return internalRequest(
+      this.sdk,
+      `/knowledgeBase/queues/${queueId}/knowledgeBases`,
+      'PUT',
+      { body: { knowledgeBaseIds } },
+    );
   }
 
   /**
@@ -172,6 +218,81 @@ export class KnowledgeBaseService {
   }
 
   /**
+   * List version snapshots for a KB article, newest first
+   *
+   * @param {Object} params
+   * @param {string} params.id - Article ID
+   * @returns {Promise<Object>} { results: [{ id, version, createdAt, createdBy, contentLength, preview }] }
+   */
+  async listArticleVersions({ id }) {
+    this.sdk.validateParams(
+      { id },
+      {
+        id: { type: 'string', required: true },
+      },
+    );
+
+    const result = await internalRequest(
+      this.sdk,
+      `/knowledgeBase/articles/${id}/versions`,
+      'GET',
+    );
+    return result;
+  }
+
+  /**
+   * Get one full version snapshot (with content) for a KB article
+   *
+   * @param {Object} params
+   * @param {string} params.id - Article ID
+   * @param {string} params.versionId - Version snapshot ID
+   * @returns {Promise<Object>} Full version row including content
+   */
+  async getArticleVersion({ id, versionId }) {
+    this.sdk.validateParams(
+      { id, versionId },
+      {
+        id: { type: 'string', required: true },
+        versionId: { type: 'string', required: true },
+      },
+    );
+
+    const result = await internalRequest(
+      this.sdk,
+      `/knowledgeBase/articles/${id}/versions/${versionId}`,
+      'GET',
+    );
+    return result;
+  }
+
+  /**
+   * Restore a KB article's content to a prior version snapshot.
+   * Snapshots the article's current content as a new version before
+   * overwriting it, then reprocesses if the article is published.
+   *
+   * @param {Object} params
+   * @param {string} params.id - Article ID
+   * @param {string} params.versionId - Version snapshot ID to restore
+   * @returns {Promise<Object>} Updated article record
+   */
+  async restoreArticleVersion({ id, versionId }) {
+    this.sdk.validateParams(
+      { id, versionId },
+      {
+        id: { type: 'string', required: true },
+        versionId: { type: 'string', required: true },
+      },
+    );
+
+    const result = await internalRequest(
+      this.sdk,
+      `/knowledgeBase/articles/${id}/versions/${versionId}/restore`,
+      'POST',
+    );
+    return result;
+  }
+
+  /**
    * Get analytics for a knowledge base
    *
    * @param {Object} params
@@ -179,6 +300,12 @@ export class KnowledgeBaseService {
    * @param {Object} [params.filters] - Optional date range, source type filters
    * @returns {Promise<Object>} Analytics data
    */
+  async getAccountAnalytics(filters = {}) {
+    return internalRequest(this.sdk, '/knowledgeBase/analytics', 'GET', {
+      query: filters,
+    });
+  }
+
   async getAnalytics({ knowledgeBaseId, ...filters }) {
     this.sdk.validateParams(
       { knowledgeBaseId },
@@ -226,5 +353,56 @@ export class KnowledgeBaseService {
       params,
     );
     return result;
+  }
+
+  async listTaskPins({ taskId }) {
+    this.sdk.validateParams(
+      { taskId },
+      { taskId: { type: 'string', required: true } },
+    );
+    return internalRequest(
+      this.sdk,
+      `/knowledgeBase/tasks/${taskId}/pins`,
+      'GET',
+    );
+  }
+
+  async pinTaskSource({
+    taskId,
+    sourceId,
+    sourceType,
+    knowledgeBaseId,
+    title,
+  }) {
+    this.sdk.validateParams(
+      { taskId, sourceId },
+      {
+        taskId: { type: 'string', required: true },
+        sourceId: { type: 'string', required: true },
+      },
+    );
+    return internalRequest(
+      this.sdk,
+      `/knowledgeBase/tasks/${taskId}/pins`,
+      'POST',
+      {
+        body: { sourceId, sourceType, knowledgeBaseId, title },
+      },
+    );
+  }
+
+  async unpinTaskSource({ taskId, pinId }) {
+    this.sdk.validateParams(
+      { taskId, pinId },
+      {
+        taskId: { type: 'string', required: true },
+        pinId: { type: 'string', required: true },
+      },
+    );
+    return internalRequest(
+      this.sdk,
+      `/knowledgeBase/tasks/${taskId}/pins/${pinId}`,
+      'DELETE',
+    );
   }
 }

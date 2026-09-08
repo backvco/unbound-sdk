@@ -1,3 +1,124 @@
+## 4.13.63
+
+- feat: KB article version history. `sdk.knowledgeBase.listArticleVersions({ id })` (`GET /knowledgeBase/articles/:id/versions`), `getArticleVersion({ id, versionId })` (`GET /knowledgeBase/articles/:id/versions/:versionId`), and `restoreArticleVersion({ id, versionId })` (`POST /knowledgeBase/articles/:id/versions/:versionId/restore`, snapshots current content then reprocesses if published)
+
+## 4.13.62
+
+- feat: `sdk.taskRouter.participants.control` accepts optional `queueId` — cross-queue give/take control chain (creates a new task in the target queue and makes the helper its owner); when omitted and the helper has access to more than one queue, server responds 409 `{ needsQueue: true, queues }`
+
+## 4.13.61
+
+- feat: `sdk.taskRouter.participants.add` accepts `kind: 'external'` with `phoneNumber` | `peopleId` | `companyId` (+ optional `displayName`) — dial an external caller onto a task's live voice bridge
+- feat: `sdk.fax.send` accepts optional `taskId` — server stamps the outbound fax to the task and resolves the from-number chain
+
+## 4.13.60
+
+- feat: `sdk.taskRouter.task.typing({ taskId, channel, isTyping })` (`POST /taskRouter/tasks/:id/typing`) — broadcast a typing indicator to the task's other participants (owner + joined helpers) on a channel (`sms` | `email` | `webchat` | `team`)
+
+## 4.13.58
+
+- feat: `sdk.taskRouter.worker.search({ queueId, q, skills, limit })` (`GET /taskRouter/workers/search`) — find workers scoped to a queue with name/email/extension text search and skill-match flagging (status, capacity, queues, skills per row)
+
+## 4.13.57
+
+- feat: `sdk.knowledgeBase.search({ visibility: 'public' })` restricts results to public articles; each result `source` now carries `isPublic`, `knowledgeBaseId`, `knowledgeBaseName`
+- feat: Assist payloads (`sdk.ai.assist.evaluate` / `getLast`) add `coach`, `citations[{sourceId,title,visibility,knowledgeBaseId}]`, `guardResult`, `visibilityMode`
+- feat: `sdk.ai.assist.listSuggestions({ queueId, limit })` and `suggestionStats({ queueId })` (`GET /ai/assist/suggestions`, `/stats`)
+
+## 4.13.56
+
+- feat: `sdk.taskRouter.offer.accept({ offerId })` (`PUT /taskRouter/offers/accept`) and `sdk.taskRouter.offer.decline({ offerId })` (`PUT /taskRouter/offers/decline`) — accept/decline a direct offer (transfer/invite/help)
+
+## 4.13.55
+
+- feat: `sdk.taskRouter.task.transfer({ taskId, target: { queueId, workerId }, note })` — target is now a nested object; every transfer creates a new task in the target queue (`{ taskId, newTaskId }`)
+- removed: `sdk.taskRouter.task.transferComplete` / `transferCancel` — chain-everywhere transfer replaces the attended consult flow
+
+## 4.13.54
+
+- feat: `sdk.taskRouter.task.hold({ held })` / `sdk.taskRouter.task.unpark()`; `isRoutable` helper
+
+## 4.13.53
+
+- feat: `sdk.taskRouter.task.transfer` mode/note options (superseded in 4.13.55)
+
+## 4.13.52
+
+- fix: `new UnboundSDK({ baseURL })` is now honored (constructor previously dropped it, so Node callers fell back to `API_BASE_URL`/`api.unbound.cx`)
+- fix: request query strings drop `undefined`/`null` values instead of sending `limit=undefined` (broke `sdk.ai.battleCards.listPacks({})` with a 500)
+
+## 4.13.51
+
+- feat: `sdk.objects.listParticipants(recordId)` — engagement roster (`GET /object/:id/participants`)
+- feat: `sdk.taskRouter.task.create({ source })` — pass engagement `source` when `createEngagement` is true (portal tickets: `'portal'`)
+
+## 4.13.50
+
+- feat: `sdk.ai.assist.listQueueKnowledgeBases` / `setQueueKnowledgeBases` / `listQueueObjects` / `setQueueObjects` — per-queue Assist KB + CRM object allow-list
+- fix: `sdk.ai.assist.evaluate` utterances is optional (live STT can pass `taskId` only)
+
+## 4.13.49
+
+- feat: `sdk.taskRouter.task.channelState({ taskId })` — read a task's live channel mix (`GET /taskRouter/tasks/:id/channelState`): `{hasOpenText, webchatLive, callLive, canPark}`, used to show/hide Park and webchat "End chat" without polling
+
+## 4.13.48
+
+- feat: `sdk.taskRouter.cc.unlockWorker({ workerId })` — recover a worker stuck out of routing (`POST /taskRouter/cc/workers/:workerId/unlock`)
+
+## 4.13.47
+
+- feat: `sdk.webchat.conversations.end(widgetId, engagementSessionId)` — agent-initiated "End chat" (`POST /webchat/widgets/:widgetId/conversations/:engagementSessionId/end`), ends the webchat session only, task stays live
+
+## 4.13.46
+
+- feat: `sdk.taskRouter.task.markChannelRead({ taskId, channel })` — clear per-channel inbound unread on a CC task (`PUT /taskRouter/tasks/unread/read`). `channel` is `sms` | `webchat` | `email` | `whatsApp` | `rcs` | `all`.
+
+## 4.13.45
+
+- feat: `sdk.portals.revokePeoplePortalSession` / `revokeAllPeoplePortalSessions`; `getPeopleAccess` includes `sessions` (browser, OS, IP)
+
+## 4.13.43
+
+- feat: `sdk.text.conversations.callThread(cdrId)` / `.openCallThread(cdrId)` — "SMS from an active call": check whether the current user may open the UC Chat text channel for a call's (our number, other party) pair, and open/join it (`GET`/`POST /text/call-thread`)
+
+## 4.13.37
+
+- feat: `sdk.ai.battleCards` — pack/card CRUD (`/ai/battleCards/packs`, `/ai/battleCards/cards`) and queue pack assignment (`GET`/`PUT /ai/battleCards/queues/:queueId`)
+- feat: `sdk.ai.assist.evaluate` / `getLast` — live assist (`POST /ai/assist/evaluate`, `GET /ai/assist/last/:taskId`)
+
+## Unreleased
+
+- docs: `sdk.portals.update`/`create` JSDoc documents the new `settings.profile`
+  shape (P11.2 — visitor profile field allowlist + company-edit permission)
+  and the `companyTicketsMode`/`companyTicketsFilter` 3-way that supersedes
+  the `companyTickets` boolean. No new endpoint/method — staff already
+  configures both through the existing `settings` object.
+
+## 4.13.22
+
+- feat: `sdk.messaging.sms.send({ ..., relatedId })` — optional task/engagement
+  (or other record) id so the sent SMS lands on that record's feed
+- feat: `sdk.messaging.sms.getByRelated(relatedId)` — list SMS/MMS tied to a
+  record (`GET /messaging/sms/related/:relatedId`), feed read path for the
+  contact-center interaction timeline
+
+## 4.13.21
+
+- feat: `sdk.portals.invitePerson(peopleId, { portalId })` / `sdk.portals.resetPersonPassword(peopleId, { portalId })` — staff invite/reset-password for a support/partner portal (`POST /portals/people/:peopleId/invite` / `.../reset-password`), each sending a fresh 30-min single-use set-password link
+- feat: `sdk.portals.revokePeopleAccess(peopleId)` — soft-delete a person's portal credential (`DELETE /portals/people/:peopleId/access`)
+- feat: `sdk.portals.getPeopleAccess(peopleId)` response gains `status` (`none`|`invited`|`active`|`locked`), `invitedAt`, `lockedUntil`, and `portals` (support/partner portals with a `matches` flag)
+
+## 4.13.20
+
+- fix: `sdk.portals.update` forwards `domain: null` (remove custom domain) and accepts `slug` (set/change the hosted address)
+
+## 4.13.19
+
+- feat: `sdk.portals.listTicketStatuses()` / `sdk.portals.updateTicketStatuses({ statuses })` — per-status customer-facing labels for engagement statuses (`GET`/`PUT /portals/ticket-statuses`)
+- feat: `sdk.portals.createPage`/`updatePage` accept `requiresLogin` (boolean) — gate a page behind a signed-in portal session
+- feat: `sdk.portals.savePageDraft`/`publishPage` accept `html` (string) alongside `tree` — `html`-type pages (marketing portals only) autosave/publish raw full-document HTML instead of a block tree
+- feat: `sdk.portals.getSsoConnection`/`upsertSsoConnection`/`deleteSsoConnection` — per-portal single-sign-on (OIDC) connection CRUD (`GET`/`PUT`/`DELETE /portals/:portalId/sso`)
+
 ## 4.13.4
 
 - feat: `sdk.messaging.email.templates.list({ scope })` — `user` (default) / `system` / `all`
@@ -210,9 +331,9 @@
 ```javascript
 // Generate and attach LOA automatically
 const result = await sdk.phoneNumbers.generateLoa({
-  portingOrderId: 'port-123',
-  signerName: 'John Smith',
-  signerTitle: 'IT Director',
+  portingOrderId: "port-123",
+  signerName: "John Smith",
+  signerTitle: "IT Director",
 });
 
 console.log(result);
@@ -250,24 +371,24 @@ console.log(result);
 ```javascript
 // 1. Create porting order
 const order = await sdk.phoneNumbers.createPortingOrder({
-  customerReference: 'CUST-123',
+  customerReference: "CUST-123",
   endUser: {
-    admin: { entityName: 'Acme Corp' },
-    location: { streetAddress: '123 Main St' },
+    admin: { entityName: "Acme Corp" },
+    location: { streetAddress: "123 Main St" },
   },
 });
 
 // 2. Add phone numbers
 await sdk.phoneNumbers.checkPortability({
-  phoneNumbers: ['+15551234567'],
+  phoneNumbers: ["+15551234567"],
   portingOrderId: order.id,
 });
 
 // 3. Generate LOA automatically
 const loa = await sdk.phoneNumbers.generateLoa({
   portingOrderId: order.id,
-  signerName: 'John Smith',
-  signerTitle: 'IT Director',
+  signerName: "John Smith",
+  signerTitle: "IT Director",
 });
 
 // LOA is now generated, uploaded, and attached to order
@@ -299,7 +420,7 @@ const loa = await sdk.phoneNumbers.generateLoa({
 ```javascript
 // Fast internal validation using LRN lookup
 await sdk.phoneNumbers.checkPortability({
-  phoneNumbers: ['+15551234567'],
+  phoneNumbers: ["+15551234567"],
   portingOrderId: order.id,
   // runPortabilityCheck: false (default)
 });
@@ -317,7 +438,7 @@ await sdk.phoneNumbers.checkPortability({
 ```javascript
 // Run full external portability check when ready
 await sdk.phoneNumbers.checkPortability({
-  phoneNumbers: ['+15551234567'],
+  phoneNumbers: ["+15551234567"],
   portingOrderId: order.id,
   runPortabilityCheck: true,
 });
@@ -345,13 +466,13 @@ No breaking changes - existing code continues to work. New `runPortabilityCheck`
 ```javascript
 // Step 1: Add numbers with internal validation (draft phase)
 await sdk.phoneNumbers.checkPortability({
-  phoneNumbers: ['+15551234567', '+15559876543'],
+  phoneNumbers: ["+15551234567", "+15559876543"],
   portingOrderId: order.id,
 });
 
 // Step 2: Run external validation before submission
 await sdk.phoneNumbers.checkPortability({
-  phoneNumbers: ['+15551234567', '+15559876543'],
+  phoneNumbers: ["+15551234567", "+15559876543"],
   portingOrderId: order.id,
   runPortabilityCheck: true,
 });
@@ -394,9 +515,9 @@ await sdk.phoneNumbers.checkPortability({
 ```javascript
 // Old way - phone numbers in order creation
 const order = await sdk.phoneNumbers.createPortingOrder({
-  phoneNumbers: ['+15551234567', '+15559876543'],
-  customerReference: 'CUST-123',
-  endUser: { admin: { entityName: 'My Company' } },
+  phoneNumbers: ["+15551234567", "+15559876543"],
+  customerReference: "CUST-123",
+  endUser: { admin: { entityName: "My Company" } },
 });
 ```
 
@@ -405,13 +526,13 @@ const order = await sdk.phoneNumbers.createPortingOrder({
 ```javascript
 // Step 1: Create empty order
 const order = await sdk.phoneNumbers.createPortingOrder({
-  customerReference: 'CUST-123',
-  endUser: { admin: { entityName: 'My Company' } },
+  customerReference: "CUST-123",
+  endUser: { admin: { entityName: "My Company" } },
 });
 
 // Step 2: Add validated phone numbers
 await sdk.phoneNumbers.checkPortability({
-  phoneNumbers: ['+15551234567', '+15559876543'],
+  phoneNumbers: ["+15551234567", "+15559876543"],
   portingOrderId: order.id,
 });
 
@@ -432,8 +553,8 @@ const completeOrder = await sdk.phoneNumbers.getPortingOrder(order.id);
 ```javascript
 try {
   await sdk.phoneNumbers.checkPortability({
-    phoneNumbers: ['+15551234567'], // US local
-    portingOrderId: 'existing-order-with-uk-numbers',
+    phoneNumbers: ["+15551234567"], // US local
+    portingOrderId: "existing-order-with-uk-numbers",
   });
 } catch (error) {
   // Error: "Cannot add these numbers to the existing porting order.

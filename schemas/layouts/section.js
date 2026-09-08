@@ -90,8 +90,8 @@ const KanbanSection = BaseSection.extend({
 // timeline, not a table/kanban query. `sources` filters which item kinds
 // the feed requests; default is every kind the API can produce.
 export const TIMELINE_SOURCES = [
-  'web', 'ads', 'form', 'email', 'sms', 'call', 'ticket', 'note', 'score',
-  'program', 'file',
+  'web', 'ads', 'form', 'webchat', 'email', 'sms', 'call', 'ticket', 'note',
+  'score', 'program', 'file',
 ];
 
 const TimelineSection = BaseSection.extend({

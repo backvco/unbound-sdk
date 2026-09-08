@@ -2,6 +2,8 @@ import { WorkerService } from './WorkerService.js';
 import { TaskService } from './TaskService.js';
 import { MetricsService } from './MetricsService.js';
 import { CCService } from './CCService.js';
+import { OfferService } from './OfferService.js';
+import { ParticipantService } from './ParticipantService.js';
 
 export class TaskRouterService {
   constructor(sdk) {
@@ -10,5 +12,7 @@ export class TaskRouterService {
     this.task = new TaskService(sdk);
     this.metrics = new MetricsService(sdk);
     this.cc = new CCService(sdk);
+    this.offer = new OfferService(sdk);
+    this.participants = new ParticipantService(sdk);
   }
 }

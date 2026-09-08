@@ -188,6 +188,7 @@ export class EsignService {
    * @param {string} [body.expiresAt]
    * @param {boolean} [body.allowDrawn]
    * @param {string} [body.postSignRedirectUrl]
+   * @param {string[]} [body.feedNotifyEvents] - Subset of `sent`|`opened`|`signed`; auto-posts a chat card to every linked record's feed on each selected event.
    * @returns {Promise<Object>}
    */
   async createPackage({
@@ -199,6 +200,7 @@ export class EsignService {
     expiresAt,
     allowDrawn,
     postSignRedirectUrl,
+    feedNotifyEvents,
   } = {}) {
     this.sdk.validateParams(
       { generatedDocumentId, name, recipients },
@@ -211,6 +213,7 @@ export class EsignService {
         expiresAt: { type: 'string', required: false },
         allowDrawn: { type: 'boolean', required: false },
         postSignRedirectUrl: { type: 'string', required: false },
+        feedNotifyEvents: { type: 'array', required: false },
       },
     );
 
@@ -221,6 +224,9 @@ export class EsignService {
     if (allowDrawn !== undefined) body.allowDrawn = allowDrawn;
     if (postSignRedirectUrl !== undefined) {
       body.postSignRedirectUrl = postSignRedirectUrl;
+    }
+    if (feedNotifyEvents !== undefined) {
+      body.feedNotifyEvents = feedNotifyEvents;
     }
 
     return internalRequest(this.sdk, '/esign/packages', 'POST', { body });
@@ -266,6 +272,7 @@ export class EsignService {
    * @param {string} [body.expiresAt]
    * @param {boolean} [body.allowDrawn]
    * @param {string} [body.postSignRedirectUrl]
+   * @param {string[]} [body.feedNotifyEvents] - Subset of `sent`|`opened`|`signed`; auto-posts a chat card to every linked record's feed on each selected event.
    * @returns {Promise<Object>}
    */
   async updatePackage(
@@ -278,6 +285,7 @@ export class EsignService {
       expiresAt,
       allowDrawn,
       postSignRedirectUrl,
+      feedNotifyEvents,
     } = {},
   ) {
     this.sdk.validateParams(
@@ -291,6 +299,7 @@ export class EsignService {
         expiresAt: { type: 'string', required: false },
         allowDrawn: { type: 'boolean', required: false },
         postSignRedirectUrl: { type: 'string', required: false },
+        feedNotifyEvents: { type: 'array', required: false },
       },
     );
 
@@ -303,6 +312,9 @@ export class EsignService {
     if (allowDrawn !== undefined) body.allowDrawn = allowDrawn;
     if (postSignRedirectUrl !== undefined) {
       body.postSignRedirectUrl = postSignRedirectUrl;
+    }
+    if (feedNotifyEvents !== undefined) {
+      body.feedNotifyEvents = feedNotifyEvents;
     }
 
     return internalRequest(this.sdk, `/esign/packages/${id}`, 'PATCH', {

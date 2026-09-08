@@ -387,8 +387,15 @@ export class BaseSDK {
 
     // Add query parameters
     if (query) {
-      const params = new URLSearchParams(query).toString();
-      url += `?${params}`;
+      // Drop undefined/null so optional args don't serialize as the literal
+      // string "undefined" (URLSearchParams would send limit=undefined).
+      const cleanQuery = Object.fromEntries(
+        Object.entries(query).filter(
+          ([, v]) => v !== undefined && v !== null,
+        ),
+      );
+      const params = new URLSearchParams(cleanQuery).toString();
+      if (params) url += `?${params}`;
     }
 
     // Handle body

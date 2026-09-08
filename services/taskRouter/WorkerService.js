@@ -196,6 +196,84 @@ export class WorkerService {
   }
 
   /**
+   * Set the authenticated user's own worker paused state
+   * Pauses (or unpauses) the caller's own worker so it stays logged into its queues
+   * but stops receiving new task offers. Requires Contact Center access.
+   *
+   * @param {Object} options - Parameters
+   * @param {boolean} options.paused - Whether the worker should be paused
+   * @returns {Promise<Object>} The updated worker
+   *
+   * @example
+   * // Pause the authenticated user's own worker
+   * const worker = await sdk.taskRouter.worker.setPaused({ paused: true });
+   *
+   * @example
+   * // Unpause
+   * const worker = await sdk.taskRouter.worker.setPaused({ paused: false });
+   */
+  async setPaused(options = {}) {
+    const { paused } = options;
+
+    this.sdk.validateParams(
+      { paused },
+      {
+        paused: { type: 'boolean', required: true },
+      },
+    );
+
+    const params = {
+      body: { paused },
+    };
+
+    const result = await internalRequest(this.sdk,
+      '/taskRouter/workers/me/paused',
+      'PUT',
+      params,
+    );
+    return result;
+  }
+
+  /**
+   * Set another worker's paused state
+   * Pauses (or unpauses) a specific worker by workerId. The caller must be a queue
+   * manager for at least one queue that worker is logged into or assigned to.
+   *
+   * @param {Object} options - Parameters
+   * @param {string} options.workerId - The worker ID to update (required)
+   * @param {boolean} options.paused - Whether the worker should be paused
+   * @returns {Promise<Object>} The updated worker
+   *
+   * @example
+   * const worker = await sdk.taskRouter.worker.setWorkerPaused({
+   *   workerId: '0860002026012400000006665842155429980',
+   *   paused: true,
+   * });
+   */
+  async setWorkerPaused(options = {}) {
+    const { workerId, paused } = options;
+
+    this.sdk.validateParams(
+      { workerId, paused },
+      {
+        workerId: { type: 'string', required: true },
+        paused: { type: 'boolean', required: true },
+      },
+    );
+
+    const params = {
+      body: { paused },
+    };
+
+    const result = await internalRequest(this.sdk,
+      `/taskRouter/workers/${workerId}/paused`,
+      'PUT',
+      params,
+    );
+    return result;
+  }
+
+  /**
    * Automatically login all auto-login queues for a worker
    * When a worker goes available, this logs them into all queues marked with autoLogin = true.
    * If userId is not provided, it will use the authenticated user's ID from the session.
@@ -385,11 +463,60 @@ export class WorkerService {
       params.body.userId = userId;
     }
 
-    const result = await internalRequest(this.sdk, 
+    const result = await internalRequest(this.sdk,
       '/taskRouter/worker/queueLogout',
       'PUT',
       params,
     );
+    return result;
+  }
+
+  /**
+   * Search for workers within a queue's scope
+   * Finds workers a caller can act on (transfer/invite/DM) for a given queue, with optional
+   * name/email/extension text search and skill-match flagging.
+   *
+   * @param {Object} options - Parameters
+   * @param {string} options.queueId - The queue ID to scope the search to (required)
+   * @param {string} [options.q] - Free-text filter matching name, email, or extension
+   * @param {string[]} [options.skills] - Skill IDs to flag matches for (joined as a comma-separated list)
+   * @param {number} [options.limit] - Max rows to return (default 50, max 200)
+   * @returns {Promise<Object>} Object containing the matching worker rows
+   * @returns {Array<Object>} result.rows - Worker rows with status/capacity/skills info
+   * @returns {number} result.total - Total matching rows
+   *
+   * @example
+   * const { rows, total } = await sdk.taskRouter.worker.search({ queueId: 'queue123', q: 'sam' });
+   * console.log(rows.length, total);
+   */
+  async search(options = {}) {
+    const { queueId, q, skills, limit } = options;
+
+    this.sdk.validateParams(
+      { queueId, q, skills, limit },
+      {
+        queueId: { type: 'string', required: true },
+        q: { type: 'string', required: false },
+        skills: { type: 'array', required: false },
+        limit: { type: 'number', required: false },
+      },
+    );
+
+    const query = { queueId };
+
+    if (q) {
+      query.q = q;
+    }
+
+    if (skills && skills.length) {
+      query.skills = skills.join(',');
+    }
+
+    if (limit) {
+      query.limit = limit;
+    }
+
+    const result = await internalRequest(this.sdk, '/taskRouter/workers/search', 'GET', { query });
     return result;
   }
 }

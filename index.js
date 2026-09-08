@@ -19,7 +19,10 @@ import { BrandService } from './services/brand.js';
 import { ContentService } from './services/content.js';
 import { VerificationService } from './services/verification.js';
 import { PortalsService } from './services/portals.js';
+import { DealRegistrationsService } from './services/dealRegistrations.js';
 import { SipEndpointsService } from './services/sipEndpoints.js';
+import { WebchatService } from './services/webchat.js';
+import { MessageTemplatesService } from './services/messageTemplates.js';
 import { ExternalOAuthService } from './services/externalOAuth.js';
 import { GoogleCalendarService } from './services/googleCalendar.js';
 import { DriveService } from './services/drive.js';
@@ -40,6 +43,7 @@ import { SearchService } from './services/search.js';
 import { DirectoryService } from './services/directory.js';
 import { ChatService } from './services/chat.js';
 import { DeveloperApisService } from './services/developerApis.js';
+import { TextService } from './services/text.js';
 import {
   DataImportService,
   DataExportService,
@@ -70,10 +74,17 @@ class UnboundSDK extends BaseSDK {
       }
     } else {
       // New object-based parameters
-      const { namespace, callId, token, fwRequestId, url, socketStore } =
-        options;
+      const {
+        namespace,
+        callId,
+        token,
+        fwRequestId,
+        url,
+        socketStore,
+        baseURL,
+      } = options;
 
-      super({ namespace, callId, token, fwRequestId });
+      super({ namespace, callId, token, fwRequestId, baseURL });
 
       // Handle client-side specific parameters
       if (url) {
@@ -104,7 +115,10 @@ class UnboundSDK extends BaseSDK {
     this.content = new ContentService(this);
     this.verification = new VerificationService(this);
     this.portals = new PortalsService(this);
+    this.dealRegistrations = new DealRegistrationsService(this);
     this.sipEndpoints = new SipEndpointsService(this);
+    this.webchat = new WebchatService(this);
+    this.messageTemplates = new MessageTemplatesService(this);
     this.externalOAuth = new ExternalOAuthService(this);
     this.googleCalendar = new GoogleCalendarService(this);
     this.drive = new DriveService(this);
@@ -114,6 +128,7 @@ class UnboundSDK extends BaseSDK {
     this.generateId = new GenerateIdService(this);
     this.engagementMetrics = new EngagementMetricsService(this);
     this.taskRouter = new TaskRouterService(this);
+    this.text = new TextService(this);
     this.knowledgeBase = new KnowledgeBaseService(this);
     this.fax = new FaxService(this);
     this.documents = new DocumentsService(this);
@@ -296,7 +311,11 @@ export {
 } from './services/content.js';
 export { VerificationService } from './services/verification.js';
 export { PortalsService } from './services/portals.js';
+export { DealRegistrationsService } from './services/dealRegistrations.js';
 export { SipEndpointsService } from './services/sipEndpoints.js';
+export { WebchatService, WebchatWidgetsService } from './services/webchat.js';
+export { MessageTemplatesService } from './services/messageTemplates.js';
+export { WebchatVisitorService } from './services/webchat/VisitorService.js';
 export { ExternalOAuthService } from './services/externalOAuth.js';
 export { GoogleCalendarService } from './services/googleCalendar.js';
 export { DriveService } from './services/drive.js';

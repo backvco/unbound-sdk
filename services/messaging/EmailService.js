@@ -63,6 +63,8 @@ export class EmailService {
    * @param {boolean} [params.tracking=true] - Enable email tracking (opens, clicks)
    * @param {string} [params.mailboxId] - Specific mailbox to send from
    * @param {string} [params.draftId] - Convert existing draft to sent email
+   * @param {string} [params.engagementSessionId] - Engagement to attach this email to
+   * @param {string} [params.taskId] - Task the email was sent under (multi-channel-per-task attribution)
    * @returns {Promise<Object>} Email send result with ID and threading info
    */
   async send({
@@ -86,6 +88,7 @@ export class EmailService {
     mailboxId,
     draftId,
     engagementSessionId,
+    taskId,
   }) {
     // Validate required params (relaxed when using draftId)
     if (!draftId) {
@@ -118,6 +121,7 @@ export class EmailService {
         mailboxId,
         draftId,
         engagementSessionId,
+        taskId,
       },
       {
         html: { type: 'string', required: false },
@@ -135,6 +139,7 @@ export class EmailService {
         mailboxId: { type: 'string', required: false },
         draftId: { type: 'string', required: false },
         engagementSessionId: { type: 'string', required: false },
+        taskId: { type: 'string', required: false },
       },
     );
 
@@ -161,6 +166,7 @@ export class EmailService {
     if (draftId) emailData.draftId = draftId;
     if (engagementSessionId)
       emailData.engagementSessionId = engagementSessionId;
+    if (taskId) emailData.taskId = taskId;
 
     const options = {
       body: emailData,
@@ -636,6 +642,7 @@ export class EmailService {
       limit = 25,
       offset = 0,
       assignedUserId,
+      includeTasked = false,
     } = {},
   ) {
     this.sdk.validateParams(
@@ -649,6 +656,7 @@ export class EmailService {
         limit,
         offset,
         assignedUserId,
+        includeTasked,
       },
       {
         mailboxId: { type: 'string', required: true },
@@ -660,12 +668,14 @@ export class EmailService {
         limit: { type: 'number', required: false },
         offset: { type: 'number', required: false },
         assignedUserId: { type: 'string', required: false },
+        includeTasked: { type: 'boolean', required: false },
       },
     );
 
     const query = { folder, includeDrafts, sortBy, sortOrder, limit, offset };
     if (search) query.search = search;
     if (assignedUserId) query.assignedUserId = assignedUserId;
+    if (includeTasked) query.includeTasked = true;
 
     const params = {
       query,
