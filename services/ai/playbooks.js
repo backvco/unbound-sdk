@@ -816,6 +816,7 @@ export class PlaybooksService {
    * @param {string} [options.taskId] - The task ID (used with workerId or userId)
    * @param {string} [options.workerId] - The worker ID (used with taskId)
    * @param {string} [options.userId] - The user ID (used with taskId)
+   * @param {boolean} [options.includeQa] - Include review-only goals and qaReview
    * @returns {Promise<Object>} Session object with playbookName and goals array
    *
    * @example
@@ -838,7 +839,7 @@ export class PlaybooksService {
    *   userId: 'user_789'
    * });
    */
-  async getSession({ sessionId, taskId, workerId, userId }) {
+  async getSession({ sessionId, taskId, workerId, userId, includeQa }) {
     this.sdk.validateParams(
       { sessionId, taskId, workerId, userId },
       {
@@ -846,13 +847,17 @@ export class PlaybooksService {
         taskId: { type: 'string', required: false },
         workerId: { type: 'string', required: false },
         userId: { type: 'string', required: false },
+        includeQa: { type: 'boolean', required: false },
       },
     );
 
     if (sessionId) {
+      const query = {};
+      if (includeQa) query.includeQa = 1;
       const result = await internalRequest(this.sdk, 
         `/ai/playbooks/sessions/${sessionId}`,
         'GET',
+        { query },
       );
       return result;
     }
@@ -861,6 +866,7 @@ export class PlaybooksService {
     if (taskId) query.taskId = taskId;
     if (workerId) query.workerId = workerId;
     if (userId) query.userId = userId;
+    if (includeQa) query.includeQa = 1;
 
     const result = await internalRequest(this.sdk, 
       `/ai/playbooks/sessions`,
@@ -1049,6 +1055,55 @@ export class PlaybooksService {
       `/ai/playbooks/sessions/${sessionId}/goal`,
       'POST',
       params,
+    );
+    return result;
+  }
+
+  /**
+   * Submit a human QA review for an AI playbook session (replace-semantics).
+   *
+   * @param {Object} options
+   * @param {string} options.sessionId
+   * @param {Array} options.goals
+   * @returns {Promise<Object>} QA review
+   */
+  async submitQaReview({ sessionId, goals }) {
+    this.sdk.validateParams(
+      { sessionId, goals },
+      {
+        sessionId: { type: 'string', required: true },
+        goals: { type: 'array', required: true },
+      },
+    );
+
+    const result = await internalRequest(
+      this.sdk,
+      `/ai/playbooks/sessions/${sessionId}/qa`,
+      'PUT',
+      { body: { goals } },
+    );
+    return result;
+  }
+
+  /**
+   * Get the primary QA review for an AI playbook session.
+   *
+   * @param {Object} options
+   * @param {string} options.sessionId
+   * @returns {Promise<Object>} QA review
+   */
+  async getQaReview({ sessionId }) {
+    this.sdk.validateParams(
+      { sessionId },
+      {
+        sessionId: { type: 'string', required: true },
+      },
+    );
+
+    const result = await internalRequest(
+      this.sdk,
+      `/ai/playbooks/sessions/${sessionId}/qa`,
+      'GET',
     );
     return result;
   }

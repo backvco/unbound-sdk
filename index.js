@@ -295,6 +295,7 @@ export { MessagingService } from './services/messaging.js';
 export { VideoService } from './services/video.js';
 export { VoiceService } from './services/voice.js';
 export { AIService } from './services/ai.js';
+export { PlaybooksService } from './services/ai/playbooks.js';
 export { LookupService } from './services/lookup.js';
 export { LayoutsService } from './services/layouts.js';
 export { SubscriptionsService } from './services/subscriptions.js';
