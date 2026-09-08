@@ -20,24 +20,32 @@ export class PermissionsService {
    * @param {Object} group - Group configuration
    * @param {string} group.name - Group name (required)
    * @param {string} group.description - Group description
+   * @param {string} [group.type] - 'access' (default) or 'team'
+   * @param {string} [group.managerUserId] - Manager user id, for `team` groups
    * @returns {Promise<Object>} Created group
    * @example
    * await sdk.permissions.createGroup({
    *   name: 'Support Leads',
    *   description: 'Escalation-tier support agents',
+   *   type: 'team',
+   *   managerUserId: 'user-456',
    * });
    */
-  async createGroup({ name, description }) {
+  async createGroup({ name, description, type, managerUserId }) {
     this.sdk.validateParams(
-      { name, description },
+      { name, description, type, managerUserId },
       {
         name: { type: 'string', required: true },
         description: { type: 'string', required: false },
+        type: { type: 'string', required: false },
+        managerUserId: { type: 'string', required: false },
       },
     );
 
     const groupData = { name };
     if (description !== undefined) groupData.description = description;
+    if (type !== undefined) groupData.type = type;
+    if (managerUserId !== undefined) groupData.managerUserId = managerUserId;
 
     const params = {
       body: groupData,
@@ -50,10 +58,11 @@ export class PermissionsService {
   /**
    * Update an existing permission group
    * @param {string} groupId - Group ID to update
-   * @param {Object} data - Fields to update (e.g. name, description)
+   * @param {Object} data - Fields to update (name, description, type,
+   *   managerUserId)
    * @returns {Promise<Object>} Updated group
    * @example
-   * await sdk.permissions.updateGroup('group-123', { description: 'Updated' });
+   * await sdk.permissions.updateGroup('group-123', { type: 'team', managerUserId: 'user-456' });
    */
   async updateGroup(groupId, data) {
     groupId = String(groupId);
