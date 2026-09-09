@@ -88,9 +88,10 @@ export class ReportingAgentsService {
   }
 
   /**
-   * Per-agent per-local-day timesheet rows (net paid hours).
+   * Per-agent per-local-day timesheet rows (net paid hours), plus one
+   * additive-sum row per agent (`agents`) for grouped totals.
    * @param {Object} params - { from, to, userIds, teamIds }
-   * @returns {Promise<Object>} { columns, rows }
+   * @returns {Promise<Object>} { columns, rows, agents }
    * @example
    * await sdk.reporting.agents.timesheet({ from, to, userIds: ['u1'] });
    */
@@ -107,13 +108,26 @@ export class ReportingAgentsService {
   }
 
   /**
-   * CSV export of any of the four views above.
-   * @param {Object} params - { view: 'summary'|'states'|'interactions'|'timesheet', from, to, userId, userIds, queueIds, teamIds, groupBy }
+   * CSV export of any of the four views above. For view: 'timesheet', pass
+   * `totals: true` to get one additive-sum row per agent instead of the
+   * flat per-agent-per-day rows.
+   * @param {Object} params - { view: 'summary'|'states'|'interactions'|'timesheet', from, to, userId, userIds, queueIds, teamIds, groupBy, totals }
    * @returns {Promise<Object>} raw CSV response (transport-dependent)
    * @example
    * await sdk.reporting.agents.export({ view: 'timesheet', from, to });
+   * await sdk.reporting.agents.export({ view: 'timesheet', from, to, totals: true });
    */
-  async export({ view, from, to, userId, userIds, queueIds, teamIds, groupBy } = {}) {
+  async export({
+    view,
+    from,
+    to,
+    userId,
+    userIds,
+    queueIds,
+    teamIds,
+    groupBy,
+    totals,
+  } = {}) {
     this.sdk.validateParams(
       { from, to },
       { from: { type: 'string', required: true }, to: { type: 'string', required: true } },
@@ -127,6 +141,7 @@ export class ReportingAgentsService {
       queueIds,
       teamIds,
       groupBy,
+      totals: totals ? '1' : undefined,
       format: 'csv',
     });
     return internalRequest(this.sdk, `/reporting/agents/export${qs}`, 'GET', { httpOnly: true });
