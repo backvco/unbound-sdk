@@ -1,6 +1,18 @@
 import { internalRequest } from '../base.js';
 import { ReportingAgentsService } from './reportingAgents.js';
 
+// Q2: same queryString helper as reportingAgents.js (kept local -- no
+// shared util module between the two files today).
+function queryString(params = {}) {
+  const parts = [];
+  for (const [key, value] of Object.entries(params)) {
+    if (value === undefined || value === null || value === '') continue;
+    const v = Array.isArray(value) ? value.join(',') : value;
+    parts.push(`${encodeURIComponent(key)}=${encodeURIComponent(v)}`);
+  }
+  return parts.length ? `?${parts.join('&')}` : '';
+}
+
 // F7 (cc-reporting-foundation-plan.md §8) -- reporting API surface.
 export class ReportingService {
   constructor(sdk) {
@@ -76,6 +88,66 @@ export class ReportingService {
       { metric: { type: 'string', required: true } },
     );
     return internalRequest(this.sdk, '/reporting/detail', 'POST', { body });
+  }
+
+  /**
+   * Q2 preset: disposition matrix (code x queue|agent|code), incl. a
+   * noDisposition count for groupBy=queue|code.
+   * @param {Object} params - { from, to, queueIds, userIds, groupBy: 'queue'|'agent'|'code' }
+   * @returns {Promise<Object>} { groupBy, columns, rows, noDisposition, meta }
+   * @example
+   * await sdk.reporting.dispositions({ from, to, groupBy: 'queue' });
+   */
+  async dispositions({ from, to, queueIds, userIds, groupBy } = {}) {
+    this.sdk.validateParams(
+      { from, to },
+      { from: { type: 'string', required: true }, to: { type: 'string', required: true } },
+    );
+    return internalRequest(
+      this.sdk,
+      `/reporting/dispositions${queryString({ from, to, queueIds, userIds, groupBy })}`,
+      'GET',
+    );
+  }
+
+  /**
+   * Q2 preset: exec summary (originating-tasks-only KPI tiles + channel mix
+   * + trend), with a server-computed delta vs the previous period.
+   * @param {Object} params - { from, to, compareTo: 'previous' }
+   * @returns {Promise<Object>} { kpis, channelMix, trend, fcr, previousPeriod }
+   * @example
+   * await sdk.reporting.execSummary({ from, to, compareTo: 'previous' });
+   */
+  async execSummary({ from, to, compareTo } = {}) {
+    this.sdk.validateParams(
+      { from, to },
+      { from: { type: 'string', required: true }, to: { type: 'string', required: true } },
+    );
+    return internalRequest(
+      this.sdk,
+      `/reporting/execSummary${queryString({ from, to, compareTo })}`,
+      'GET',
+    );
+  }
+
+  /**
+   * Q2 preset: first-contact-resolution / repeat-contact count over
+   * accounts.fcrWindowHours.
+   * @param {Object} params - { from, to, queueIds }
+   * @returns {Promise<Object>} { windowHours, repeatContacts, originatingHandled, fcrPct }
+   * @example
+   * await sdk.reporting.fcr({ from, to });
+   */
+  async fcr({ from, to, queueIds } = {}) {
+    this.sdk.validateParams(
+      { from, to },
+      { from: { type: 'string', required: true }, to: { type: 'string', required: true } },
+    );
+    return internalRequest(
+      this.sdk,
+      `/reporting/fcr${queryString({ from, to, queueIds })}`,
+      'GET',
+    );
   }
 
   /**
