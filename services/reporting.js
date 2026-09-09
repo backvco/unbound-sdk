@@ -26,8 +26,10 @@ export class ReportingService {
     this.schedules = {
       create: (...args) => this.createSchedule(...args),
       list: (...args) => this.listSchedules(...args),
+      update: (...args) => this.updateSchedule(...args),
       remove: (...args) => this.removeSchedule(...args),
       runs: (...args) => this.listScheduleRuns(...args),
+      runNow: (...args) => this.runScheduleNow(...args),
     };
     // P3 (agent-reporting-plan.md §7 + §8.1): thin presets over the same
     // registry above -- /reporting/agents/*. Split into its own file/class
@@ -250,6 +252,29 @@ export class ReportingService {
   /**
    * @param {string} viewId
    * @param {string} scheduleId
+   * @param {Object} data - partial { cron, timezone, recipients, format, isEnabled }
+   * @returns {Promise<Object>} updated schedule
+   * @example
+   * await sdk.reporting.schedules.update('263...', '264...', { isEnabled: false });
+   */
+  async updateSchedule(viewId, scheduleId, data = {}) {
+    viewId = String(viewId);
+    scheduleId = String(scheduleId);
+    this.sdk.validateParams(
+      { viewId, scheduleId },
+      { viewId: { type: 'string', required: true }, scheduleId: { type: 'string', required: true } },
+    );
+    return internalRequest(
+      this.sdk,
+      `/reporting/views/${viewId}/schedule/${scheduleId}`,
+      'PUT',
+      { body: data },
+    );
+  }
+
+  /**
+   * @param {string} viewId
+   * @param {string} scheduleId
    * @returns {Promise<Object>} { id, deleted: true }
    * @example
    * await sdk.reporting.schedules.remove('263...', '264...');
@@ -277,5 +302,28 @@ export class ReportingService {
       { viewId: { type: 'string', required: true }, scheduleId: { type: 'string', required: true } },
     );
     return internalRequest(this.sdk, `/reporting/views/${viewId}/schedule/${scheduleId}/runs`, 'GET');
+  }
+
+  /**
+   * Manual trigger -- runs the same delivery path as the cron tick, awaits
+   * sent/failed instead of just queuing.
+   * @param {string} viewId
+   * @param {string} scheduleId
+   * @returns {Promise<Object>} { id, status, attempt, error? }
+   * @example
+   * await sdk.reporting.schedules.runNow('263...', '264...');
+   */
+  async runScheduleNow(viewId, scheduleId) {
+    viewId = String(viewId);
+    scheduleId = String(scheduleId);
+    this.sdk.validateParams(
+      { viewId, scheduleId },
+      { viewId: { type: 'string', required: true }, scheduleId: { type: 'string', required: true } },
+    );
+    return internalRequest(
+      this.sdk,
+      `/reporting/views/${viewId}/schedule/${scheduleId}/run-now`,
+      'POST',
+    );
   }
 }
