@@ -1,4 +1,5 @@
 import { internalRequest } from '../base.js';
+import { ReportingAgentsService } from './reportingAgents.js';
 
 // F7 (cc-reporting-foundation-plan.md §8) -- reporting API surface.
 export class ReportingService {
@@ -16,6 +17,10 @@ export class ReportingService {
       remove: (...args) => this.removeSchedule(...args),
       runs: (...args) => this.listScheduleRuns(...args),
     };
+    // P3 (agent-reporting-plan.md §7 + §8.1): thin presets over the same
+    // registry above -- /reporting/agents/*. Split into its own file/class
+    // (house 400-line limit) since this file was already at 215 lines.
+    this.agents = new ReportingAgentsService(sdk);
   }
 
   /**
