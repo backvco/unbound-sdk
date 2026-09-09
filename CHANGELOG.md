@@ -1,3 +1,9 @@
+## 4.13.84
+
+- feat: `sdk.forms.public.submit(publicKey, fields, {context, captchaToken, idempotencyKey})` — `POST /f/:publicKey`, no agent auth (VisitorService pattern), for forms-v2's new per-form publicKey (legacy `_token`/formId path unchanged)
+- feat: `sdk.forms.submissions.reprocess(id)` / `.markNotSpam(id)` / `.resolveReview(id, choice)` — agent-authenticated formSubmissions actions (server routes land in a later forms-v2 phase)
+- feat: `sdk.forms.settings.get()` / `.set(patch)` — `formsAccountSettings` singleton (defaultRegion, turnstileSiteKey, turnstileSecretRef; server route lands in a later forms-v2 phase)
+
 ## 4.13.82
 
 - feat: `sdk.reporting.agents.timesheet()` response gains `agents` — one additive-sum row per agent (`{ userId, timezone, daysWorked, loggedInSec, paidAwaySec, unpaidAwaySec, netPaidSec }`) alongside the existing flat `rows`

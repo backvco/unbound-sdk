@@ -26,6 +26,7 @@ import { CobrowseService } from './services/cobrowse.js';
 import { MessageTemplatesService } from './services/messageTemplates.js';
 import { ExternalOAuthService } from './services/externalOAuth.js';
 import { GoogleCalendarService } from './services/googleCalendar.js';
+import { FormsService } from './services/forms.js';
 import { DriveService } from './services/drive.js';
 import { EnrollService } from './services/enroll.js';
 import { PhoneNumbersService } from './services/phoneNumbers.js';
@@ -125,6 +126,7 @@ class UnboundSDK extends BaseSDK {
     this.messageTemplates = new MessageTemplatesService(this);
     this.externalOAuth = new ExternalOAuthService(this);
     this.googleCalendar = new GoogleCalendarService(this);
+    this.forms = new FormsService(this);
     this.drive = new DriveService(this);
     this.enroll = new EnrollService(this);
     this.phoneNumbers = new PhoneNumbersService(this);
@@ -326,6 +328,8 @@ export { MessageTemplatesService } from './services/messageTemplates.js';
 export { WebchatVisitorService } from './services/webchat/VisitorService.js';
 export { ExternalOAuthService } from './services/externalOAuth.js';
 export { GoogleCalendarService } from './services/googleCalendar.js';
+export { FormsService } from './services/forms.js';
+export { FormsPublicService } from './services/forms/PublicService.js';
 export { DriveService } from './services/drive.js';
 export { EnrollService } from './services/enroll.js';
 export {
