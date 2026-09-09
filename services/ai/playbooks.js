@@ -186,6 +186,7 @@ export class PlaybooksService {
    * @param {string} [options.scoreType='boolean'] - Score type ('boolean' or 'scale')
    * @param {number} [options.weight=0] - Goal weight (0-100)
    * @param {boolean} [options.requiredForPass=false] - Whether required for pass
+   * @param {string} [options.visibility] - 'live' or 'reviewOnly'
    * @param {string} [options.recordTypeId] - Record type ID
    * @returns {Promise<Object>} Created goal with id
    *
@@ -211,6 +212,7 @@ export class PlaybooksService {
     signal,
     window,
     windowTurns,
+    visibility,
     recordTypeId,
   }) {
     this.sdk.validateParams(
@@ -240,6 +242,7 @@ export class PlaybooksService {
         signal: { type: 'string', required: false },
         window: { type: 'string', required: false },
         windowTurns: { type: 'number', required: false },
+        visibility: { type: 'string', required: false },
         recordTypeId: { type: 'string', required: false },
       },
     );
@@ -257,6 +260,7 @@ export class PlaybooksService {
         signal,
         window,
         windowTurns,
+        visibility,
         recordTypeId,
       },
     };
@@ -337,6 +341,7 @@ export class PlaybooksService {
    * @param {string} [options.scoreType] - Score type ('boolean' or 'scale')
    * @param {number} [options.weight] - Goal weight (0-100)
    * @param {boolean} [options.requiredForPass] - Whether required for pass
+   * @param {string} [options.visibility] - 'live' or 'reviewOnly'
    * @param {string} [options.recordTypeId] - Record type ID
    * @returns {Promise<Object>} Updated goal object
    *
@@ -360,6 +365,7 @@ export class PlaybooksService {
     signal,
     window,
     windowTurns,
+    visibility,
     recordTypeId,
   }) {
     this.sdk.validateParams(
@@ -389,6 +395,7 @@ export class PlaybooksService {
         signal: { type: 'string', required: false },
         window: { type: 'string', required: false },
         windowTurns: { type: 'number', required: false },
+        visibility: { type: 'string', required: false },
         recordTypeId: { type: 'string', required: false },
       },
     );
@@ -406,6 +413,7 @@ export class PlaybooksService {
         signal,
         window,
         windowTurns,
+        visibility,
         recordTypeId,
       },
     };
@@ -808,6 +816,7 @@ export class PlaybooksService {
    * @param {string} [options.taskId] - The task ID (used with workerId or userId)
    * @param {string} [options.workerId] - The worker ID (used with taskId)
    * @param {string} [options.userId] - The user ID (used with taskId)
+   * @param {boolean} [options.includeQa] - Include review-only goals and qaReview
    * @returns {Promise<Object>} Session object with playbookName and goals array
    *
    * @example
@@ -830,7 +839,7 @@ export class PlaybooksService {
    *   userId: 'user_789'
    * });
    */
-  async getSession({ sessionId, taskId, workerId, userId }) {
+  async getSession({ sessionId, taskId, workerId, userId, includeQa }) {
     this.sdk.validateParams(
       { sessionId, taskId, workerId, userId },
       {
@@ -838,13 +847,17 @@ export class PlaybooksService {
         taskId: { type: 'string', required: false },
         workerId: { type: 'string', required: false },
         userId: { type: 'string', required: false },
+        includeQa: { type: 'boolean', required: false },
       },
     );
 
     if (sessionId) {
+      const query = {};
+      if (includeQa) query.includeQa = 1;
       const result = await internalRequest(this.sdk, 
         `/ai/playbooks/sessions/${sessionId}`,
         'GET',
+        { query },
       );
       return result;
     }
@@ -853,6 +866,7 @@ export class PlaybooksService {
     if (taskId) query.taskId = taskId;
     if (workerId) query.workerId = workerId;
     if (userId) query.userId = userId;
+    if (includeQa) query.includeQa = 1;
 
     const result = await internalRequest(this.sdk, 
       `/ai/playbooks/sessions`,
@@ -1041,6 +1055,169 @@ export class PlaybooksService {
       `/ai/playbooks/sessions/${sessionId}/goal`,
       'POST',
       params,
+    );
+    return result;
+  }
+
+  /**
+   * Submit a human QA review for an AI playbook session (replace-semantics).
+   *
+   * @param {Object} options
+   * @param {string} options.sessionId
+   * @param {Array} options.goals
+   * @returns {Promise<Object>} QA review
+   */
+  async submitQaReview({ sessionId, goals }) {
+    this.sdk.validateParams(
+      { sessionId, goals },
+      {
+        sessionId: { type: 'string', required: true },
+        goals: { type: 'array', required: true },
+      },
+    );
+
+    const result = await internalRequest(
+      this.sdk,
+      `/ai/playbooks/sessions/${sessionId}/qa`,
+      'PUT',
+      { body: { goals } },
+    );
+    return result;
+  }
+
+  /**
+   * Get the primary QA review for an AI playbook session.
+   *
+   * @param {Object} options
+   * @param {string} options.sessionId
+   * @returns {Promise<Object>} QA review
+   */
+  async getQaReview({ sessionId }) {
+    this.sdk.validateParams(
+      { sessionId },
+      {
+        sessionId: { type: 'string', required: true },
+      },
+    );
+
+    const result = await internalRequest(
+      this.sdk,
+      `/ai/playbooks/sessions/${sessionId}/qa`,
+      'GET',
+    );
+    return result;
+  }
+
+  /**
+   * List QA disagreements for a playbook goal (keyset on reviewedAt, id).
+   *
+   * @param {Object} options
+   * @param {string} options.playbookGoalId
+   * @param {number} [options.limit]
+   * @param {string} [options.beforeReviewedAt]
+   * @param {string} [options.beforeId]
+   * @returns {Promise<Object>} { results, agreeRate, reviewedCount, disagreeCount, next }
+   */
+  async listQaDisagreements({
+    playbookGoalId,
+    limit,
+    beforeReviewedAt,
+    beforeId,
+  }) {
+    this.sdk.validateParams(
+      { playbookGoalId },
+      {
+        playbookGoalId: { type: 'string', required: true },
+        limit: { type: 'number', required: false },
+        beforeReviewedAt: { type: 'string', required: false },
+        beforeId: { type: 'string', required: false },
+      },
+    );
+
+    const query = {};
+    if (limit != null) query.limit = limit;
+    if (beforeReviewedAt) query.beforeReviewedAt = beforeReviewedAt;
+    if (beforeId) query.beforeId = beforeId;
+
+    const result = await internalRequest(
+      this.sdk,
+      `/ai/playbooks/goals/${playbookGoalId}/disagreements`,
+      'GET',
+      { query },
+    );
+    return result;
+  }
+
+  /**
+   * Playbook-level QA agree-rate (exact integer match).
+   *
+   * @param {Object} options
+   * @param {string} options.playbookId
+   * @returns {Promise<Object>} agree-rate payload
+   */
+  async getQaAgreeRate({ playbookId }) {
+    this.sdk.validateParams(
+      { playbookId },
+      {
+        playbookId: { type: 'string', required: true },
+      },
+    );
+
+    const result = await internalRequest(
+      this.sdk,
+      `/ai/playbooks/${playbookId}/qa/agree-rate`,
+      'GET',
+    );
+    return result;
+  }
+
+  /**
+   * Suggest a criteria/window rewrite from QA disagreements. Never auto-applies.
+   *
+   * @param {Object} options
+   * @param {string} options.playbookGoalId
+   * @returns {Promise<Object>} { suggestionId, status, current, proposed, rationale }
+   */
+  async suggestGoalDefinition({ playbookGoalId }) {
+    this.sdk.validateParams(
+      { playbookGoalId },
+      {
+        playbookGoalId: { type: 'string', required: true },
+      },
+    );
+
+    const result = await internalRequest(
+      this.sdk,
+      `/ai/playbooks/goals/${playbookGoalId}/suggest`,
+      'POST',
+      { body: {} },
+    );
+    return result;
+  }
+
+  /**
+   * Accept, edit, or reject a pending goal-definition suggestion.
+   *
+   * @param {Object} options
+   * @param {string} options.suggestionId
+   * @param {string} options.action - accept | reject | edit
+   * @param {Object} [options.proposed]
+   * @returns {Promise<Object>}
+   */
+  async resolveGoalSuggestion({ suggestionId, action, proposed }) {
+    this.sdk.validateParams(
+      { suggestionId, action },
+      {
+        suggestionId: { type: 'string', required: true },
+        action: { type: 'string', required: true },
+      },
+    );
+
+    const result = await internalRequest(
+      this.sdk,
+      `/ai/playbooks/suggestions/${suggestionId}/resolve`,
+      'POST',
+      { body: { action, proposed } },
     );
     return result;
   }
