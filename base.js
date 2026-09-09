@@ -114,6 +114,20 @@ export class BaseSDK {
           process.env?.API_BASE_URL || defaultDomain
         }`;
       }
+    } else if (this._constructorBaseURL && !this.namespace) {
+      // Forms v2 P3 fix: a browser-environment instance constructed with
+      // ONLY a literal baseURL (no namespace) -- e.g. sdk.forms.public /
+      // sdk.webchat.visitor on a page that resolves its tenant server-side
+      // from an opaque key, never a namespace subdomain -- must hit that
+      // exact baseURL. Before this fix, this branch unconditionally built
+      // `https://${namespace}.${baseUrl}` even when namespace was
+      // undefined, producing a literal "https://undefined.<host>" request
+      // URL (caught via forms-v2 marketing-site integration, P3). The
+      // Node branch above already had the equivalent guard
+      // (`if (!this._constructorBaseURL)`); this mirrors it for browser.
+      // A namespace passed ALONGSIDE baseURL still prefixes it (unchanged,
+      // existing behavior other callers rely on).
+      this.fullUrl = this._constructorBaseURL;
     } else {
       this.fullUrl = `https://${this.namespace}.${this.baseUrl}`;
     }

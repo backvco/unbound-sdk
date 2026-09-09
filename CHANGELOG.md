@@ -1,3 +1,7 @@
+## 4.13.85
+
+- fix: `BaseSDK` constructed with only `baseURL` (no `namespace`) in a browser environment built request URLs as literal `https://undefined.<host>` — any unauthenticated/public call (`sdk.forms.public.submit`, `sdk.webchat.visitor.*`) made this way from a page with no namespace concept (e.g. a marketing site resolving its tenant from an opaque key) silently failed. `setNamespace()` now falls back to the literal constructor `baseURL` when no namespace is set, matching the Node-environment branch's existing behavior; namespace-only and namespace+baseURL construction are unchanged.
+
 ## 4.13.84
 
 - feat: `sdk.forms.public.submit(publicKey, fields, {context, captchaToken, idempotencyKey})` — `POST /f/:publicKey`, no agent auth (VisitorService pattern), for forms-v2's new per-form publicKey (legacy `_token`/formId path unchanged)
