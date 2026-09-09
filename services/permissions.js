@@ -5,7 +5,12 @@ export class PermissionsService {
   }
 
   /**
-   * List permission groups
+   * List permission groups. Server-filtered to what the caller can see
+   * (group access model): account admin / admin:group:manage /
+   * admin:group:view see every group; a group manager or member sees only
+   * their own group(s). Each row carries `members: [{id, role}]`,
+   * `canManage` (name/description/members), and `canManagePermissionSets`
+   * (account admin / admin:group:manage only).
    * @returns {Promise<Object>} Object with results: Array of permission groups
    * @example
    * const { results } = await sdk.permissions.listGroups();
@@ -112,11 +117,13 @@ export class PermissionsService {
    * Add a user to a permission group
    * @param {string} groupId - Group ID
    * @param {string} userId - User ID to add
+   * @param {string} [role] - 'member' (default) or 'manager'
    * @returns {Promise<Object>} Membership confirmation
    * @example
    * await sdk.permissions.addGroupMember('group-123', 'user-456');
+   * await sdk.permissions.addGroupMember('group-123', 'user-456', 'manager');
    */
-  async addGroupMember(groupId, userId) {
+  async addGroupMember(groupId, userId, role) {
     groupId = String(groupId);
     userId = String(userId);
     this.sdk.validateParams(
@@ -127,13 +134,51 @@ export class PermissionsService {
       },
     );
 
+    const body = { userId };
+    if (role !== undefined) body.role = role;
+
     const params = {
-      body: { userId },
+      body,
     };
 
-    const result = await internalRequest(this.sdk, 
+    const result = await internalRequest(this.sdk,
       `/permissions/groups/${groupId}/members`,
       'POST',
+      params,
+    );
+    return result;
+  }
+
+  /**
+   * Change a group member's role (Member / Manager) — group-manager-safe:
+   * account admin, admin:group:manage, or a manager of this group can call
+   * it; plain members cannot.
+   * @param {string} groupId - Group ID
+   * @param {string} userId - User ID
+   * @param {string} role - 'member' or 'manager'
+   * @returns {Promise<Object>} { groupId, userId, role }
+   * @example
+   * await sdk.permissions.updateGroupMemberRole('group-123', 'user-456', 'manager');
+   */
+  async updateGroupMemberRole(groupId, userId, role) {
+    groupId = String(groupId);
+    userId = String(userId);
+    this.sdk.validateParams(
+      { groupId, userId, role },
+      {
+        groupId: { type: 'string', required: true },
+        userId: { type: 'string', required: true },
+        role: { type: 'string', required: true },
+      },
+    );
+
+    const params = {
+      body: { role },
+    };
+
+    const result = await internalRequest(this.sdk,
+      `/permissions/groups/${groupId}/members/${userId}`,
+      'PUT',
       params,
     );
     return result;
