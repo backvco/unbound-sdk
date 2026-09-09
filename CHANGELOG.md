@@ -1,3 +1,8 @@
+## 4.13.82
+
+- feat: `sdk.reporting.agents.timesheet()` response gains `agents` — one additive-sum row per agent (`{ userId, timezone, daysWorked, loggedInSec, paidAwaySec, unpaidAwaySec, netPaidSec }`) alongside the existing flat `rows`
+- feat: `sdk.reporting.agents.export({ view: 'timesheet', totals: true })` — CSV with one row per agent instead of the flat per-day rows
+
 ## 4.13.75
 
 - feat: `sdk.cobrowse.getRecording({ source, widgetId, hostId, sid })` (`GET /webchat/widgets/:id/conversations/:engagementSessionId/cobrowse/:sid/recording`) — combined `recording.ndjson` (HTTP only)

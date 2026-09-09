@@ -38,6 +38,7 @@ import { FaxService } from './services/fax.js';
 import { DocumentsService } from './services/documents.js';
 import { EsignService } from './services/esign.js';
 import { PermissionsService } from './services/permissions.js';
+import { UsersService } from './services/users.js';
 import { TriggersService } from './services/triggers.js';
 import { RecentsService } from './services/recents.js';
 import { SearchService } from './services/search.js';
@@ -45,6 +46,7 @@ import { DirectoryService } from './services/directory.js';
 import { ChatService } from './services/chat.js';
 import { DeveloperApisService } from './services/developerApis.js';
 import { TextService } from './services/text.js';
+import { ReportingService } from './services/reporting.js';
 import {
   DataImportService,
   DataExportService,
@@ -136,6 +138,8 @@ class UnboundSDK extends BaseSDK {
     this.documents = new DocumentsService(this);
     this.esign = new EsignService(this);
     this.permissions = new PermissionsService(this);
+    this.users = new UsersService(this);
+    this.reporting = new ReportingService(this);
     this.triggers = new TriggersService(this);
     this.recents = new RecentsService(this);
     this.search = new SearchService(this);
@@ -340,6 +344,8 @@ export { KnowledgeBaseService } from './services/knowledgeBase.js';
 export { FaxService } from './services/fax.js';
 export { EsignService, EsignPublicService } from './services/esign.js';
 export { PermissionsService } from './services/permissions.js';
+export { UsersService } from './services/users.js';
+export { ReportingService } from './services/reporting.js';
 export { RecentsService } from './services/recents.js';
 export { SearchService } from './services/search.js';
 export { DirectoryService } from './services/directory.js';
