@@ -67,23 +67,64 @@ describe('FormsPublicService.submit', () => {
     assert.deepEqual(result, { ok: true });
   });
 
-  test('sends context/captchaToken/idempotencyKey as underscore control fields', async () => {
+  test('sends captchaToken/idempotencyKey as underscore control fields, context spread at top level', async () => {
     const { fakeSdk, calls } = buildFakeSdk();
     await new FormsPublicService(fakeSdk).submit(
       '270abc',
       { email: 'a@b.com' },
       {
-        context: { utm_source: 'x' },
+        context: { utm_source: 'x', referrer: 'https://google.com' },
         captchaToken: 'tok',
         idempotencyKey: 'idem1',
       },
     );
     assert.deepEqual(calls[0].params.body, {
       email: 'a@b.com',
+      utm_source: 'x',
+      referrer: 'https://google.com',
       _idempotencyKey: 'idem1',
       _captchaToken: 'tok',
-      _context: { utm_source: 'x' },
     });
+  });
+
+  test('fields wins over context on key collision', async () => {
+    const { fakeSdk, calls } = buildFakeSdk();
+    await new FormsPublicService(fakeSdk).submit(
+      '270abc',
+      { referrer: 'field-value' },
+      { context: { referrer: 'context-value' } },
+    );
+    assert.equal(calls[0].params.body.referrer, 'field-value');
+  });
+
+  // Contract check, not just a wire-format assertion: mirrors app1-api's
+  // captureContext.js (src/services/webhooks/functions/captureContext.js)
+  // ALLOWED_EXACT/utm_ allowlist, which reads only TOP-LEVEL body keys and
+  // explicitly skips any `_`-prefixed key as a control field. If `context`
+  // were ever sent nested again (e.g. as `_context`), every key here would
+  // be invisible to that allowlist and this test would need to change too
+  // -- keeping the two in sync guards against the regression this SDK
+  // shipped in 4.13.84-4.13.88.
+  test('context keys land where the server allowlist actually looks (top level, unprefixed)', async () => {
+    const ALLOWED_EXACT = new Set([
+      'gclid',
+      'fbclid',
+      'referrer',
+      'landingUrl',
+      'pageUrl',
+      'userAgent',
+    ]);
+    const UTM_KEY_RE = /^utm_/i;
+    const { fakeSdk, calls } = buildFakeSdk();
+    const context = { utm_source: 'x', gclid: 'g1', landingUrl: 'https://a.b/c' };
+    await new FormsPublicService(fakeSdk).submit('270abc', { email: 'a@b.com' }, { context });
+    for (const key of Object.keys(context)) {
+      assert.ok(
+        !key.startsWith('_') && (UTM_KEY_RE.test(key) || ALLOWED_EXACT.has(key)),
+        `${key} would not be captured by captureContext.js's allowlist`,
+      );
+      assert.equal(calls[0].params.body[key], context[key]);
+    }
   });
 
   test('omits control fields entirely when not provided', async () => {

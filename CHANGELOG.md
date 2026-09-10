@@ -1,6 +1,14 @@
+## 4.13.89
+
+- fix: `sdk.forms.public.submit()`'s `context` option was sent nested under a `_context` control field, which app1-api's captureContext.js never unpacks (it only reads top-level body keys and explicitly skips anything `_`-prefixed as a control field) — every caller passing `context` recorded no utm/referrer/landingUrl data at all, silently. `context` is now spread onto the top level of the request body alongside `fields`, matching what the server actually reads; a `fields` key wins on collision.
+
 ## 4.13.87
 
 - feat: `sdk.forms.health.get(formId)` — `GET /forms/:id/health`, agent-authenticated Health tab data (submission tiles, 30-day sparkline, per-field fill rate, drift alerts) backed by the new nightly `formFieldStats` rollup (forms-v2 P8, plan D13)
+
+## 4.13.86
+
+- feat: `sdk.forms.public.upload(publicKey, fieldKey, file)` — `POST /f/:publicKey/upload`, browser-only public file upload for a `file` inputType field ahead of `submit()` (forms-v2 P7, D21); returned `{fileId, token}` must be echoed back inside `submit()`'s matching `fields[fieldKey]` as `JSON.stringify({fileId, token})`
 
 ## 4.13.85
 
