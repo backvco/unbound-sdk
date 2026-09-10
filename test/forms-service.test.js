@@ -47,6 +47,44 @@ describe('UnboundSDK.forms', () => {
     assert.equal(typeof sdk.forms.settings.set, 'function');
     assert.equal(typeof sdk.forms.settings.setForm, 'function');
     assert.equal(typeof sdk.forms.health.get, 'function');
+    assert.equal(typeof sdk.forms.regeneratePublicKey, 'function');
+    assert.equal(typeof sdk.forms.previewToken, 'function');
+  });
+});
+
+describe('FormsService (gap closure, task items 2/3)', () => {
+  test('regeneratePublicKey(formId) POSTs /forms/:id/regenerate-key', async () => {
+    const { fakeSdk, calls } = buildFakeSdk();
+    await new FormsService(fakeSdk).regeneratePublicKey('form1');
+    assert.equal(calls[0].endpoint, '/forms/form1/regenerate-key');
+    assert.equal(calls[0].method, 'POST');
+  });
+
+  test('regeneratePublicKey(formId) requires formId', async () => {
+    const { fakeSdk } = buildFakeSdk();
+    await assert.rejects(() =>
+      new FormsService(fakeSdk).regeneratePublicKey(undefined),
+    );
+  });
+
+  test('previewToken(formId) POSTs /forms/:id/preview-token', async () => {
+    const { fakeSdk, calls } = buildFakeSdk();
+    await new FormsService(fakeSdk).previewToken('form1');
+    assert.equal(calls[0].endpoint, '/forms/form1/preview-token');
+    assert.equal(calls[0].method, 'POST');
+  });
+
+  test('previewToken(formId) requires formId', async () => {
+    const { fakeSdk } = buildFakeSdk();
+    await assert.rejects(() =>
+      new FormsService(fakeSdk).previewToken(undefined),
+    );
+  });
+
+  test('both URI-encode the form id', async () => {
+    const { fakeSdk, calls } = buildFakeSdk();
+    await new FormsService(fakeSdk).regeneratePublicKey('form/weird id');
+    assert.equal(calls[0].endpoint, '/forms/form%2Fweird%20id/regenerate-key');
   });
 });
 
@@ -116,11 +154,20 @@ describe('FormsPublicService.submit', () => {
     ]);
     const UTM_KEY_RE = /^utm_/i;
     const { fakeSdk, calls } = buildFakeSdk();
-    const context = { utm_source: 'x', gclid: 'g1', landingUrl: 'https://a.b/c' };
-    await new FormsPublicService(fakeSdk).submit('270abc', { email: 'a@b.com' }, { context });
+    const context = {
+      utm_source: 'x',
+      gclid: 'g1',
+      landingUrl: 'https://a.b/c',
+    };
+    await new FormsPublicService(fakeSdk).submit(
+      '270abc',
+      { email: 'a@b.com' },
+      { context },
+    );
     for (const key of Object.keys(context)) {
       assert.ok(
-        !key.startsWith('_') && (UTM_KEY_RE.test(key) || ALLOWED_EXACT.has(key)),
+        !key.startsWith('_') &&
+          (UTM_KEY_RE.test(key) || ALLOWED_EXACT.has(key)),
         `${key} would not be captured by captureContext.js's allowlist`,
       );
       assert.equal(calls[0].params.body[key], context[key]);
@@ -129,7 +176,9 @@ describe('FormsPublicService.submit', () => {
 
   test('omits control fields entirely when not provided', async () => {
     const { fakeSdk, calls } = buildFakeSdk();
-    await new FormsPublicService(fakeSdk).submit('270abc', { email: 'a@b.com' });
+    await new FormsPublicService(fakeSdk).submit('270abc', {
+      email: 'a@b.com',
+    });
     assert.deepEqual(Object.keys(calls[0].params.body), ['email']);
   });
 

@@ -1,3 +1,8 @@
+## 4.13.91
+
+- feat: `sdk.forms.regeneratePublicKey(formId)` — `POST /forms/:id/regenerate-key`, mints a brand new `forms.publicKey` (destructive: every embed still carrying the old key stops resolving immediately). Backs FormIdentitySettingsCard.svelte's previously-disabled "Regenerate" button (forms-v2 gap closure, D1/D20).
+- feat: `sdk.forms.previewToken(formId)` — `POST /forms/:id/preview-token`, mints the D19 signed 15-min draft-preview token (`GET /f/:publicKey.js?preview=<token>`); the verify side has been live since 4.13.84 (forms-v2 gap closure, D19).
+
 ## 4.13.90
 
 - fix: expose `./base.js` (`BaseSDK`, `internalRequest`) as a package export subpath. A consumer that only needs one public/unauthenticated surface (e.g. `forms.public.submit`) can now import just `services/forms/PublicService.js` + `base.js` and construct a minimal instance, instead of importing the package root — which unconditionally evaluates every service module (video, ai/SttStream, etc.), some of which have Node-only or bundler-unfriendly imports (a static import chain that broke marketing_unbound_cx's browser build; forms-v2 review). No behavior change for existing `import UnboundSDK from '@unboundcx/sdk'` consumers.
