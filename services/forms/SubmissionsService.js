@@ -1,19 +1,13 @@
-import { internalRequest } from '../../base.js';
+import { internalRequest } from "../../base.js";
 
 // Agent-authenticated formSubmissions actions -- `sdk.forms.submissions`.
 // Normal agent-token path (no forceFetch, no authHeaders), same as any
 // other authenticated service method (e.g. WebchatWidgetsService.get()).
 //
-// GAP (forms-v2 P2, see plans/forms-v2-progress/P2.md): the server-side
-// routes these call do NOT exist yet. forms-v2-precheck.md §9 gates the
-// Quarantine/reprocess UI behind P5, but never assigns an owner file for
-// the *backend* controllers -- adding them here to app1-api's
-// `objects/routes.js` (the `/:objectName/merge`-style precedent for a
-// custom per-object action route) is outside P2's file-ownership map, so
-// P2 only forward-declares the wire contract below. Whichever phase wires
-// the server (P5 for reprocess/markNotSpam per plan §8, or earlier if
-// needed) must implement these exact paths/methods, or bump the SDK with
-// a corrected path.
+// Methods call:
+// - reprocess() → POST /object/formSubmissions/:id/reprocess (api objects/routes.js)
+// - markNotSpam() → POST /object/formSubmissions/:id/mark-not-spam (api objects/routes.js)
+// - resolveReview() → POST /object/formSubmissions/:id/resolve-review (api objects/routes.js)
 export class FormsSubmissionsService {
   constructor(sdk) {
     this.sdk = sdk;
@@ -26,14 +20,11 @@ export class FormsSubmissionsService {
    * @returns {Promise<Object>}
    */
   async reprocess(id) {
-    this.sdk.validateParams(
-      { id },
-      { id: { type: 'string', required: true } },
-    );
+    this.sdk.validateParams({ id }, { id: { type: "string", required: true } });
     return internalRequest(
       this.sdk,
       `/object/formSubmissions/${id}/reprocess`,
-      'POST',
+      "POST",
     );
   }
 
@@ -43,14 +34,11 @@ export class FormsSubmissionsService {
    * @returns {Promise<Object>}
    */
   async markNotSpam(id) {
-    this.sdk.validateParams(
-      { id },
-      { id: { type: 'string', required: true } },
-    );
+    this.sdk.validateParams({ id }, { id: { type: "string", required: true } });
     return internalRequest(
       this.sdk,
       `/object/formSubmissions/${id}/mark-not-spam`,
-      'POST',
+      "POST",
     );
   }
 
@@ -66,14 +54,14 @@ export class FormsSubmissionsService {
     this.sdk.validateParams(
       { id, choice },
       {
-        id: { type: 'string', required: true },
-        choice: { type: 'string', required: true },
+        id: { type: "string", required: true },
+        choice: { type: "string", required: true },
       },
     );
     return internalRequest(
       this.sdk,
       `/object/formSubmissions/${id}/resolve-review`,
-      'POST',
+      "POST",
       { body: { choice } },
     );
   }
