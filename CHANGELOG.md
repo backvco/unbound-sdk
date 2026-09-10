@@ -1,3 +1,7 @@
+## 4.13.90
+
+- fix: expose `./base.js` (`BaseSDK`, `internalRequest`) as a package export subpath. A consumer that only needs one public/unauthenticated surface (e.g. `forms.public.submit`) can now import just `services/forms/PublicService.js` + `base.js` and construct a minimal instance, instead of importing the package root — which unconditionally evaluates every service module (video, ai/SttStream, etc.), some of which have Node-only or bundler-unfriendly imports (a static import chain that broke marketing_unbound_cx's browser build; forms-v2 review). No behavior change for existing `import UnboundSDK from '@unboundcx/sdk'` consumers.
+
 ## 4.13.89
 
 - fix: `sdk.forms.public.submit()`'s `context` option was sent nested under a `_context` control field, which app1-api's captureContext.js never unpacks (it only reads top-level body keys and explicitly skips anything `_`-prefixed as a control field) — every caller passing `context` recorded no utm/referrer/landingUrl data at all, silently. `context` is now spread onto the top level of the request body alongside `fields`, matching what the server actually reads; a `fields` key wins on collision.
