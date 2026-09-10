@@ -11,8 +11,8 @@ import { internalRequest } from '../../base.js';
 // forms-v2-precheck.md §4.1): plain form fields go at the top level of the
 // body (fieldKey -> value, arrays allowed), and everything the server
 // treats as a *control* field (not a form value) is sent with a leading
-// underscore -- the same convention formSubmit.js/formSubmitPublicKey.js
-// already split on for the legacy `_token` field. `context` is NOT a
+// underscore, e.g. `_idempotencyKey`/`_captchaToken` below --
+// formSubmitPublicKey.js splits on that same convention. `context` is NOT a
 // control field: app1-api's captureContext.js builds the submission's
 // context column by scanning the body's TOP-LEVEL keys against an
 // allowlist (utm_*, gclid, fbclid, referrer, landingUrl, pageUrl,
@@ -26,9 +26,8 @@ export class FormsPublicService {
 
   /**
    * Submit a public form by its publicKey (D1 -- every form has its own
-   * publicKey; no tracking-code/_token needed for this path). Legacy
-   * hosted-fields forms keep using the `/webhooks/form/:formId` +
-   * `_token` path (unchanged, not exposed here).
+   * publicKey; no tracking-code/_token needed -- publicKey + origin/
+   * domainAllowlist is the only auth for a public form submit).
    * @param {string} publicKey
    * @param {Object} fields - fieldKey -> value (arrays kept as arrays).
    * @param {Object} [options]

@@ -1,3 +1,7 @@
+## 4.13.92
+
+- docs: comment cleanup only — the pre-v2 forms system never shipped to a real customer, so app1-api's legacy `formId`/`_token` submit path, `data-form-id` embed compat, and dual identity mechanism (`identityFieldKeys`/`isIdentityKey`) have been removed server-side (D1/D2 override). This sdk's `forms.public.submit()`/`forms.public.upload()` never had a legacy code path of their own — comments referencing the now-removed legacy routes have been updated. No functional change.
+
 ## 4.13.91
 
 - feat: `sdk.forms.regeneratePublicKey(formId)` — `POST /forms/:id/regenerate-key`, mints a brand new `forms.publicKey` (destructive: every embed still carrying the old key stops resolving immediately). Backs FormIdentitySettingsCard.svelte's previously-disabled "Regenerate" button (forms-v2 gap closure, D1/D20).
