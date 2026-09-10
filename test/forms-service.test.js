@@ -5,6 +5,7 @@ import { FormsService } from '../services/forms.js';
 import { FormsPublicService } from '../services/forms/PublicService.js';
 import { FormsSubmissionsService } from '../services/forms/SubmissionsService.js';
 import { FormsSettingsService } from '../services/forms/SettingsService.js';
+import { FormsHealthService } from '../services/forms/HealthService.js';
 
 function buildFakeSdk() {
   const calls = [];
@@ -36,6 +37,7 @@ describe('UnboundSDK.forms', () => {
     assert.ok(sdk.forms.public instanceof FormsPublicService);
     assert.ok(sdk.forms.submissions instanceof FormsSubmissionsService);
     assert.ok(sdk.forms.settings instanceof FormsSettingsService);
+    assert.ok(sdk.forms.health instanceof FormsHealthService);
     assert.equal(typeof sdk.forms.public.submit, 'function');
     assert.equal(typeof sdk.forms.public.upload, 'function');
     assert.equal(typeof sdk.forms.submissions.reprocess, 'function');
@@ -43,6 +45,7 @@ describe('UnboundSDK.forms', () => {
     assert.equal(typeof sdk.forms.submissions.resolveReview, 'function');
     assert.equal(typeof sdk.forms.settings.get, 'function');
     assert.equal(typeof sdk.forms.settings.set, 'function');
+    assert.equal(typeof sdk.forms.health.get, 'function');
   });
 });
 
@@ -190,5 +193,20 @@ describe('FormsSettingsService', () => {
     assert.equal(calls[0].endpoint, '/forms/settings');
     assert.equal(calls[0].method, 'PUT');
     assert.deepEqual(calls[0].params.body, { defaultRegion: 'US' });
+  });
+});
+
+describe('FormsHealthService', () => {
+  test('get(formId) GETs /forms/:id/health', async () => {
+    const { fakeSdk, calls } = buildFakeSdk();
+    await new FormsHealthService(fakeSdk).get('formAbc');
+    assert.equal(calls[0].endpoint, '/forms/formAbc/health');
+    assert.equal(calls[0].method, 'GET');
+  });
+
+  test('get(formId) URI-encodes the form id', async () => {
+    const { fakeSdk, calls } = buildFakeSdk();
+    await new FormsHealthService(fakeSdk).get('form/weird id');
+    assert.equal(calls[0].endpoint, '/forms/form%2Fweird%20id/health');
   });
 });

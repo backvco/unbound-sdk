@@ -1,3 +1,7 @@
+## 4.13.87
+
+- feat: `sdk.forms.health.get(formId)` — `GET /forms/:id/health`, agent-authenticated Health tab data (submission tiles, 30-day sparkline, per-field fill rate, drift alerts) backed by the new nightly `formFieldStats` rollup (forms-v2 P8, plan D13)
+
 ## 4.13.85
 
 - fix: `BaseSDK` constructed with only `baseURL` (no `namespace`) in a browser environment built request URLs as literal `https://undefined.<host>` — any unauthenticated/public call (`sdk.forms.public.submit`, `sdk.webchat.visitor.*`) made this way from a page with no namespace concept (e.g. a marketing site resolving its tenant from an opaque key) silently failed. `setNamespace()` now falls back to the literal constructor `baseURL` when no namespace is set, matching the Node-environment branch's existing behavior; namespace-only and namespace+baseURL construction are unchanged.

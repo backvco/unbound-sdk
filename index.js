@@ -330,6 +330,7 @@ export { ExternalOAuthService } from './services/externalOAuth.js';
 export { GoogleCalendarService } from './services/googleCalendar.js';
 export { FormsService } from './services/forms.js';
 export { FormsPublicService } from './services/forms/PublicService.js';
+export { FormsHealthService } from './services/forms/HealthService.js';
 export { DriveService } from './services/drive.js';
 export { EnrollService } from './services/enroll.js';
 export {
