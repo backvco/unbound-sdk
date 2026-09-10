@@ -17,6 +17,17 @@ const requestBySdk = new WeakMap();
 const SDK_REQUEST = Symbol.for('unbound.sdk.request');
 
 /**
+ * Safely read a process.env var. `process` is an undeclared global in a
+ * browser/Vite bundle -- `process?.env?.X` does NOT protect against that
+ * (optional chaining only guards property access, not a bare identifier
+ * reference), so a browser bundle throws `ReferenceError: process is not
+ * defined` the moment `process` is referenced at all. Gate on
+ * `typeof process !== 'undefined'` first.
+ */
+export const env = (key) =>
+  typeof process !== 'undefined' && process.env ? process.env[key] : undefined;
+
+/**
  * Service-internal request. Not part of the public SDK surface.
  * Named SDK methods call this; app code must not. Optional transports
  * (e.g. Socket.IO) are used when available unless httpOnly/forceFetch.
@@ -43,14 +54,14 @@ export class BaseSDK {
     // Support both object and legacy positional parameters for backwards compatibility
     if (typeof options === 'string') {
       // Legacy positional parameters: (namespace, callId, token, fwRequestId)
-      this.namespace = options || process?.env?.namespace;
+      this.namespace = options || env('namespace');
       this.callId = arguments[1];
       this.token = arguments[2];
       this.fwRequestId = arguments[3];
     } else {
       // New object-based parameters
       const { namespace, callId, token, fwRequestId, baseURL } = options;
-      this.namespace = namespace || process?.env?.namespace;
+      this.namespace = namespace || env('namespace');
       this.callId = callId;
       this.token = token;
       this.fwRequestId = fwRequestId;
@@ -78,7 +89,7 @@ export class BaseSDK {
       // Server-side (Node.js)
       this.environment = 'node';
       this.baseURL = this._constructorBaseURL || `https://${this.namespace ? this.namespace : 'login'}.${
-        process.env?.API_BASE_URL || defaultDomain
+        env('API_BASE_URL') || defaultDomain
       }`;
     } else {
       // Client-side (browser)
@@ -91,7 +102,7 @@ export class BaseSDK {
         this.baseUrl = url.hostname.replace(/^[^.]+\./, '');
       } else {
         this.baseUrl =
-          this.baseUrl || process?.env?.API_BASE_URL || defaultDomain;
+          this.baseUrl || env('API_BASE_URL') || defaultDomain;
         if (this.baseUrl && !this.baseUrl.startsWith('api.')) {
           this.baseUrl = `api.${this.baseUrl}`;
         }
@@ -111,7 +122,7 @@ export class BaseSDK {
     if (this.environment === 'node') {
       if (!this._constructorBaseURL) {
         this.baseURL = `https://${this.namespace ? this.namespace : 'login'}.${
-          process.env?.API_BASE_URL || defaultDomain
+          env('API_BASE_URL') || defaultDomain
         }`;
       }
     } else if (this._constructorBaseURL && !this.namespace) {
@@ -296,9 +307,9 @@ export class BaseSDK {
       }
     } else {
       // No transport available, fallback to HTTP
-      if (forceFetch && process.env.AUTH_V3_TOKEN_TYPE_OVERRIDE) {
+      if (forceFetch && env('AUTH_V3_TOKEN_TYPE_OVERRIDE')) {
         params.headers['x-token-type-override'] =
-          process.env.AUTH_V3_TOKEN_TYPE_OVERRIDE;
+          env('AUTH_V3_TOKEN_TYPE_OVERRIDE');
       }
       return this._httpRequest(
         endpoint,

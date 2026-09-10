@@ -1,4 +1,4 @@
-import { internalRequest } from '../base.js';
+import { internalRequest, env } from '../base.js';
 export class StorageService {
   constructor(sdk) {
     this.sdk = sdk;
@@ -314,13 +314,12 @@ export class StorageService {
       headers = result.headers;
     }
 
-    if (process?.env?.AUTH_V3_TOKEN_TYPE_OVERRIDE) {
-      headers['x-token-type-override'] =
-        process.env.AUTH_V3_TOKEN_TYPE_OVERRIDE;
+    if (env('AUTH_V3_TOKEN_TYPE_OVERRIDE')) {
+      headers['x-token-type-override'] = env('AUTH_V3_TOKEN_TYPE_OVERRIDE');
     }
 
-    if (skipClamscan && process?.env?.CLAMSCAN_OVERRIDE_KEY) {
-      headers['x-clamscan-override-key'] = process.env.CLAMSCAN_OVERRIDE_KEY;
+    if (skipClamscan && env('CLAMSCAN_OVERRIDE_KEY')) {
+      headers['x-clamscan-override-key'] = env('CLAMSCAN_OVERRIDE_KEY');
     }
 
     const params = {
@@ -408,16 +407,16 @@ export class StorageService {
       }
 
       // Add environment variable override headers
-      if (process?.env?.AUTH_V3_TOKEN_TYPE_OVERRIDE) {
+      if (env('AUTH_V3_TOKEN_TYPE_OVERRIDE')) {
         xhr.setRequestHeader(
           'x-token-type-override',
-          process.env.AUTH_V3_TOKEN_TYPE_OVERRIDE,
+          env('AUTH_V3_TOKEN_TYPE_OVERRIDE'),
         );
       }
-      if (skipClamscan && process?.env?.CLAMSCAN_OVERRIDE_KEY) {
+      if (skipClamscan && env('CLAMSCAN_OVERRIDE_KEY')) {
         xhr.setRequestHeader(
           'x-clamscan-override-key',
-          process.env.CLAMSCAN_OVERRIDE_KEY,
+          env('CLAMSCAN_OVERRIDE_KEY'),
         );
       }
 
@@ -656,8 +655,8 @@ Response:
       if (metadata) formData.append('metadata', JSON.stringify(metadata));
     }
 
-    if (_options?.skipScan && process?.env?.CLAMSCAN_OVERRIDE_KEY) {
-      headers['x-clamscan-override-key'] = process.env.CLAMSCAN_OVERRIDE_KEY;
+    if (_options?.skipScan && env('CLAMSCAN_OVERRIDE_KEY')) {
+      headers['x-clamscan-override-key'] = env('CLAMSCAN_OVERRIDE_KEY');
     }
 
     const params = {
