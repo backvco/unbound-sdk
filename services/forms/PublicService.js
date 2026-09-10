@@ -54,4 +54,42 @@ export class FormsPublicService {
       true,
     );
   }
+
+  /**
+   * Upload a file for a `file` inputType field (D21), ahead of the real
+   * `submit()` call. Mirrors `webchat.visitor.files.upload()`'s shape:
+   * browser-only (needs `FormData`), no progress event. The returned
+   * `token` must be echoed back inside `submit()`'s `fields[fieldKey]` as
+   * `JSON.stringify({fileId, token})` -- the server (formFileAttach.js)
+   * verifies it names this exact (formId, fieldKey, fileId) triple before
+   * attaching the file to the submission.
+   * @param {string} publicKey
+   * @param {string} fieldKey - Must match a `file` inputType field on the form.
+   * @param {File|Blob} file
+   * @returns {Promise<{fileId:string, token:string, fileName:string, fileType:string, fileSize:number}>}
+   */
+  async upload(publicKey, fieldKey, file) {
+    this.sdk.validateParams(
+      { publicKey, fieldKey },
+      {
+        publicKey: { type: 'string', required: true },
+        fieldKey: { type: 'string', required: true },
+      },
+    );
+    if (typeof FormData === 'undefined' || !file) {
+      throw new Error(
+        'forms.public.upload :: a browser File/Blob and FormData support are required',
+      );
+    }
+    const body = new FormData();
+    body.append('fieldKey', fieldKey);
+    body.append('file', file);
+    return internalRequest(
+      this.sdk,
+      `/f/${publicKey}/upload`,
+      'POST',
+      { body },
+      true,
+    );
+  }
 }

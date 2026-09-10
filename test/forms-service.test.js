@@ -37,6 +37,7 @@ describe('UnboundSDK.forms', () => {
     assert.ok(sdk.forms.submissions instanceof FormsSubmissionsService);
     assert.ok(sdk.forms.settings instanceof FormsSettingsService);
     assert.equal(typeof sdk.forms.public.submit, 'function');
+    assert.equal(typeof sdk.forms.public.upload, 'function');
     assert.equal(typeof sdk.forms.submissions.reprocess, 'function');
     assert.equal(typeof sdk.forms.submissions.markNotSpam, 'function');
     assert.equal(typeof sdk.forms.submissions.resolveReview, 'function');
@@ -98,6 +99,43 @@ describe('FormsPublicService.submit', () => {
     const { fakeSdk, calls } = buildFakeSdk();
     await new FormsPublicService(fakeSdk).submit('270abc', {});
     assert.equal(calls[0].params.headers, undefined);
+  });
+});
+
+describe('FormsPublicService.upload', () => {
+  test('POSTs /f/:publicKey/upload as FormData with fieldKey + file, forceFetch=true', async () => {
+    const { fakeSdk, calls } = buildFakeSdk();
+    const file = new Blob(['x'], { type: 'application/pdf' });
+    const result = await new FormsPublicService(fakeSdk).upload(
+      '270abc',
+      'resume',
+      file,
+    );
+    assert.equal(calls[0].endpoint, '/f/270abc/upload');
+    assert.equal(calls[0].method, 'POST');
+    assert.ok(calls[0].params.body instanceof FormData);
+    assert.equal(calls[0].params.body.get('fieldKey'), 'resume');
+    assert.ok(calls[0].params.body.get('file'));
+    assert.equal(calls[0].forceFetch, true);
+    assert.deepEqual(result, { ok: true });
+  });
+
+  test('requires publicKey and fieldKey', async () => {
+    const { fakeSdk } = buildFakeSdk();
+    const file = new Blob(['x']);
+    await assert.rejects(() =>
+      new FormsPublicService(fakeSdk).upload(undefined, 'resume', file),
+    );
+    await assert.rejects(() =>
+      new FormsPublicService(fakeSdk).upload('270abc', undefined, file),
+    );
+  });
+
+  test('rejects without a file', async () => {
+    const { fakeSdk } = buildFakeSdk();
+    await assert.rejects(() =>
+      new FormsPublicService(fakeSdk).upload('270abc', 'resume', null),
+    );
   });
 });
 
