@@ -7,6 +7,15 @@ import { internalRequest } from '../../base.js';
 // these are one-shot fetches from a customer page / marketing site, same
 // as every other visitor-facing call.
 //
+// Every call passes `credentials: 'omit'` (base.js `_httpRequest` opt-in) --
+// this surface is hit from third-party origins (a marketing site embedding
+// a form, not an app1 base domain), and app1-api's CORS
+// (`src/index.js` allowlist) only sends `access-control-allow-credentials`
+// for trusted app1 base domains. A browser rejects the whole response for
+// a `credentials:'include'` request when that header is missing, even
+// though these endpoints don't use cookies for auth -- so third-party
+// callers must opt out explicitly.
+//
 // Wire shape matches `POST /f/:publicKey` (app1-api webhooks service,
 // forms-v2-precheck.md §4.1): plain form fields go at the top level of the
 // body (fieldKey -> value, arrays allowed), and everything the server
@@ -56,7 +65,7 @@ export class FormsPublicService {
       this.sdk,
       `/f/${publicKey}`,
       'POST',
-      { body },
+      { body, credentials: 'omit' },
       true,
     );
   }
@@ -94,7 +103,7 @@ export class FormsPublicService {
       this.sdk,
       `/f/${publicKey}/upload`,
       'POST',
-      { body },
+      { body, credentials: 'omit' },
       true,
     );
   }

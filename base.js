@@ -372,7 +372,7 @@ export class BaseSDK {
     returnRawResponse = false,
     startTime = Date.now(),
   ) {
-    const { body, query, headers = {} } = params;
+    const { body, query, headers = {}, credentials } = params;
 
     const options = {
       method,
@@ -387,9 +387,13 @@ export class BaseSDK {
       },
     };
 
-    // Set credentials for browser environment
+    // Set credentials for browser environment. Public/unauthenticated
+    // endpoints called from third-party origins (forms, webchat loader) opt
+    // out via params.credentials = 'omit' — app1-api's CORS only sends
+    // access-control-allow-credentials for trusted app1 base domains, so a
+    // browser rejects the response for `include` requests from other origins.
     if (this.environment === 'browser') {
-      options.credentials = 'include';
+      options.credentials = credentials === 'omit' ? 'omit' : 'include';
     }
 
     let url;

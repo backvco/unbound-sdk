@@ -1,3 +1,7 @@
+## 4.13.93
+
+- fix: browser calls to `sdk.forms.public.submit()`/`upload()` and `sdk.webchat.visitor.*` from a third-party origin (marketing site, custom widget host — not an app1 base domain) were rejected by the browser outright. `base.js`'s `_httpRequest` always set `credentials:'include'` in the browser; app1-api's CORS only returns `access-control-allow-credentials: true` for trusted app1 base domains, so the browser blocks the response for any other origin even though these endpoints don't use cookies for auth. `internalRequest`/`_httpRequest` now accept an opt-in `credentials: 'omit'` request param (default unchanged); every `FormsPublicService` and `WebchatVisitorService` call now passes it.
+
 ## 4.13.92
 
 - docs: comment cleanup only — the pre-v2 forms system never shipped to a real customer, so app1-api's legacy `formId`/`_token` submit path, `data-form-id` embed compat, and dual identity mechanism (`identityFieldKeys`/`isIdentityKey`) have been removed server-side (D1/D2 override). This sdk's `forms.public.submit()`/`forms.public.upload()` never had a legacy code path of their own — comments referencing the now-removed legacy routes have been updated. No functional change.

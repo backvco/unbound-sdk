@@ -49,6 +49,16 @@ Sources: `PublicService.js:46-100`, `SubmissionsService.js:28-79`, `SettingsServ
 HTTP-only — used for the two public methods because they're one-shot calls from a visitor
 page with no socket session, same convention as file upload/download elsewhere in the SDK.
 
+Both `public.submit` and `public.upload` also pass `credentials: 'omit'` in the request
+params (`PublicService.js:46-62,77-100`; consumed by `base.js` `_httpRequest`, which
+otherwise defaults browser fetches to `credentials:'include'`). This surface is called
+from third-party origins (a marketing site, not an app1 base domain), and app1-api's CORS
+only sends `access-control-allow-credentials` for trusted app1 base domains — a browser
+rejects the entire response for a `credentials:'include'` fetch when that header is
+missing, even though these endpoints don't use cookies for auth. `sdk.webchat.visitor.*`
+(`services/webchat/VisitorService.js`) has the same third-party-origin exposure and sets
+the same option for the same reason.
+
 **Known SDK-surface gap (not a code bug, documented in-file):** `submissions.*` and
 `settings.get/set` call server routes that, per their own doc comments, were not yet built
 as of P2 (`SubmissionsService.js:7-16`, `SettingsService.js:7-17` — "GAP (forms-v2 P2) ...

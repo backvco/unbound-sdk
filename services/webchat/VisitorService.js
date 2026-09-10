@@ -14,6 +14,16 @@ import { internalRequest } from '../../base.js';
 // method forces HTTP (esign.public precedent, base.js `forceFetch`) since
 // these are one-shot fetches from a customer page or a custom UI, never
 // NATS-transport traffic.
+//
+// Every call also passes `credentials: 'omit'` (base.js `_httpRequest`
+// opt-in), matching app1-webchat-embed's own webchatApi.js fetch wrapper
+// (which already sets `credentials:'omit'` for the same reason). This
+// surface is meant for a custom UI on a third-party origin calling the API
+// directly (see `grant()` below), not just the embed iframe -- and
+// app1-api's CORS only sends `access-control-allow-credentials` for
+// trusted app1 base domains, so a browser rejects the response for a
+// `credentials:'include'` request from any other origin even though auth
+// here is Authorization-header/body-token based, not cookie based.
 function authHeaders(token) {
   return token ? { headers: { Authorization: `Bearer ${token}` } } : {};
 }
@@ -64,6 +74,7 @@ class WebchatVisitorSessionService {
           trackingId,
           initialMessage,
         },
+        credentials: 'omit',
       },
       true,
     );
@@ -89,7 +100,7 @@ class WebchatVisitorSessionService {
       this.sdk,
       `/webchat/${widgetId}/visitor-profile`,
       'POST',
-      { body: { embedGrant, trackingId } },
+      { body: { embedGrant, trackingId }, credentials: 'omit' },
       true,
     );
   }
@@ -115,7 +126,7 @@ class WebchatVisitorSessionService {
       this.sdk,
       `/webchat/${widgetId}/session`,
       'POST',
-      { body: { resumeToken } },
+      { body: { resumeToken }, credentials: 'omit' },
       true,
     );
   }
@@ -140,7 +151,7 @@ class WebchatVisitorSessionService {
       this.sdk,
       `/webchat/${widgetId}/session/end`,
       'POST',
-      { ...authHeaders(token) },
+      { ...authHeaders(token), credentials: 'omit' },
       true,
     );
   }
@@ -179,6 +190,7 @@ class WebchatVisitorMessagesService {
           ...(limit !== undefined && limit !== null ? { limit } : {}),
         },
         ...authHeaders(token),
+        credentials: 'omit',
       },
       true,
     );
@@ -205,7 +217,7 @@ class WebchatVisitorMessagesService {
       this.sdk,
       `/webchat/${widgetId}/messages`,
       'POST',
-      { body: { message, media }, ...authHeaders(token) },
+      { body: { message, media }, ...authHeaders(token), credentials: 'omit' },
       true,
     );
   }
@@ -248,7 +260,7 @@ class WebchatVisitorFilesService {
       this.sdk,
       `/webchat/${widgetId}/files`,
       'POST',
-      { body, ...authHeaders(token) },
+      { body, ...authHeaders(token), credentials: 'omit' },
       true,
     );
   }
@@ -297,7 +309,13 @@ export class WebchatVisitorService {
       { widgetId },
       { widgetId: { type: 'string', required: true } },
     );
-    return internalRequest(this.sdk, `/webchat/${widgetId}/grant`, 'GET', {}, true);
+    return internalRequest(
+      this.sdk,
+      `/webchat/${widgetId}/grant`,
+      'GET',
+      { credentials: 'omit' },
+      true,
+    );
   }
 
   /**
@@ -310,7 +328,13 @@ export class WebchatVisitorService {
       { widgetId },
       { widgetId: { type: 'string', required: true } },
     );
-    return internalRequest(this.sdk, `/webchat/${widgetId}/status`, 'GET', {}, true);
+    return internalRequest(
+      this.sdk,
+      `/webchat/${widgetId}/status`,
+      'GET',
+      { credentials: 'omit' },
+      true,
+    );
   }
 
   /**
@@ -336,7 +360,7 @@ export class WebchatVisitorService {
       this.sdk,
       `/webchat/${widgetId}/transcript`,
       'POST',
-      { body: { optIn, email }, ...authHeaders(token) },
+      { body: { optIn, email }, ...authHeaders(token), credentials: 'omit' },
       true,
     );
   }
@@ -372,7 +396,7 @@ export class WebchatVisitorService {
       this.sdk,
       `/webchat/${widgetId}/identify`,
       'POST',
-      { body: { ...fields, hash }, ...authHeaders(token) },
+      { body: { ...fields, hash }, ...authHeaders(token), credentials: 'omit' },
       true,
     );
   }
