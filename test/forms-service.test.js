@@ -45,6 +45,7 @@ describe('UnboundSDK.forms', () => {
     assert.equal(typeof sdk.forms.submissions.resolveReview, 'function');
     assert.equal(typeof sdk.forms.settings.get, 'function');
     assert.equal(typeof sdk.forms.settings.set, 'function');
+    assert.equal(typeof sdk.forms.settings.setForm, 'function');
     assert.equal(typeof sdk.forms.health.get, 'function');
   });
 });
@@ -193,6 +194,27 @@ describe('FormsSettingsService', () => {
     assert.equal(calls[0].endpoint, '/forms/settings');
     assert.equal(calls[0].method, 'PUT');
     assert.deepEqual(calls[0].params.body, { defaultRegion: 'US' });
+  });
+
+  test('setForm() PUTs /forms/:id/settings with the patch body', async () => {
+    const { fakeSdk, calls } = buildFakeSdk();
+    await new FormsSettingsService(fakeSdk).setForm('form1', {
+      turnstileSecret: 'sk_raw',
+      turnstileSiteKey: 'site1',
+    });
+    assert.equal(calls[0].endpoint, '/forms/form1/settings');
+    assert.equal(calls[0].method, 'PUT');
+    assert.deepEqual(calls[0].params.body, {
+      turnstileSecret: 'sk_raw',
+      turnstileSiteKey: 'site1',
+    });
+  });
+
+  test('setForm() requires formId', async () => {
+    const { fakeSdk } = buildFakeSdk();
+    await assert.rejects(() =>
+      new FormsSettingsService(fakeSdk).setForm(undefined, {}),
+    );
   });
 });
 
