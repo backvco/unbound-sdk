@@ -56,6 +56,8 @@ export class WebchatWidgetsService {
   /**
    * Update a WebChat widget. Pass regenerateIdentitySecret:true to rotate
    * the identity secret (returned once, plaintext, in this response).
+   * `requireAgentsAvailable` (boolean) ANDs hours with ACD chat agents on
+   * `availabilityQueueId` (or the routing queue when routeType=queue).
    * @param {string} widgetId
    * @param {Object} options
    * @returns {Promise<Object>}

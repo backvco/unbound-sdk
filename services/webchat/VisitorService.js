@@ -301,9 +301,38 @@ export class WebchatVisitorService {
   }
 
   /**
-   * Hours/offline state (server-evaluated, `no-store`).
+   * Submit an in-session form presented via `webchat.form`.
+   * `values` keys must match the form's field keys.
+   * @param {Object} params
+   * @param {string} params.widgetId
+   * @param {string} params.token
+   * @param {string} params.formId
+   * @param {Object} params.values
+   */
+  async submitForm({ widgetId, token, formId, values } = {}) {
+    this.sdk.validateParams(
+      { widgetId, token, formId },
+      {
+        widgetId: { type: 'string', required: true },
+        token: { type: 'string', required: true },
+        formId: { type: 'string', required: true },
+      },
+    );
+    return internalRequest(
+      this.sdk,
+      `/webchat/${widgetId}/session/form`,
+      'POST',
+      { body: { token, formId, values: values || {} } },
+      true,
+    );
+  }
+
+  /**
+   * Hours/offline state (server-evaluated). `open` is hours AND optional
+   * agents-available. `reason` is `hours` | `agents` | `hours,agents` when
+   * closed. Cache-Control max-age=5.
    * @param {string} widgetId
-   * @returns {Promise<{open:boolean, offlineBehavior:string, offlineFormConfig?:Object}>}
+   * @returns {Promise<{open:boolean, offlineBehavior:string, reason?:string, offlineFormConfig?:Object}>}
    */
   async status(widgetId) {
     this.sdk.validateParams(
