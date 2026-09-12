@@ -170,15 +170,23 @@ export class ParticipantService {
    * @example
    * await sdk.taskRouter.participants.update({ taskId: 'task_123', participantId: 'tp_456', held: true });
    */
-  async update({ taskId, participantId, held, muted, bridgeRole } = {}) {
+  async update({
+    taskId,
+    participantId,
+    held,
+    muted,
+    bridgeRole,
+    joinAudio,
+  } = {}) {
     this.sdk.validateParams(
-      { taskId, participantId, held, muted, bridgeRole },
+      { taskId, participantId, held, muted, bridgeRole, joinAudio },
       {
         taskId: { type: 'string', required: true },
         participantId: { type: 'string', required: true },
         held: { type: 'boolean', required: false },
         muted: { type: 'boolean', required: false },
         bridgeRole: { type: 'string', required: false },
+        joinAudio: { type: 'boolean', required: false },
       },
     );
 
@@ -186,6 +194,7 @@ export class ParticipantService {
     if (held !== undefined) params.body.held = held;
     if (muted !== undefined) params.body.muted = muted;
     if (bridgeRole !== undefined) params.body.bridgeRole = bridgeRole;
+    if (joinAudio !== undefined) params.body.joinAudio = joinAudio;
 
     return await internalRequest(
       this.sdk,
