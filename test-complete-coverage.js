@@ -58,6 +58,7 @@ async function testPublicSDKCompleteness() {
   const nestedServices = [
     { path: 'messaging.sms', description: 'SMS messaging' },
     { path: 'messaging.email', description: 'Email messaging' },
+    { path: 'messaging.phone', description: 'Phone dialer' },
     { path: 'messaging.campaigns', description: 'Messaging campaigns' },
     { path: 'ai.generative', description: 'Generative AI' },
     { path: 'ai.tts', description: 'Text-to-speech' },
@@ -164,6 +165,7 @@ async function testMethodAvailability() {
     { path: 'objects.query', desc: 'Object querying' },
     { path: 'messaging.sms.send', desc: 'SMS sending' },
     { path: 'messaging.email.send', desc: 'Email sending' },
+    { path: 'messaging.phone.dialerAutocomplete', desc: 'Phone dialer autocomplete' },
     { path: 'video.createRoom', desc: 'Video room creation' },
     { path: 'voice.createCall', desc: 'Voice call creation' },
     { path: 'ai.generative.chat', desc: 'AI chat' },

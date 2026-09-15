@@ -15,6 +15,7 @@ import { TenDlcCampaignManagementService } from './messaging/TenDlcCampaignManag
 import { EmailAnalyticsService } from './messaging/EmailAnalyticsService.js';
 import { EmailQueueService } from './messaging/EmailQueueService.js';
 import { EmailSuppressionService } from './messaging/EmailSuppressionService.js';
+import { PhoneService } from './messaging/PhoneService.js';
 
 // Re-export all services - maintains exact same API
 export {
@@ -34,4 +35,5 @@ export {
   EmailAnalyticsService,
   EmailQueueService,
   EmailSuppressionService,
+  PhoneService,
 };

@@ -1,3 +1,7 @@
+## 4.13.80
+
+- feat: `sdk.messaging.phone.dialerAutocomplete({ q, limit })` — phone dialer autocomplete (`GET /messaging/phone/dialer-autocomplete?q=&limit=`). Returns `{ suggestions: [{ phone, channelId, name?, title?, company?, personId?, companyId? }] }` (app1-api#198 / app1-api#255 / client #235).
+
 ## 4.13.79
 
 - feat: `sdk.messaging.email.mailboxes.listRecipientSuggestions({ q, limit })` — To/Cc/Bcc recipient autocomplete (`GET /messaging/email/recipient-autocomplete?q=&limit=`). Returns `{ suggestions: [{ email, channelId, name?, title?, company?, personId?, companyId? }] }` (api#195 / client #228 / app1-api#254).
