@@ -964,14 +964,16 @@ export class SpeechToTextService {
    * @param {Object} message - Message data
    * @param {string} message.text - Transcribed text
    * @param {Object} [message.transcriptionJson] - Full transcription metadata
+   * @param {string} [message.transcriptionJson.source] - 'tts' for synthetic bot ingest
    * @param {number} [message.duration] - Duration of this segment in seconds
-   * @param {number} [message.confidence] - Confidence score (0-1)
+   * @param {number} [message.confidence] - Confidence score (0-1). Omit for TTS.
    * @param {string} [message.languageCode] - Language code for this segment
    * @param {string} [message.userId] - User associated with this message
    * @param {string} [message.role] - Speaker role
    * @param {string} [message.sipCallId] - SIP call identifier
    * @param {string} [message.side] - Stream side ('send' or 'recv')
    * @param {string} [message.bridgeId] - bridge id
+   * @param {string} [message.taskId] - Task id (stamped on the transcription session)
    * @param {Object} [message.sentiment] - Sentiment analysis data
    * @param {number} [message.sentiment.score] - Overall sentiment score (-100 to +100)
    * @param {number} [message.sentiment.previousScore] - Previous sentiment score (-100 to +100)
@@ -999,13 +1001,14 @@ export class SpeechToTextService {
       sipCallId,
       side,
       bridgeId,
+      taskId,
       sentiment,
       videoRoomId,
       videoParticipantId,
     },
   ) {
     this.sdk.validateParams(
-      { messageId, sessionId, text, bridgeId },
+      { messageId, sessionId, text, bridgeId, taskId },
       {
         sessionId: { type: 'string', required: true },
         messageId: { type: 'string', required: false },
@@ -1020,6 +1023,7 @@ export class SpeechToTextService {
         sipCallId: { type: 'string', required: false },
         side: { type: 'string', required: false },
         bridgeId: { type: 'string', required: false },
+        taskId: { type: 'string', required: false },
         sentiment: { type: 'object', required: false },
         videoRoomId: { type: 'string', required: false },
         videoParticipantId: { type: 'string', required: false },
@@ -1040,6 +1044,7 @@ export class SpeechToTextService {
         sipCallId,
         side,
         bridgeId,
+        taskId,
         sentiment,
         videoRoomId,
         videoParticipantId,
