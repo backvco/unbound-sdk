@@ -19,6 +19,7 @@ import { BrandService } from './services/brand.js';
 import { ContentService } from './services/content.js';
 import { VerificationService } from './services/verification.js';
 import { PortalsService } from './services/portals.js';
+import { PortalProjectsService } from './services/portalProjects.js';
 import { DealRegistrationsService } from './services/dealRegistrations.js';
 import { SipEndpointsService } from './services/sipEndpoints.js';
 import { WebchatService } from './services/webchat.js';
@@ -116,6 +117,7 @@ class UnboundSDK extends BaseSDK {
     this.content = new ContentService(this);
     this.verification = new VerificationService(this);
     this.portals = new PortalsService(this);
+    this.portalProjects = new PortalProjectsService(this);
     this.dealRegistrations = new DealRegistrationsService(this);
     this.sipEndpoints = new SipEndpointsService(this);
     this.webchat = new WebchatService(this);
@@ -314,6 +316,7 @@ export {
 } from './services/content.js';
 export { VerificationService } from './services/verification.js';
 export { PortalsService } from './services/portals.js';
+export { PortalProjectsService } from './services/portalProjects.js';
 export { DealRegistrationsService } from './services/dealRegistrations.js';
 export { SipEndpointsService } from './services/sipEndpoints.js';
 export { WebchatService, WebchatWidgetsService } from './services/webchat.js';
