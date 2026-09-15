@@ -61,6 +61,11 @@ async function testBasicSDKFunctionality() {
   }
   console.log('✅ messaging.email is available');
 
+  if (!api.messaging.phone) {
+    throw new Error('❌ messaging.phone not found');
+  }
+  console.log('✅ messaging.phone is available');
+
   if (!api.ai.generative) {
     throw new Error('❌ ai.generative not found');
   }
