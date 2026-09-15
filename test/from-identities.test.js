@@ -27,12 +27,13 @@ function buildFakeSdk() {
       }
     },
   };
-  fakeSdk[Symbol.for('unbound.sdk.request')] = async (endpoint, method) => {
-    calls.push({ endpoint, method });
+  fakeSdk[Symbol.for('unbound.sdk.request')] = async (endpoint, method, params) => {
+    calls.push({ endpoint, method, params });
     return {
       fallbackPolicy: 'system',
       mailboxes: [],
       identities: [],
+      suggestions: [],
     };
   };
   return { fakeSdk, calls };
@@ -43,6 +44,11 @@ describe('sdk.messaging.email.mailboxes from-identities wiring', () => {
     const email = new EmailService({});
     assert.equal(typeof email.mailboxes.listFromIdentities, 'function');
     assert.equal(typeof email.mailboxes.listMailboxFromIdentities, 'function');
+  });
+
+  test('exposes listRecipientSuggestions on mailboxes', () => {
+    const email = new EmailService({});
+    assert.equal(typeof email.mailboxes.listRecipientSuggestions, 'function');
   });
 });
 
@@ -89,5 +95,36 @@ describe('EmailMailboxesService.listMailboxFromIdentities', () => {
       '/messaging/email/mailbox/mbx-9/from-identities',
     );
     assert.equal(calls[0].method, 'GET');
+  });
+});
+
+describe('EmailMailboxesService.listRecipientSuggestions', () => {
+  test('without args GETs /messaging/email/recipient-autocomplete', async () => {
+    const { fakeSdk, calls } = buildFakeSdk();
+    const result = await new EmailMailboxesService(fakeSdk).listRecipientSuggestions();
+    assert.equal(calls.length, 1);
+    assert.equal(calls[0].endpoint, '/messaging/email/recipient-autocomplete');
+    assert.equal(calls[0].method, 'GET');
+    assert.deepEqual(calls[0].params, { query: { q: undefined, limit: undefined } });
+    assert.deepEqual(result.suggestions, []);
+  });
+
+  test('passes q and limit as query params', async () => {
+    const { fakeSdk, calls } = buildFakeSdk();
+    await new EmailMailboxesService(fakeSdk).listRecipientSuggestions({
+      q: 'ada',
+      limit: 8,
+    });
+    assert.equal(calls[0].endpoint, '/messaging/email/recipient-autocomplete');
+    assert.equal(calls[0].method, 'GET');
+    assert.deepEqual(calls[0].params, { query: { q: 'ada', limit: 8 } });
+  });
+
+  test('rejects non-string q', async () => {
+    const { fakeSdk } = buildFakeSdk();
+    await assert.rejects(
+      () => new EmailMailboxesService(fakeSdk).listRecipientSuggestions({ q: 1 }),
+      /Invalid type for parameter q/,
+    );
   });
 });

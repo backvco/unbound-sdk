@@ -594,6 +594,36 @@ export class EmailMailboxesService {
     );
   }
 
+  /**
+   * Autocomplete To/Cc/Bcc recipients for compose (api#195 / app1-api#254).
+   * Same auth as other `/messaging/` routes (checkApiAuth).
+   *
+   * @param {Object} [options]
+   * @param {string} [options.q] - Search query
+   * @param {number} [options.limit] - Max suggestions to return
+   * @returns {Promise<Object>} { suggestions: [{ email, channelId, name?, title?, company?, personId?, companyId? }] }
+   * @example
+   * const { suggestions } = await sdk.messaging.email.mailboxes.listRecipientSuggestions({
+   *   q: 'ada',
+   *   limit: 8,
+   * });
+   */
+  async listRecipientSuggestions({ q, limit } = {}) {
+    this.sdk.validateParams(
+      { q, limit },
+      {
+        q: { type: 'string', required: false },
+        limit: { type: 'number', required: false },
+      },
+    );
+    return internalRequest(
+      this.sdk,
+      '/messaging/email/recipient-autocomplete',
+      'GET',
+      { query: { q, limit } },
+    );
+  }
+
   async deleteFolder(mailboxId, { name } = {}) {
     this.sdk.validateParams(
       { mailboxId, name },
