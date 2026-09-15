@@ -1,3 +1,7 @@
+## 4.13.81
+
+- feat: `sdk.portalProjects` — portal-session Projects visitor API (`GET/POST/DELETE /portal-projects`). Methods: `list({ q, limit, offset })`, `get(id)`, `listMembers(id)`, `addMember(id, { peopleId, role })`, `removeMember(id, memberId)`, `getMeet(id)` (lookup-only). Staff enablement/membership stay on `sdk.portals.update` + objects `projectUsers`/`projectPeople` + `invitePerson` (app1-api#239 / app1-api#264 / client #282).
+
 ## 4.13.80
 
 - feat: `sdk.messaging.phone.dialerAutocomplete({ q, limit })` — phone dialer autocomplete (`GET /messaging/phone/dialer-autocomplete?q=&limit=`). Returns `{ suggestions: [{ phone, channelId, name?, title?, company?, personId?, companyId? }] }` (app1-api#198 / app1-api#255 / client #235).
