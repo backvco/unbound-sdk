@@ -18,6 +18,16 @@ function buildFakeSdk() {
   return { fakeSdk, calls };
 }
 
+describe('TaskService.unassign', () => {
+  test('PUTs /taskRouter/tasks/unassign', async () => {
+    const { fakeSdk, calls } = buildFakeSdk();
+    await new TaskService(fakeSdk).unassign({ taskId: 'task-1' });
+    assert.equal(calls[0].endpoint, '/taskRouter/tasks/unassign');
+    assert.equal(calls[0].method, 'PUT');
+    assert.equal(calls[0].params.body.taskId, 'task-1');
+  });
+});
+
 describe('TaskService.complete', () => {
   test('forwards completedReason on complete', async () => {
     const { fakeSdk, calls } = buildFakeSdk();

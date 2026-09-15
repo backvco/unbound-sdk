@@ -1,6 +1,7 @@
 ## 4.13.95
 
 - feat: `sdk.webchat.sendOnTask({ taskId, message, media, card })` — agent send on a task; server resolves widget (no UOQL of `webchatConversations`)
+- feat: `sdk.taskRouter.task.unassign({ taskId })` — assigned|connected → pending (bot drain; not park)
 
 ## 4.13.82
 

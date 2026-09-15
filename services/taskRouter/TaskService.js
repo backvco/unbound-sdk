@@ -410,6 +410,36 @@ export class TaskService {
   }
 
   /**
+   * Unassign a task back to pending (worker unlinked). Used by CC bot
+   * drain for short-lived connected tasks — not park.
+   *
+   * @param {Object} options
+   * @param {string} options.taskId
+   * @returns {Promise<Object>}
+   */
+  async unassign(options = {}) {
+    const { taskId, userId } = options;
+
+    this.sdk.validateParams(
+      { taskId, userId },
+      {
+        taskId: { type: 'string', required: true },
+        userId: { type: 'string', required: false },
+      },
+    );
+
+    const params = { body: { taskId } };
+    if (userId) params.body.userId = userId;
+
+    return internalRequest(
+      this.sdk,
+      '/taskRouter/tasks/unassign',
+      'PUT',
+      params,
+    );
+  }
+
+  /**
    * Change task priority
    * Modify the priority of a task to increase or decrease its routing priority.
    * Priority can be set to a specific value, increased, or decreased.
