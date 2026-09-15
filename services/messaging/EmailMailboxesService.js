@@ -543,6 +543,57 @@ export class EmailMailboxesService {
     return internalRequest(this.sdk, '/messaging/email/mailbox/badge', 'GET');
   }
 
+  /**
+   * List ACL-filtered From-address options for compose (api#194).
+   * When a mailbox has a default alias, the system address is omitted
+   * server-side. With `mailboxId`, hits the single-mailbox route; otherwise
+   * returns identities for every mailbox the caller can access.
+   *
+   * @param {Object} [options]
+   * @param {string} [options.mailboxId] - Limit to one mailbox
+   * @returns {Promise<Object>} { fallbackPolicy, mailboxes, identities }
+   * @example
+   * const all = await sdk.messaging.email.mailboxes.listFromIdentities();
+   * const one = await sdk.messaging.email.mailboxes.listFromIdentities({
+   *   mailboxId: '01030181181',
+   * });
+   */
+  async listFromIdentities({ mailboxId } = {}) {
+    this.sdk.validateParams(
+      { mailboxId },
+      { mailboxId: { type: 'string', required: false } },
+    );
+    if (mailboxId) {
+      return this.listMailboxFromIdentities({ mailboxId });
+    }
+    return internalRequest(this.sdk, '/messaging/email/from-identities', 'GET');
+  }
+
+  /**
+   * List From-address options for a single mailbox (api#194).
+   * When the mailbox has a default alias, the system address is omitted
+   * server-side.
+   *
+   * @param {Object} options
+   * @param {string} options.mailboxId - Mailbox ID
+   * @returns {Promise<Object>} { fallbackPolicy, mailboxes, identities }
+   * @example
+   * const result = await sdk.messaging.email.mailboxes.listMailboxFromIdentities({
+   *   mailboxId: '01030181181',
+   * });
+   */
+  async listMailboxFromIdentities({ mailboxId } = {}) {
+    this.sdk.validateParams(
+      { mailboxId },
+      { mailboxId: { type: 'string', required: true } },
+    );
+    return internalRequest(
+      this.sdk,
+      `/messaging/email/mailbox/${mailboxId}/from-identities`,
+      'GET',
+    );
+  }
+
   async deleteFolder(mailboxId, { name } = {}) {
     this.sdk.validateParams(
       { mailboxId, name },

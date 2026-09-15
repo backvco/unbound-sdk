@@ -1,3 +1,8 @@
+## 4.13.78
+
+- feat: `sdk.messaging.email.mailboxes.listFromIdentities({ mailboxId? })` — From options for compose (`GET /messaging/email/from-identities`; with `mailboxId` uses `GET /messaging/email/mailbox/:id/from-identities`). ACL-filtered; system address omitted server-side when a mailbox has a default alias (api#194 / api PR #253).
+- feat: `sdk.messaging.email.mailboxes.listMailboxFromIdentities({ mailboxId })` — single-mailbox From identities.
+
 ## 4.13.77
 
 - feat: `sdk.taskRouter.cc.repairWorker({ workerId })` — preferred Repair (`POST /taskRouter/cc/workers/:workerId/repair`). `unlockWorker` remains a transition alias on `/unlock`.
