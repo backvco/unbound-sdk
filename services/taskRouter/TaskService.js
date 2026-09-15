@@ -730,12 +730,13 @@ export class TaskService {
    * console.log(result.taskId); // "task456"
    */
   async complete(options = {}) {
-    const { taskId } = options;
+    const { taskId, completedReason } = options;
 
     this.sdk.validateParams(
-      { taskId },
+      { taskId, completedReason },
       {
         taskId: { type: 'string', required: true },
+        completedReason: { type: 'string', required: false },
       },
     );
 
@@ -744,6 +745,10 @@ export class TaskService {
         taskId,
       },
     };
+
+    if (completedReason) {
+      params.body.completedReason = completedReason;
+    }
 
     const result = await internalRequest(this.sdk, 
       '/taskRouter/tasks/complete',

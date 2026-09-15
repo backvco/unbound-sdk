@@ -281,4 +281,42 @@ export class WebchatService {
     // instance with just `{namespace}` and uses only this namespace.
     this.visitor = new WebchatVisitorService(sdk);
   }
+
+  /**
+   * Send an agent webchat message on a task. The server resolves the
+   * widget + engagement from the task — callers must not UOQL
+   * webchatConversations for widgetId.
+   *
+   * @param {Object} options
+   * @param {string} options.taskId
+   * @param {string} [options.message]
+   * @param {Object} [options.media]
+   * @param {Object|Array} [options.card]
+   * @returns {Promise<Object>}
+   */
+  async sendOnTask(options = {}) {
+    const { taskId, message, media, card } = options;
+
+    this.sdk.validateParams(
+      { taskId, message, media, card },
+      {
+        taskId: { type: 'string', required: true },
+        message: { type: 'string', required: false },
+        media: { type: 'object', required: false },
+        card: { type: 'object', required: false },
+      },
+    );
+
+    const body = {};
+    if (message !== undefined) body.message = message;
+    if (media !== undefined) body.media = media;
+    if (card !== undefined) body.card = card;
+
+    return internalRequest(
+      this.sdk,
+      `/webchat/tasks/${taskId}/messages`,
+      'POST',
+      { body },
+    );
+  }
 }

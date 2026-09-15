@@ -1,3 +1,7 @@
+## 4.13.95
+
+- feat: `sdk.webchat.sendOnTask({ taskId, message, media, card })` — agent send on a task; server resolves widget (no UOQL of `webchatConversations`)
+
 ## 4.13.82
 
 - feat: `sdk.reporting.agents.timesheet()` response gains `agents` — one additive-sum row per agent (`{ userId, timezone, daysWorked, loggedInSec, paidAwaySec, unpaidAwaySec, netPaidSec }`) alongside the existing flat `rows`
