@@ -1,4 +1,5 @@
 import { internalRequest } from '../../base.js';
+import { workerPauseMethods } from './workerPaused.js';
 export class WorkerService {
   constructor(sdk) {
     this.sdk = sdk;
@@ -54,11 +55,15 @@ export class WorkerService {
    * @param {Object} [options] - Optional parameters
    * @param {string} [options.userId] - The user ID to get worker information for. If not provided, uses the authenticated user's ID
    * @returns {Promise<Object>} Object containing the worker information
+   * @returns {boolean} [result.needsRepair] - True when the worker looks stuck (e.g. busy with no live task / Redis–MySQL routing desync). There is no separate needsRepair endpoint — call `sdk.taskRouter.cc.repairWorker` when set.
    *
    * @example
    * // Get worker for authenticated user
    * const worker = await sdk.taskRouter.worker.get();
    * console.log(worker);
+   * if (worker.needsRepair) {
+   *   await sdk.taskRouter.cc.repairWorker({ workerId: worker.workerId || worker.id });
+   * }
    *
    * @example
    * // Get worker for specific user
@@ -189,84 +194,6 @@ export class WorkerService {
 
     const result = await internalRequest(this.sdk, 
       '/taskRouter/worker/offline',
-      'PUT',
-      params,
-    );
-    return result;
-  }
-
-  /**
-   * Set the authenticated user's own worker paused state
-   * Pauses (or unpauses) the caller's own worker so it stays logged into its queues
-   * but stops receiving new task offers. Requires Contact Center access.
-   *
-   * @param {Object} options - Parameters
-   * @param {boolean} options.paused - Whether the worker should be paused
-   * @returns {Promise<Object>} The updated worker
-   *
-   * @example
-   * // Pause the authenticated user's own worker
-   * const worker = await sdk.taskRouter.worker.setPaused({ paused: true });
-   *
-   * @example
-   * // Unpause
-   * const worker = await sdk.taskRouter.worker.setPaused({ paused: false });
-   */
-  async setPaused(options = {}) {
-    const { paused } = options;
-
-    this.sdk.validateParams(
-      { paused },
-      {
-        paused: { type: 'boolean', required: true },
-      },
-    );
-
-    const params = {
-      body: { paused },
-    };
-
-    const result = await internalRequest(this.sdk,
-      '/taskRouter/workers/me/paused',
-      'PUT',
-      params,
-    );
-    return result;
-  }
-
-  /**
-   * Set another worker's paused state
-   * Pauses (or unpauses) a specific worker by workerId. The caller must be a queue
-   * manager for at least one queue that worker is logged into or assigned to.
-   *
-   * @param {Object} options - Parameters
-   * @param {string} options.workerId - The worker ID to update (required)
-   * @param {boolean} options.paused - Whether the worker should be paused
-   * @returns {Promise<Object>} The updated worker
-   *
-   * @example
-   * const worker = await sdk.taskRouter.worker.setWorkerPaused({
-   *   workerId: '0860002026012400000006665842155429980',
-   *   paused: true,
-   * });
-   */
-  async setWorkerPaused(options = {}) {
-    const { workerId, paused } = options;
-
-    this.sdk.validateParams(
-      { workerId, paused },
-      {
-        workerId: { type: 'string', required: true },
-        paused: { type: 'boolean', required: true },
-      },
-    );
-
-    const params = {
-      body: { paused },
-    };
-
-    const result = await internalRequest(this.sdk,
-      `/taskRouter/workers/${workerId}/paused`,
       'PUT',
       params,
     );
@@ -482,7 +409,7 @@ export class WorkerService {
    * @param {string[]} [options.skills] - Skill IDs to flag matches for (joined as a comma-separated list)
    * @param {number} [options.limit] - Max rows to return (default 50, max 200)
    * @returns {Promise<Object>} Object containing the matching worker rows
-   * @returns {Array<Object>} result.rows - Worker rows with status/capacity/skills info
+   * @returns {Array<Object>} result.rows - Worker rows with status/capacity/skills info. Each row may include `needsRepair` when the worker looks stuck. There is no separate needsRepair endpoint — call `sdk.taskRouter.cc.repairWorker`.
    * @returns {number} result.total - Total matching rows
    *
    * @example
@@ -520,3 +447,5 @@ export class WorkerService {
     return result;
   }
 }
+
+Object.assign(WorkerService.prototype, workerPauseMethods);

@@ -1,4 +1,5 @@
 import { internalRequest } from '../../base.js';
+import { ccPauseReasonMethods } from './CCPauseReasons.js';
 export class CCService {
   constructor(sdk) {
     this.sdk = sdk;
@@ -55,11 +56,12 @@ export class CCService {
    * @returns {Promise<Object>} result
    * @returns {Object} result.kpis - Aggregate KPIs (inQueueNow, longestWaitSec, myHandledToday, myAvgHandleSecToday, slaTodayPct, slaTargetPct)
    * @returns {Array<Object>} result.queues - Per-queue summaries (id, name, waiting, longestWaitSec, agentsAvailable, agentsTotal, slaPct, slaThreshold, slaTargetPct, timezone, health)
-   * @returns {Array<Object>} result.team - Team roster with active tasks
+   * @returns {Array<Object>} result.team - Team roster with active tasks. Each row may include `needsRepair` when the worker looks stuck (e.g. busy with no live task / Redis–MySQL routing desync). Use for Team badge/filter. There is no separate needsRepair endpoint — call `sdk.taskRouter.cc.repairWorker` when the flag is true.
    *
    * @example
    * const snapshot = await sdk.taskRouter.cc.getSnapshot({ queueIds: ['q1', 'q2'] });
    * console.log(snapshot.kpis.inQueueNow);
+   * const stuck = snapshot.team.filter((row) => row.needsRepair);
    */
   async getSnapshot(options = {}) {
     const { queueIds } = options;
@@ -326,11 +328,44 @@ export class CCService {
 
   /**
    * Recover a worker stuck out of routing (ghost Redis capacity, leftover
-   * lock, expired wrap-up). Self or manager. Does not force offline.
+   * lock, expired wrap-up). Self or manager (`taskrouter:queue:manage`).
+   * Does not unpause or force offline. Prefer this over `unlockWorker`.
    *
-   * @param {Object} options
-   * @param {string} options.workerId
-   * @returns {Promise<Object>}
+   * @param {Object} options - Parameters
+   * @param {string} options.workerId - Worker id to repair
+   * @returns {Promise<Object>} result
+   *
+   * @example
+   * await sdk.taskRouter.cc.repairWorker({ workerId: 'w1' });
+   */
+  async repairWorker(options = {}) {
+    const { workerId } = options;
+
+    this.sdk.validateParams(
+      { workerId },
+      { workerId: { type: 'string', required: true } },
+    );
+
+    const result = await internalRequest(
+      this.sdk,
+      `/taskRouter/cc/workers/${workerId}/repair`,
+      'POST',
+      {},
+    );
+    return result;
+  }
+
+  /**
+   * Transition alias for `repairWorker`. Hits `/unlock` (same API handler as
+   * `/repair`). Prefer `sdk.taskRouter.cc.repairWorker`. Self or manager.
+   * Does not unpause or force offline.
+   *
+   * @param {Object} options - Parameters
+   * @param {string} options.workerId - Worker id to repair
+   * @returns {Promise<Object>} result
+   *
+   * @example
+   * await sdk.taskRouter.cc.unlockWorker({ workerId: 'w1' });
    */
   async unlockWorker(options = {}) {
     const { workerId } = options;
@@ -349,3 +384,5 @@ export class CCService {
     return result;
   }
 }
+
+Object.assign(CCService.prototype, ccPauseReasonMethods);

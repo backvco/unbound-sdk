@@ -1,3 +1,10 @@
+## 4.13.77
+
+- feat: `sdk.taskRouter.cc.repairWorker({ workerId })` — preferred Repair (`POST /taskRouter/cc/workers/:workerId/repair`). `unlockWorker` remains a transition alias on `/unlock`.
+- feat: `sdk.taskRouter.worker.setPaused` / `setWorkerPaused` send `{ paused, reasonId, reasonNote? }` when pausing; unpause is `{ paused: false }` only.
+- feat: pause-reason CRUD on `sdk.taskRouter.cc` — `listPauseReasons`, `createPauseReason`, `updatePauseReason`, `deletePauseReason` (`/taskRouter/cc/pauseReasons`).
+- docs: `needsRepair` on `getSnapshot` team rows, `worker.get`, and `worker.search` (no new endpoint).
+
 ## 4.13.75
 
 - feat: `sdk.cobrowse.getRecording({ source, widgetId, hostId, sid })` (`GET /webchat/widgets/:id/conversations/:engagementSessionId/cobrowse/:sid/recording`) — combined `recording.ndjson` (HTTP only)
