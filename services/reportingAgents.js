@@ -19,19 +19,19 @@ export class ReportingAgentsService {
 
   /**
    * Agent summary rows (§6 metrics), grouped by agent, queue, or team.
-   * @param {Object} params - { from, to, userIds, queueIds, teamIds, groupBy }
+   * @param {Object} params - { from, to, userIds, queueIds, teamIds, groupBy, agentKind }
    * @returns {Promise<Object>} { columns, rows, definitions, meta }
    * @example
    * await sdk.reporting.agents.summary({ from, to, groupBy: 'team' });
    */
-  async summary({ from, to, userIds, queueIds, teamIds, groupBy } = {}) {
+  async summary({ from, to, userIds, queueIds, teamIds, groupBy, agentKind } = {}) {
     this.sdk.validateParams(
       { from, to },
       { from: { type: 'string', required: true }, to: { type: 'string', required: true } },
     );
     return internalRequest(
       this.sdk,
-      `/reporting/agents/summary${queryString({ from, to, userIds, queueIds, teamIds, groupBy })}`,
+      `/reporting/agents/summary${queryString({ from, to, userIds, queueIds, teamIds, groupBy, agentKind })}`,
       'GET',
     );
   }
@@ -90,19 +90,19 @@ export class ReportingAgentsService {
   /**
    * Per-agent per-local-day timesheet rows (net paid hours), plus one
    * additive-sum row per agent (`agents`) for grouped totals.
-   * @param {Object} params - { from, to, userIds, teamIds }
+   * @param {Object} params - { from, to, userIds, teamIds, agentKind }
    * @returns {Promise<Object>} { columns, rows, agents }
    * @example
    * await sdk.reporting.agents.timesheet({ from, to, userIds: ['u1'] });
    */
-  async timesheet({ from, to, userIds, teamIds } = {}) {
+  async timesheet({ from, to, userIds, teamIds, agentKind } = {}) {
     this.sdk.validateParams(
       { from, to },
       { from: { type: 'string', required: true }, to: { type: 'string', required: true } },
     );
     return internalRequest(
       this.sdk,
-      `/reporting/agents/timesheet${queryString({ from, to, userIds, teamIds })}`,
+      `/reporting/agents/timesheet${queryString({ from, to, userIds, teamIds, agentKind })}`,
       'GET',
     );
   }
@@ -111,7 +111,7 @@ export class ReportingAgentsService {
    * CSV export of any of the four views above. For view: 'timesheet', pass
    * `totals: true` to get one additive-sum row per agent instead of the
    * flat per-agent-per-day rows.
-   * @param {Object} params - { view: 'summary'|'states'|'interactions'|'timesheet', from, to, userId, userIds, queueIds, teamIds, groupBy, totals }
+   * @param {Object} params - { view: 'summary'|'states'|'interactions'|'timesheet', from, to, userId, userIds, queueIds, teamIds, groupBy, agentKind, totals }
    * @returns {Promise<Object>} raw CSV response (transport-dependent)
    * @example
    * await sdk.reporting.agents.export({ view: 'timesheet', from, to });
@@ -126,6 +126,7 @@ export class ReportingAgentsService {
     queueIds,
     teamIds,
     groupBy,
+    agentKind,
     totals,
   } = {}) {
     this.sdk.validateParams(
@@ -141,6 +142,7 @@ export class ReportingAgentsService {
       queueIds,
       teamIds,
       groupBy,
+      agentKind,
       totals: totals ? '1' : undefined,
       format: 'csv',
     });

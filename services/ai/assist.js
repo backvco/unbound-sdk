@@ -80,9 +80,9 @@ export class AssistService {
    * @example
    * const { suggestions } = await sdk.ai.assist.listSuggestions({ queueId: 'queue_123', limit: 50 });
    */
-  async listSuggestions({ queueId, limit } = {}) {
+  async listSuggestions({ queueId, limit, actorKind } = {}) {
     const result = await internalRequest(this.sdk, '/ai/assist/suggestions', 'GET', {
-      query: { queueId, limit },
+      query: { queueId, limit, actorKind },
     });
     return result;
   }
@@ -97,9 +97,9 @@ export class AssistService {
    * @example
    * const stats = await sdk.ai.assist.suggestionStats({ queueId: 'queue_123' });
    */
-  async suggestionStats({ queueId } = {}) {
+  async suggestionStats({ queueId, actorKind } = {}) {
     const result = await internalRequest(this.sdk, '/ai/assist/suggestions/stats', 'GET', {
-      query: { queueId },
+      query: { queueId, actorKind },
     });
     return result;
   }

@@ -2,6 +2,8 @@
 
 - feat: `sdk.webchat.sendOnTask({ taskId, message, media, card })` — agent send on a task; server resolves widget (no UOQL of `webchatConversations`)
 - feat: `sdk.taskRouter.task.unassign({ taskId })` — assigned|connected → pending (bot drain; not park)
+- feat: `sdk.reporting.agents.summary|timesheet|export` accept `agentKind: 'human'|'bot'|'all'` (default human-only on the server)
+- feat: `sdk.ai.assist.listSuggestions|suggestionStats` accept `actorKind: 'human'|'bot'|'all'`
 
 ## 4.13.82
 
