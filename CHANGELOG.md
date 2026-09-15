@@ -1,3 +1,7 @@
+## 4.13.79
+
+- feat: `sdk.messaging.email.mailboxes.listRecipientSuggestions({ q, limit })` — To/Cc/Bcc recipient autocomplete (`GET /messaging/email/recipient-autocomplete?q=&limit=`). Returns `{ suggestions: [{ email, channelId, name?, title?, company?, personId?, companyId? }] }` (api#195 / client #228 / app1-api#254).
+
 ## 4.13.78
 
 - feat: `sdk.messaging.email.mailboxes.listFromIdentities({ mailboxId? })` — From options for compose (`GET /messaging/email/from-identities`; with `mailboxId` uses `GET /messaging/email/mailbox/:id/from-identities`). ACL-filtered; system address omitted server-side when a mailbox has a default alias (api#194 / api PR #253).
