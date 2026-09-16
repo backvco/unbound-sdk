@@ -4,6 +4,7 @@ import { MetricsService } from './MetricsService.js';
 import { CCService } from './CCService.js';
 import { OfferService } from './OfferService.js';
 import { ParticipantService } from './ParticipantService.js';
+import { CcBotsService } from './CcBotsService.js';
 
 export class TaskRouterService {
   constructor(sdk) {
@@ -14,5 +15,6 @@ export class TaskRouterService {
     this.cc = new CCService(sdk);
     this.offer = new OfferService(sdk);
     this.participants = new ParticipantService(sdk);
+    this.ccBots = new CcBotsService(sdk);
   }
 }
