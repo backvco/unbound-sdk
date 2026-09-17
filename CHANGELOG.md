@@ -1,3 +1,11 @@
+## 4.13.96
+
+- feat: `sdk.webchat.typingOnTask({ taskId, isTyping })` — agent/bot typing on a task webchat; server resolves engagement
+- feat: `sdk.webchat.noteOnTask({ taskId, message })` — staff-only internal system note on a task webchat; not sent to the visitor
+- feat: `sdk.taskRouter.task.note({ taskId, message })` — staff-only internal note on any task channel (webchat/SMS/voice/email timeline)
+- feat: `sdk.taskRouter.ccBots.clone`, `bulkPaused`, `listGroups`/`createGroup`/`getGroup`/`updateGroup`/`deleteGroup`
+- feat: `sdk.taskRouter.ccBots.update` accepts additionalDetails, media model, voiceId, profilePhoto, channels, group inherit
+
 ## 4.13.95
 
 - feat: `sdk.webchat.sendOnTask({ taskId, message, media, card })` — agent send on a task; server resolves widget (no UOQL of `webchatConversations`)

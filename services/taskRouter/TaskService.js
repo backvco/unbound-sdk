@@ -440,6 +440,34 @@ export class TaskService {
   }
 
   /**
+   * Staff-only internal note on a task (webchat/SMS/voice feed, or
+   * timeline). Never sent to the customer.
+   *
+   * @param {Object} options
+   * @param {string} options.taskId
+   * @param {string} options.message
+   * @returns {Promise<Object>}
+   */
+  async note(options = {}) {
+    const { taskId, message } = options;
+
+    this.sdk.validateParams(
+      { taskId, message },
+      {
+        taskId: { type: 'string', required: true },
+        message: { type: 'string', required: true },
+      },
+    );
+
+    return internalRequest(
+      this.sdk,
+      `/taskRouter/tasks/${taskId}/notes`,
+      'POST',
+      { body: { message } },
+    );
+  }
+
+  /**
    * Change task priority
    * Modify the priority of a task to increase or decrease its routing priority.
    * Priority can be set to a specific value, increased, or decreased.

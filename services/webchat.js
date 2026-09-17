@@ -319,4 +319,60 @@ export class WebchatService {
       { body },
     );
   }
+
+  /**
+   * Agent/bot typing indicator on a task's webchat. Server resolves the
+   * engagement from the task — callers must not UOQL widgetId.
+   *
+   * @param {Object} options
+   * @param {string} options.taskId
+   * @param {boolean} options.isTyping
+   * @returns {Promise<Object>}
+   */
+  async typingOnTask(options = {}) {
+    const { taskId, isTyping } = options;
+
+    this.sdk.validateParams(
+      { taskId, isTyping },
+      {
+        taskId: { type: 'string', required: true },
+        isTyping: { type: 'boolean', required: true },
+      },
+    );
+
+    return internalRequest(
+      this.sdk,
+      `/webchat/tasks/${taskId}/typing`,
+      'POST',
+      { body: { isTyping } },
+    );
+  }
+
+  /**
+   * Staff-only system note on a task's webchat feed (visibility=internal).
+   * Not sent to the visitor. Server resolves engagement from the task.
+   *
+   * @param {Object} options
+   * @param {string} options.taskId
+   * @param {string} options.message
+   * @returns {Promise<Object>}
+   */
+  async noteOnTask(options = {}) {
+    const { taskId, message } = options;
+
+    this.sdk.validateParams(
+      { taskId, message },
+      {
+        taskId: { type: 'string', required: true },
+        message: { type: 'string', required: true },
+      },
+    );
+
+    return internalRequest(
+      this.sdk,
+      `/webchat/tasks/${taskId}/notes`,
+      'POST',
+      { body: { message } },
+    );
+  }
 }

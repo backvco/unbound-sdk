@@ -18,6 +18,19 @@ function buildFakeSdk() {
   return { fakeSdk, calls };
 }
 
+describe('TaskService.note', () => {
+  test('POSTs /taskRouter/tasks/:id/notes', async () => {
+    const { fakeSdk, calls } = buildFakeSdk();
+    await new TaskService(fakeSdk).note({
+      taskId: 'task-1',
+      message: 'Tools: none',
+    });
+    assert.equal(calls[0].endpoint, '/taskRouter/tasks/task-1/notes');
+    assert.equal(calls[0].method, 'POST');
+    assert.equal(calls[0].params.body.message, 'Tools: none');
+  });
+});
+
 describe('TaskService.unassign', () => {
   test('PUTs /taskRouter/tasks/unassign', async () => {
     const { fakeSdk, calls } = buildFakeSdk();

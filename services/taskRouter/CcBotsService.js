@@ -80,12 +80,141 @@ export class CcBotsService {
   async update(id, params = {}) {
     this.sdk.validateParams({ id }, { id: { type: 'string', required: true } });
     const body = {};
-    for (const key of ['name', 'soulMd', 'provider', 'model', 'paused']) {
+    for (const key of [
+      'name',
+      'soulMd',
+      'additionalDetails',
+      'provider',
+      'model',
+      'mediaProvider',
+      'mediaModel',
+      'voiceId',
+      'profilePhoto',
+      'paused',
+      'acceptChannels',
+      'useChannels',
+      'groupId',
+      'groupOverrides',
+      'inherit',
+    ]) {
       if (key in params) body[key] = params[key];
     }
     return internalRequest(this.sdk, `/taskRouter/ccBots/${id}`, 'PATCH', {
       body,
     });
+  }
+
+  /**
+   * Clone a CC worker bot (new user + worker, copied config).
+   * @param {string} id
+   * @param {Object} [params]
+   * @param {string} [params.name]
+   * @returns {Promise<Object>}
+   */
+  async clone(id, { name } = {}) {
+    this.sdk.validateParams({ id }, { id: { type: 'string', required: true } });
+    const body = {};
+    if (name !== undefined) body.name = name;
+    return internalRequest(this.sdk, `/taskRouter/ccBots/${id}/clone`, 'POST', {
+      body,
+    });
+  }
+
+  /**
+   * Enable or disable many CC bots.
+   * @param {Object} params
+   * @param {string[]} params.ids
+   * @param {boolean} params.paused
+   * @returns {Promise<Object>}
+   */
+  async bulkPaused({ ids, paused } = {}) {
+    this.sdk.validateParams(
+      { ids, paused },
+      {
+        ids: { type: 'object', required: true },
+        paused: { type: 'boolean', required: true },
+      },
+    );
+    return internalRequest(this.sdk, '/taskRouter/ccBots/bulkPaused', 'POST', {
+      body: { ids, paused },
+    });
+  }
+
+  /**
+   * List bot groups.
+   * @returns {Promise<Object>}
+   */
+  async listGroups() {
+    return internalRequest(this.sdk, '/taskRouter/ccBotGroups', 'GET');
+  }
+
+  /**
+   * Create a bot group.
+   * @param {Object} params
+   * @returns {Promise<Object>}
+   */
+  async createGroup(params = {}) {
+    this.sdk.validateParams(
+      { name: params.name },
+      { name: { type: 'string', required: true } },
+    );
+    return internalRequest(this.sdk, '/taskRouter/ccBotGroups', 'POST', {
+      body: params,
+    });
+  }
+
+  /**
+   * Get one bot group.
+   * @param {string} id
+   * @returns {Promise<Object>}
+   */
+  async getGroup(id) {
+    this.sdk.validateParams({ id }, { id: { type: 'string', required: true } });
+    return internalRequest(this.sdk, `/taskRouter/ccBotGroups/${id}`, 'GET');
+  }
+
+  /**
+   * Patch a bot group (propagates inherited fields to member bots).
+   * @param {string} id
+   * @param {Object} [params]
+   * @returns {Promise<Object>}
+   */
+  async updateGroup(id, params = {}) {
+    this.sdk.validateParams({ id }, { id: { type: 'string', required: true } });
+    const body = {};
+    for (const key of [
+      'name',
+      'soulMd',
+      'provider',
+      'model',
+      'mediaProvider',
+      'mediaModel',
+      'voiceId',
+      'paused',
+      'acceptChannels',
+      'useChannels',
+      'queueIds',
+      'skillIds',
+    ]) {
+      if (key in params) body[key] = params[key];
+    }
+    return internalRequest(this.sdk, `/taskRouter/ccBotGroups/${id}`, 'PATCH', {
+      body,
+    });
+  }
+
+  /**
+   * Soft-delete a bot group and detach members.
+   * @param {string} id
+   * @returns {Promise<Object>}
+   */
+  async deleteGroup(id) {
+    this.sdk.validateParams({ id }, { id: { type: 'string', required: true } });
+    return internalRequest(
+      this.sdk,
+      `/taskRouter/ccBotGroups/${id}`,
+      'DELETE',
+    );
   }
 
   /**

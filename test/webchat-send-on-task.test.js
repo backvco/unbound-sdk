@@ -42,3 +42,29 @@ describe('WebchatService.sendOnTask', () => {
     assert.deepEqual(calls[0].params.body.card, card);
   });
 });
+
+describe('WebchatService.noteOnTask', () => {
+  test('POSTs /webchat/tasks/:taskId/notes', async () => {
+    const { fakeSdk, calls } = buildFakeSdk();
+    await new WebchatService(fakeSdk).noteOnTask({
+      taskId: 'task-1',
+      message: 'Tools: none',
+    });
+    assert.equal(calls[0].endpoint, '/webchat/tasks/task-1/notes');
+    assert.equal(calls[0].method, 'POST');
+    assert.equal(calls[0].params.body.message, 'Tools: none');
+  });
+});
+
+describe('WebchatService.typingOnTask', () => {
+  test('POSTs /webchat/tasks/:taskId/typing', async () => {
+    const { fakeSdk, calls } = buildFakeSdk();
+    await new WebchatService(fakeSdk).typingOnTask({
+      taskId: 'task-1',
+      isTyping: true,
+    });
+    assert.equal(calls[0].endpoint, '/webchat/tasks/task-1/typing');
+    assert.equal(calls[0].method, 'POST');
+    assert.equal(calls[0].params.body.isTyping, true);
+  });
+});
