@@ -60,6 +60,22 @@ describe('CcBotsService', () => {
     assert.equal(calls[0].params.body.mediaModel, 'qwen/qwen3.6-27b');
   });
 
+  test('update PATCHes modelId', async () => {
+    const { fakeSdk, calls } = buildFakeSdk();
+    await new CcBotsService(fakeSdk).update('bot-1', { modelId: 'bolt-fast' });
+    assert.equal(calls[0].params.body.modelId, 'bolt-fast');
+  });
+
+  test('create POSTs modelId', async () => {
+    const { fakeSdk, calls } = buildFakeSdk();
+    await new CcBotsService(fakeSdk).create({
+      name: 'Sales Bot',
+      slug: 'sales',
+      modelId: 'bolt-fast',
+    });
+    assert.equal(calls[0].params.body.modelId, 'bolt-fast');
+  });
+
   test('update PATCHes voiceId', async () => {
     const { fakeSdk, calls } = buildFakeSdk();
     await new CcBotsService(fakeSdk).update('bot-1', { voiceId: 'hannah' });

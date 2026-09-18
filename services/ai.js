@@ -4,6 +4,7 @@ import { BattleCardsService } from './ai/battleCards.js';
 import { AssistService } from './ai/assist.js';
 import { VocabularyService } from './ai/vocabulary.js';
 import { EmailService } from './ai/email.js';
+import { ModelsService } from './ai/models.js';
 import { translate as translateItems } from './ai/translate.js';
 import {
   getSettings as getAiSettings,
@@ -22,6 +23,7 @@ export class AIService {
     this.assist = new AssistService(sdk);
     this.vocabulary = new VocabularyService(sdk);
     this.email = new EmailService(sdk);
+    this.models = new ModelsService(sdk);
   }
 
   /**
