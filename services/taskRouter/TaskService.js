@@ -440,6 +440,80 @@ export class TaskService {
   }
 
   /**
+   * Release a task back to the queue for a human (same queue, same task
+   * id) — the bot-task-lifecycle release contract. Stamps
+   * botEligible:false (when humanOnly) plus named release-reason
+   * metadata, and for a voice task in 'callback' mode hands the customer
+   * off to the existing queue-wait callback contract (hangs up, task goes
+   * pending, human accept later auto-dials the customer back).
+   *
+   * @param {Object} options - Parameters
+   * @param {string} options.taskId - The task ID to release (required)
+   * @param {'live'|'callback'} [options.mode] - Required for a voice task (has a live call); ignored for a digital task
+   * @param {string} options.reasonCode - Release reason code (required) — e.g. 'callback_promised', 'human_requested', 'no_human_available', 'bot_cannot_resolve', 'customer_frustrated', 'review_failed', 'policy_human_only', 'other'
+   * @param {string} options.reason - One-sentence reason shown to the next agent (required)
+   * @param {string} [options.callbackNumber] - E.164 callback number ('callback' mode only; defaults to the task's `from`)
+   * @param {boolean} [options.humanOnly=true] - Stamp botEligible:false so only a human is offered this task
+   * @param {boolean} [options.hangup=true] - Hang up the customer leg ('callback' mode only)
+   * @returns {Promise<Object>} { taskId, status: 'pending', mode, humanOnly, reasonCode }
+   *
+   * @example
+   * // Caller confirmed a callback -- release and hang up
+   * await sdk.taskRouter.task.release({
+   *   taskId: 'task123',
+   *   mode: 'callback',
+   *   reasonCode: 'callback_promised',
+   *   reason: 'Caller asked for a callback once an agent frees up',
+   * });
+   *
+   * @example
+   * // Caller wants to hold for a human -- release, keep the call live
+   * await sdk.taskRouter.task.release({
+   *   taskId: 'task123',
+   *   mode: 'live',
+   *   reasonCode: 'no_human_available',
+   *   reason: 'No agents available, caller chose to hold',
+   * });
+   */
+  async release(options = {}) {
+    const {
+      taskId,
+      mode,
+      reasonCode,
+      reason,
+      callbackNumber,
+      humanOnly,
+      hangup,
+    } = options;
+
+    this.sdk.validateParams(
+      { taskId, mode, reasonCode, reason, callbackNumber, humanOnly, hangup },
+      {
+        taskId: { type: 'string', required: true },
+        mode: { type: 'string', required: false },
+        reasonCode: { type: 'string', required: true },
+        reason: { type: 'string', required: true },
+        callbackNumber: { type: 'string', required: false },
+        humanOnly: { type: 'boolean', required: false },
+        hangup: { type: 'boolean', required: false },
+      },
+    );
+
+    const params = { body: { taskId, reasonCode, reason } };
+    if (mode !== undefined) params.body.mode = mode;
+    if (callbackNumber !== undefined) params.body.callbackNumber = callbackNumber;
+    if (humanOnly !== undefined) params.body.humanOnly = humanOnly;
+    if (hangup !== undefined) params.body.hangup = hangup;
+
+    return await internalRequest(
+      this.sdk,
+      '/taskRouter/tasks/release',
+      'PUT',
+      params,
+    );
+  }
+
+  /**
    * Staff-only internal note on a task (webchat/SMS/voice feed, or
    * timeline). Never sent to the customer.
    *
@@ -871,6 +945,8 @@ export class TaskService {
    * @param {string} [options.subject] - The new subject/title for the task
    * @param {string} [options.summary] - The overall summary for the task
    * @param {string} [options.disposition] - The disposition code or outcome for the task (e.g., 'resolved', 'escalated', 'callback-scheduled')
+   * @param {boolean} [options.botEligible] - Routing flag. `false` = never offer this task to bot workers (human only); `true` re-allows bots
+   * @param {?string} [options.humanFollowUp] - What a human still owes this customer: 'callback' | 'message' | 'dispatch' | 'quote' | 'other', or null to clear. Read by the caller-hangup safety net so an abandoned call with this set releases to the queue instead of completing.
    * @returns {Promise<Object>} Object containing the task ID
    * @returns {string} result.taskId - The task ID that was updated
    *
@@ -898,6 +974,10 @@ export class TaskService {
    *   disposition: 'escalated'
    * });
    * console.log(result.taskId); // "task789"
+   *
+   * @example
+   * // Human-only routing: bot workers are no longer offered this task
+   * await sdk.taskRouter.task.update({ taskId: 'task789', botEligible: false });
    */
   async update(options = {}) {
     const {
@@ -908,10 +988,22 @@ export class TaskService {
       cdrId,
       summary,
       sentiment,
+      botEligible,
+      humanFollowUp,
     } = options;
 
     this.sdk.validateParams(
-      { taskId, subject, disposition, sipCallId, cdrId, summary, sentiment },
+      {
+        taskId,
+        subject,
+        disposition,
+        sipCallId,
+        cdrId,
+        summary,
+        sentiment,
+        botEligible,
+        humanFollowUp,
+      },
       {
         taskId: { type: 'string', required: true },
         subject: { type: 'string', required: false },
@@ -920,6 +1012,10 @@ export class TaskService {
         sipCallId: { type: 'string', required: false },
         summary: { type: 'string', required: false },
         sentiment: { type: 'object', required: false },
+        botEligible: { type: 'boolean', required: false },
+        // validateParams already skips type-checking a null value (see
+        // base.js) -- 'string' here only constrains the non-null case.
+        humanFollowUp: { type: 'string', required: false },
       },
     );
 
@@ -928,6 +1024,14 @@ export class TaskService {
         taskId,
       },
     };
+
+    if (botEligible !== undefined) {
+      params.body.botEligible = botEligible;
+    }
+
+    if (humanFollowUp !== undefined) {
+      params.body.humanFollowUp = humanFollowUp;
+    }
 
     if (subject !== undefined) {
       params.body.subject = subject;
@@ -1141,22 +1245,37 @@ export class TaskService {
    * @param {string} [options.target.queueId] - Destination queue ID
    * @param {string} [options.target.workerId] - Destination worker ID
    * @param {string} [options.note] - Optional note for the receiving agent
+   * @param {string} [options.reasonCode] - Transfer reason code — e.g. 'wrong_department', 'customer_requested', 'out_of_scope', 'policy_never_bot', 'language', 'other'. Required when the caller's worker is a bot.
+   * @param {string} [options.reason] - One-sentence transfer reason. Required when the caller's worker is a bot.
    * @returns {Promise<Object>} { taskId, newTaskId }
+   *
+   * @example
+   * // Bot transferring to a configured queue target
+   * await sdk.taskRouter.task.transfer({
+   *   taskId: 'task123',
+   *   target: { queueId: 'billingQueue1' },
+   *   reasonCode: 'wrong_department',
+   *   reason: 'Caller has a billing question',
+   * });
    */
   async transfer(options = {}) {
-    const { taskId, target, note } = options;
+    const { taskId, target, note, reasonCode, reason } = options;
 
     this.sdk.validateParams(
-      { taskId, target, note },
+      { taskId, target, note, reasonCode, reason },
       {
         taskId: { type: 'string', required: true },
         target: { type: 'object', required: true },
         note: { type: 'string', required: false },
+        reasonCode: { type: 'string', required: false },
+        reason: { type: 'string', required: false },
       },
     );
 
     const params = { body: { taskId, target } };
     if (note !== undefined) params.body.note = note;
+    if (reasonCode !== undefined) params.body.reasonCode = reasonCode;
+    if (reason !== undefined) params.body.reason = reason;
 
     return await internalRequest(
       this.sdk,
