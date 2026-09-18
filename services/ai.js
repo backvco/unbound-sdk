@@ -5,6 +5,7 @@ import { AssistService } from './ai/assist.js';
 import { VocabularyService } from './ai/vocabulary.js';
 import { EmailService } from './ai/email.js';
 import { ModelsService } from './ai/models.js';
+import { TextToSpeechService } from './ai/tts.js';
 import { translate as translateItems } from './ai/translate.js';
 import {
   getSettings as getAiSettings,
@@ -485,79 +486,6 @@ export class GenerativeService {
   //   );
   //   return result;
   // }
-}
-
-export class TextToSpeechService {
-  constructor(sdk) {
-    this.sdk = sdk;
-  }
-
-  async create({
-    text,
-    voice,
-    languageCode,
-    ssmlGender,
-    audioEncoding,
-    speakingRate,
-    pitch,
-    volumeGainDb,
-    effectsProfileIds,
-    createAccessKey,
-  }) {
-    this.sdk.validateParams(
-      {
-        text,
-        voice,
-        languageCode,
-        ssmlGender,
-        audioEncoding,
-        speakingRate,
-        pitch,
-        volumeGainDb,
-        effectsProfileIds,
-        createAccessKey,
-      },
-      {
-        text: { type: 'string', required: true },
-        voice: { type: 'string', required: false },
-        languageCode: { type: 'string', required: false },
-        ssmlGender: { type: 'string', required: false },
-        audioEncoding: { type: 'string', required: false },
-        speakingRate: { type: 'number', required: false },
-        pitch: { type: 'number', required: false },
-        volumeGainDb: { type: 'number', required: false },
-        effectsProfileIds: { type: 'array', required: false },
-        createAccessKey: { type: 'boolean', required: false },
-      },
-    );
-
-    const ttsData = { text };
-    if (voice) ttsData.voice = voice;
-    if (languageCode) ttsData.languageCode = languageCode;
-    if (ssmlGender) ttsData.ssmlGender = ssmlGender;
-    if (audioEncoding) ttsData.audioEncoding = audioEncoding;
-    if (speakingRate) ttsData.speakingRate = speakingRate;
-    if (pitch) ttsData.pitch = pitch;
-    if (volumeGainDb) ttsData.volumeGainDb = volumeGainDb;
-    if (effectsProfileIds) ttsData.effectsProfileIds = effectsProfileIds;
-    if (createAccessKey) ttsData.createAccessKey = createAccessKey;
-
-    const params = {
-      body: ttsData,
-    };
-
-    const result = await internalRequest(this.sdk, '/ai/tts', 'POST', params);
-    return result;
-  }
-
-  /**
-   * List available TTS voices
-   * @returns {Promise<Object>} { voices: Array, count: number, supportedEncodings: Array, supportedLanguages: Array }
-   */
-  async list() {
-    const result = await internalRequest(this.sdk, '/ai/tts', 'GET');
-    return result;
-  }
 }
 
 export class SpeechToTextService {
