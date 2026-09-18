@@ -443,9 +443,11 @@ export class TaskService {
    * Release a task back to the queue for a human (same queue, same task
    * id) — the bot-task-lifecycle release contract. Stamps
    * botEligible:false (when humanOnly) plus named release-reason
-   * metadata, and for a voice task in 'callback' mode hands the customer
-   * off to the existing queue-wait callback contract (hangs up, task goes
-   * pending, human accept later auto-dials the customer back).
+   * metadata and keeps the customer's original place in line. Voice:
+   * 'live' keeps the call on hold music for the next human; 'callback'
+   * ends the call and the task's primary channel becomes whatever is still
+   * live (e.g. sms) — the human who accepts follows up like on any task.
+   * This is not the queue-wait callback feature (no auto-dial).
    *
    * @param {Object} options - Parameters
    * @param {string} options.taskId - The task ID to release (required)
