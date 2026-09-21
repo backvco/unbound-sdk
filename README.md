@@ -377,6 +377,8 @@ const audio = await api.ai.tts.create({
   text: 'Hello, this is a test message',
   voice: 'en-US-Standard-A',
   audioEncoding: 'MP3',
+  // optional, telemetry-only attribution — never affects caching/output:
+  // taskId, sipCallId, botId
 });
 
 // Speech-to-Text - File/Storage Transcription

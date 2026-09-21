@@ -25,6 +25,9 @@ export class TextToSpeechService {
    * @param {number} [params.volumeGainDb]
    * @param {string[]} [params.effectsProfileIds]
    * @param {boolean} [params.createAccessKey]
+   * @param {string} [params.taskId] Telemetry-only attribution; never affects caching/output.
+   * @param {string} [params.sipCallId] Telemetry-only attribution; never affects caching/output.
+   * @param {string} [params.botId] Telemetry-only attribution; never affects caching/output.
    * @returns {Promise<Object>} `{ id, storageId, url? }`
    */
   async create({
@@ -38,6 +41,9 @@ export class TextToSpeechService {
     volumeGainDb,
     effectsProfileIds,
     createAccessKey,
+    taskId,
+    sipCallId,
+    botId,
   }) {
     this.sdk.validateParams(
       {
@@ -51,6 +57,9 @@ export class TextToSpeechService {
         volumeGainDb,
         effectsProfileIds,
         createAccessKey,
+        taskId,
+        sipCallId,
+        botId,
       },
       {
         text: { type: 'string', required: true },
@@ -63,6 +72,9 @@ export class TextToSpeechService {
         volumeGainDb: { type: 'number', required: false },
         effectsProfileIds: { type: 'array', required: false },
         createAccessKey: { type: 'boolean', required: false },
+        taskId: { type: 'string', required: false },
+        sipCallId: { type: 'string', required: false },
+        botId: { type: 'string', required: false },
       },
     );
 
@@ -76,6 +88,9 @@ export class TextToSpeechService {
     if (volumeGainDb) ttsData.volumeGainDb = volumeGainDb;
     if (effectsProfileIds) ttsData.effectsProfileIds = effectsProfileIds;
     if (createAccessKey) ttsData.createAccessKey = createAccessKey;
+    if (taskId !== undefined) ttsData.taskId = taskId;
+    if (sipCallId !== undefined) ttsData.sipCallId = sipCallId;
+    if (botId !== undefined) ttsData.botId = botId;
 
     const params = {
       body: ttsData,
@@ -112,25 +127,34 @@ export class TextToSpeechService {
    * @param {string} params.text
    * @param {string} [params.voice]
    * @param {string} [params.languageCode]
+   * @param {string} [params.taskId] Telemetry-only attribution; never affects caching/output.
+   * @param {string} [params.sipCallId] Telemetry-only attribution; never affects caching/output.
+   * @param {string} [params.botId] Telemetry-only attribution; never affects caching/output.
    * @returns {Promise<{body: ReadableStream, headers: Headers, status: number}>}
    * @example
    * const result = await sdk.ai.tts.stream({ text: 'Hi there', voice: 'hannah' });
    * const nodeStream = Readable.fromWeb(result.body);
    * nodeStream.pipe(ffmpegProcess.stdin);
    */
-  async stream({ text, voice, languageCode }) {
+  async stream({ text, voice, languageCode, taskId, sipCallId, botId }) {
     this.sdk.validateParams(
-      { text, voice, languageCode },
+      { text, voice, languageCode, taskId, sipCallId, botId },
       {
         text: { type: 'string', required: true },
         voice: { type: 'string', required: false },
         languageCode: { type: 'string', required: false },
+        taskId: { type: 'string', required: false },
+        sipCallId: { type: 'string', required: false },
+        botId: { type: 'string', required: false },
       },
     );
 
     const ttsData = { text };
     if (voice) ttsData.voice = voice;
     if (languageCode) ttsData.languageCode = languageCode;
+    if (taskId !== undefined) ttsData.taskId = taskId;
+    if (sipCallId !== undefined) ttsData.sipCallId = sipCallId;
+    if (botId !== undefined) ttsData.botId = botId;
 
     const params = {
       body: ttsData,

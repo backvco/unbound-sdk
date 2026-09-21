@@ -1,3 +1,7 @@
+## 4.13.102
+
+- feat: `sdk.ai.tts.create` / `sdk.ai.tts.stream` accept optional `taskId`, `sipCallId`, `botId` — telemetry-only attribution, never affects caching or output
+
 ## 4.13.96
 
 - feat: `sdk.webchat.typingOnTask({ taskId, isTyping })` — agent/bot typing on a task webchat; server resolves engagement
