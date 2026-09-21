@@ -370,6 +370,9 @@ const response = await api.ai.generative.chat({
   model: 'gpt-4',
   temperature: 0.7,
   method: 'openai',
+  // optional, telemetry-only attribution — never affects the prompt,
+  // session, caching, or response (contracts §9):
+  // usageContext: { feature: 'sentiment', taskId, sipCallId, queueId, cdrId }
 });
 
 // Text-to-Speech

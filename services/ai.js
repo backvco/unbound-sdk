@@ -85,6 +85,7 @@ export class GenerativeService {
     meta,
     qualityCheck,
     isPublic,
+    usageContext,
   }) {
     this.sdk.validateParams(
       {
@@ -112,6 +113,7 @@ export class GenerativeService {
         meta,
         qualityCheck,
         isPublic,
+        usageContext,
       },
       {
         prompt: { type: 'string', required: false },
@@ -138,6 +140,9 @@ export class GenerativeService {
         meta: { type: 'object', required: false },
         qualityCheck: { type: 'boolean', required: false },
         isPublic: { type: 'boolean', required: false },
+        // Telemetry-only (contracts §9): { feature?, taskId?, sipCallId?,
+        // queueId?, cdrId? } -- never affects the prompt/session/cache/response.
+        usageContext: { type: 'object', required: false },
       },
     );
 
@@ -168,6 +173,9 @@ export class GenerativeService {
         meta,
         qualityCheck,
         isPublic,
+        // Only included when the caller actually passed one -- keeps the
+        // wire payload identical to today for every existing caller.
+        ...(usageContext !== undefined ? { usageContext } : {}),
       },
       // Return raw response for streaming to allow client-side stream handling
       returnRawResponse: stream === true,

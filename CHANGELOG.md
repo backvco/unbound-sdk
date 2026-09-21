@@ -1,3 +1,7 @@
+## 4.13.103
+
+- feat: `sdk.ai.generative.chat` accepts optional `usageContext` (`{ feature?, taskId?, sipCallId?, queueId?, cdrId? }`) — telemetry-only turn attribution for call-analysis callers (transcription sentiment/summary/subject/playbook, AI assist, webchat sentiment, notes summaries, …), never affects the prompt, session, caching, or response (contracts §9)
+
 ## 4.13.102
 
 - feat: `sdk.ai.tts.create` / `sdk.ai.tts.stream` accept optional `taskId`, `sipCallId`, `botId` — telemetry-only attribution, never affects caching or output
