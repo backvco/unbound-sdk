@@ -47,6 +47,42 @@ export class CCService {
   }
 
   /**
+   * Queue-level human headcount by status -- same-queue-help-ping-plan.md
+   * WP1. The AI bot calls this to decide "hand to a human now" (someone
+   * available) vs "take a message" (nobody, or only wrap-up).
+   *
+   * @param {Object} options - Options
+   * @param {string} options.queueId - Queue ID
+   * @param {string} [options.taskId] - Task ID (forward-compat; unused today)
+   * @returns {Promise<Object>} result
+   * @returns {number} result.available - Workers currently `available`
+   * @returns {Object} result.byStatus - `{ available, wrapUp }` counts
+   *
+   * @example
+   * const { available, byStatus } = await sdk.taskRouter.cc.getHumanAvailability({ queueId: 'queue_789' });
+   */
+  async getHumanAvailability({ queueId, taskId } = {}) {
+    this.sdk.validateParams(
+      { queueId, taskId },
+      {
+        queueId: { type: 'string', required: true },
+        taskId: { type: 'string', required: false },
+      },
+    );
+
+    const params = { query: {} };
+    if (taskId !== undefined) params.query.taskId = taskId;
+
+    const result = await internalRequest(
+      this.sdk,
+      `/taskRouter/queues/${queueId}/human-availability`,
+      'GET',
+      params,
+    );
+    return result;
+  }
+
+  /**
    * Get a live Contact Center snapshot (KPIs, per-queue summaries, team roster
    * with active tasks) scoped to a set of queues.
    *
