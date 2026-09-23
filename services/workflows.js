@@ -7,22 +7,6 @@ export class WorkflowsService {
     this.sessions = new WorkflowSessionsService(sdk);
   }
 
-  async getSettings(type) {
-    this.sdk.validateParams(
-      { type },
-      {
-        type: { type: 'string', required: true },
-      },
-    );
-
-    const params = {
-      query: { type },
-    };
-
-    const result = await internalRequest(this.sdk, '/workflows/settings', 'GET', params);
-    return result;
-  }
-
   async listModules() {
     const params = {
       query: {},
@@ -403,11 +387,10 @@ export class WorkflowSessionsService {
       },
     );
 
-    const result = await internalRequest(this.sdk, 
-      `/workflows/sessions/${sessionId}`,
-      'GET',
-    );
-    return result;
+    return this.sdk.objects.byId({
+      object: 'workflowSessions',
+      id: sessionId,
+    });
   }
 
   async update(sessionId, updateData) {
@@ -445,21 +428,6 @@ export class WorkflowSessionsService {
       `/workflows/session/${sessionId}/complete`,
       'PUT',
       params,
-    );
-    return result;
-  }
-
-  async delete(sessionId) {
-    this.sdk.validateParams(
-      { sessionId },
-      {
-        sessionId: { type: 'string', required: true },
-      },
-    );
-
-    const result = await internalRequest(this.sdk, 
-      `/workflows/sessions/${sessionId}`,
-      'DELETE',
     );
     return result;
   }

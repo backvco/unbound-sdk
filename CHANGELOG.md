@@ -1,3 +1,8 @@
+## 4.13.104
+
+- fix: `sdk.workflows.sessions.get(id)` now calls the generic object GET (`items.get` pattern) instead of a nonexistent `/workflows/sessions/:id` route
+- removed: `sdk.workflows.sessions.delete`, `sdk.workflows.getSettings` — dead, no matching api route, no callers anywhere in the codebase (W24)
+
 ## 4.13.103
 
 - feat: `sdk.ai.generative.chat` accepts optional `usageContext` (`{ feature?, taskId?, sipCallId?, queueId?, cdrId? }`) — telemetry-only turn attribution for call-analysis callers (transcription sentiment/summary/subject/playbook, AI assist, webchat sentiment, notes summaries, …), never affects the prompt, session, caching, or response (contracts §9)
