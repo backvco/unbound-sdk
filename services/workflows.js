@@ -437,17 +437,25 @@ export class WorkflowSessionsService {
     return result;
   }
 
-  async complete(sessionId) {
+  /**
+   * @param {string} sessionId
+   * @param {string} [reason] - passed through as body.reason -- the
+   *   sessionComplete.js controller already accepts this (defaults to
+   *   'completed' server-side); P7's exitProgramMember.js passes
+   *   'programExit'. Backward compatible -- omitting it is unchanged.
+   */
+  async complete(sessionId, reason) {
     this.sdk.validateParams(
-      { sessionId },
+      { sessionId, reason },
       {
         sessionId: { type: 'string', required: true },
+        reason: { type: 'string', required: false },
       },
     );
 
-    const params = {};
+    const params = reason ? { body: { reason } } : {};
 
-    const result = await internalRequest(this.sdk, 
+    const result = await internalRequest(this.sdk,
       `/workflows/session/${sessionId}/complete`,
       'PUT',
       params,

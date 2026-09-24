@@ -1416,4 +1416,44 @@ export class ObjectsService {
       { body: {} },
     );
   }
+
+  /**
+   * P7 (workflows-v2-plan.md W10/W11/W23) -- runs an immediate full
+   * enter+exit sweep for a journey program. Same diff-and-enqueue path a
+   * scheduled tick runs, so this can never 429.
+   * @param {string} programId
+   * @returns {Promise<{queued: true, enterEnqueued: number, exitEnqueued: number}>}
+   */
+  async runMarketingProgramNow(programId) {
+    this.sdk.validateParams(
+      { programId },
+      { programId: { type: 'string', required: true } },
+    );
+    return internalRequest(
+      this.sdk,
+      `/object/marketing-programs/${programId}/run`,
+      'POST',
+      { body: {} },
+    );
+  }
+
+  /**
+   * P7 -- paginated member list for a journey program (joined to people
+   * for display name; never raw peopleId).
+   * @param {string} programId
+   * @param {{nextId?: string, limit?: number}} [opts]
+   * @returns {Promise<{results: object[], pagination: object}>}
+   */
+  async listMarketingProgramMembers(programId, opts = {}) {
+    this.sdk.validateParams(
+      { programId },
+      { programId: { type: 'string', required: true } },
+    );
+    return internalRequest(
+      this.sdk,
+      `/object/marketing-programs/${programId}/members`,
+      'GET',
+      { query: opts },
+    );
+  }
 }
