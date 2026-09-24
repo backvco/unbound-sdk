@@ -1,3 +1,8 @@
+## 4.13.106
+
+- feat: `sdk.workflows.tools.list()` / `.call(slug, input)` — REST twin of the MCP `tools/list`/`tools/call` methods for `tool`-type workflows (P5)
+- feat: `sdk.workflows.mcpTokens.create({name})` / `.list()` / `.revoke(id)` — mint/list/revoke long-lived `mcp`-scoped bearer tokens (P5 W22)
+
 ## 4.13.104
 
 - fix: `sdk.workflows.sessions.get(id)` now calls the generic object GET (`items.get` pattern) instead of a nonexistent `/workflows/sessions/:id` route

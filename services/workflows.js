@@ -1,10 +1,15 @@
 import { internalRequest } from '../base.js';
+import { WorkflowToolsService, WorkflowMcpTokensService } from './workflowTools.js';
+
 export class WorkflowsService {
   constructor(sdk) {
     this.sdk = sdk;
     this.items = new WorkflowItemsService(sdk);
     this.connections = new WorkflowConnectionsService(sdk);
     this.sessions = new WorkflowSessionsService(sdk);
+    // P5: MCP tools/tokens surface (workflows-v2-plan.md "REST twin + SDK" row).
+    this.tools = new WorkflowToolsService(sdk);
+    this.mcpTokens = new WorkflowMcpTokensService(sdk);
   }
 
   async listModules({ workflowType } = {}) {
