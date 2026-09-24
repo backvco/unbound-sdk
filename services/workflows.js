@@ -519,4 +519,34 @@ export class WorkflowSessionsService {
     );
     return result;
   }
+
+  // P10 click-to-filter: GET /workflows/:workflowVersionId/sessions ->
+  // {sessionIds}. filter is {workflowItemId?, fromItemId?, toItemId?,
+  // startDate?, endDate?} -- workflowItemId alone, or fromItemId+toItemId
+  // together, is required (validated server-side in sessionsByPath.js).
+  async sessionsByPath(workflowVersionId, filter = {}) {
+    this.sdk.validateParams(
+      { workflowVersionId },
+      {
+        workflowVersionId: { type: 'string', required: true },
+      },
+    );
+
+    const { workflowItemId, fromItemId, toItemId, startDate, endDate } =
+      filter || {};
+    const query = {};
+    if (workflowItemId) query.workflowItemId = workflowItemId;
+    if (fromItemId) query.fromItemId = fromItemId;
+    if (toItemId) query.toItemId = toItemId;
+    if (startDate) query.startDate = startDate;
+    if (endDate) query.endDate = endDate;
+
+    const result = await internalRequest(
+      this.sdk,
+      `/workflows/${workflowVersionId}/sessions`,
+      'GET',
+      { query },
+    );
+    return result;
+  }
 }
