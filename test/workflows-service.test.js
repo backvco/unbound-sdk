@@ -57,3 +57,12 @@ describe('WorkflowsService.listModules (P3)', () => {
     assert.deepEqual(calls[0].params.query, { workflowType: 'ivr' });
   });
 });
+
+describe('WorkflowsService.variables (P6)', () => {
+  test('GETs /workflows/:versionId/variables', async () => {
+    const { fakeSdk, calls } = buildFakeSdk();
+    await new WorkflowsService(fakeSdk).variables('ver-1');
+    assert.equal(calls[0].endpoint, '/workflows/ver-1/variables');
+    assert.equal(calls[0].method, 'GET');
+  });
+});

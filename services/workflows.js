@@ -96,6 +96,24 @@ export class WorkflowsService {
     );
     return result;
   }
+
+  // P6 §6 — variable catalogue (inputs/system/context/module outputs) for
+  // the designer's `{{` autocomplete + variables panel.
+  async variables(versionId) {
+    this.sdk.validateParams(
+      { versionId },
+      {
+        versionId: { type: 'string', required: true },
+      },
+    );
+
+    const result = await internalRequest(
+      this.sdk,
+      `/workflows/${versionId}/variables`,
+      'GET',
+    );
+    return result;
+  }
 }
 
 export class WorkflowItemsService {
@@ -486,7 +504,7 @@ export class WorkflowSessionsService {
       query: { startDate, endDate },
     };
 
-    const result = await internalRequest(this.sdk, 
+    const result = await internalRequest(this.sdk,
       `/workflows/${workflowVersionId}/analytics`,
       'GET',
       params,
