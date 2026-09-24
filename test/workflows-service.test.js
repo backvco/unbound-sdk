@@ -1,6 +1,6 @@
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
-import { WorkflowSessionsService } from '../services/workflows.js';
+import { WorkflowSessionsService, WorkflowsService } from '../services/workflows.js';
 import { ObjectsService } from '../services/objects.js';
 
 function buildFakeSdk() {
@@ -38,5 +38,22 @@ describe('WorkflowSessionsService dead-method removal (W24)', () => {
       typeof new WorkflowSessionsService(fakeSdk).delete,
       'undefined',
     );
+  });
+});
+
+describe('WorkflowsService.listModules (P3)', () => {
+  test('no-arg call keeps the empty-query behaviour', async () => {
+    const { fakeSdk, calls } = buildFakeSdk();
+    await new WorkflowsService(fakeSdk).listModules();
+    assert.equal(calls[0].endpoint, '/workflows/modules');
+    assert.equal(calls[0].method, 'GET');
+    assert.deepEqual(calls[0].params.query, {});
+  });
+
+  test('forwards workflowType as a query param', async () => {
+    const { fakeSdk, calls } = buildFakeSdk();
+    await new WorkflowsService(fakeSdk).listModules({ workflowType: 'ivr' });
+    assert.equal(calls[0].endpoint, '/workflows/modules');
+    assert.deepEqual(calls[0].params.query, { workflowType: 'ivr' });
   });
 });

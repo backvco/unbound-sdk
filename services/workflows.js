@@ -7,9 +7,9 @@ export class WorkflowsService {
     this.sessions = new WorkflowSessionsService(sdk);
   }
 
-  async listModules() {
+  async listModules({ workflowType } = {}) {
     const params = {
-      query: {},
+      query: workflowType ? { workflowType } : {},
     };
 
     const result = await internalRequest(this.sdk, '/workflows/modules', 'GET', params);
