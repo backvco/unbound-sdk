@@ -41,6 +41,25 @@ describe('WorkflowSessionsService dead-method removal (W24)', () => {
   });
 });
 
+describe('WorkflowsService.references (delete guard)', () => {
+  test('forwards workflowId as a query param', async () => {
+    const { fakeSdk, calls } = buildFakeSdk();
+    await new WorkflowsService(fakeSdk).references({ workflowId: 'wf-1' });
+    assert.equal(calls[0].endpoint, '/workflows/references');
+    assert.equal(calls[0].method, 'GET');
+    assert.deepEqual(calls[0].params.query, { workflowId: 'wf-1' });
+  });
+
+  test('forwards workflowVersionId as a query param', async () => {
+    const { fakeSdk, calls } = buildFakeSdk();
+    await new WorkflowsService(fakeSdk).references({
+      workflowVersionId: 'wfv-1',
+    });
+    assert.equal(calls[0].endpoint, '/workflows/references');
+    assert.deepEqual(calls[0].params.query, { workflowVersionId: 'wfv-1' });
+  });
+});
+
 describe('WorkflowsService.listModules (P3)', () => {
   test('no-arg call keeps the empty-query behaviour', async () => {
     const { fakeSdk, calls } = buildFakeSdk();

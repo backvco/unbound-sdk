@@ -97,6 +97,30 @@ export class WorkflowsService {
     return result;
   }
 
+  // Delete guard (soft-delete workflows / hard-delete draft versions):
+  // resolves everything a workflow (or a specific draft version) is
+  // referenced by, so the client can block the delete with a named list
+  // instead of a generic FK error. Exactly one of workflowId/
+  // workflowVersionId is expected.
+  async references({ workflowId, workflowVersionId } = {}) {
+    this.sdk.validateParams(
+      { workflowId, workflowVersionId },
+      {
+        workflowId: { type: 'string', required: false },
+        workflowVersionId: { type: 'string', required: false },
+      },
+    );
+
+    const query = {};
+    if (workflowId) query.workflowId = workflowId;
+    if (workflowVersionId) query.workflowVersionId = workflowVersionId;
+
+    const result = await internalRequest(this.sdk, '/workflows/references', 'GET', {
+      query,
+    });
+    return result;
+  }
+
   // P6 §6 — variable catalogue (inputs/system/context/module outputs) for
   // the designer's `{{` autocomplete + variables panel.
   async variables(versionId) {
