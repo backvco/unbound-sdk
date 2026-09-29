@@ -573,4 +573,48 @@ export class WorkflowSessionsService {
     );
     return result;
   }
+
+  // Sessions page rebuild: sessions for a workflow across every version
+  // (pass workflowId) or one version (pass workflowVersionId), with
+  // server-side search across phone/email/caller-name so the list shows a
+  // real caller instead of a raw session id. GET /workflows/sessions/list.
+  // Either workflowId or workflowVersionId is required; the rest is
+  // optional (workflowItemId / fromItemId+toItemId reuse the same P10
+  // path-filter shape as sessionsByPath, and require workflowVersionId).
+  async list({
+    workflowId,
+    workflowVersionId,
+    search,
+    workflowItemId,
+    fromItemId,
+    toItemId,
+    limit,
+    before,
+  } = {}) {
+    this.sdk.validateParams(
+      { workflowId, workflowVersionId },
+      {
+        workflowId: { type: 'string', required: false },
+        workflowVersionId: { type: 'string', required: false },
+      },
+    );
+    if (!workflowId && !workflowVersionId) {
+      throw new Error('workflowId or workflowVersionId is required.');
+    }
+
+    const query = {};
+    if (workflowId) query.workflowId = workflowId;
+    if (workflowVersionId) query.workflowVersionId = workflowVersionId;
+    if (search) query.search = search;
+    if (workflowItemId) query.workflowItemId = workflowItemId;
+    if (fromItemId) query.fromItemId = fromItemId;
+    if (toItemId) query.toItemId = toItemId;
+    if (limit) query.limit = limit;
+    if (before) query.before = before;
+
+    const result = await internalRequest(this.sdk, '/workflows/sessions/list', 'GET', {
+      query,
+    });
+    return result;
+  }
 }
