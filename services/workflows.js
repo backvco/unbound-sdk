@@ -522,7 +522,14 @@ export class WorkflowSessionsService {
     return result;
   }
 
-  async analytics(workflowVersionId, { startDate, endDate } = {}) {
+  // search: phone/email/name, same matching as sessions.list(). allVersions:
+  // widen the summary cards + abandoned-by-module to every version of this
+  // version's workflow (module/connector traffic on the canvas always
+  // stays scoped to workflowVersionId -- the canvas is per-version).
+  async analytics(
+    workflowVersionId,
+    { startDate, endDate, search, allVersions } = {},
+  ) {
     this.sdk.validateParams(
       { workflowVersionId, startDate, endDate },
       {
@@ -532,14 +539,14 @@ export class WorkflowSessionsService {
       },
     );
 
-    const params = {
-      query: { startDate, endDate },
-    };
+    const query = { startDate, endDate };
+    if (search) query.search = search;
+    if (allVersions) query.allVersions = true;
 
     const result = await internalRequest(this.sdk,
       `/workflows/${workflowVersionId}/analytics`,
       'GET',
-      params,
+      { query },
     );
     return result;
   }
@@ -588,6 +595,8 @@ export class WorkflowSessionsService {
     workflowItemId,
     fromItemId,
     toItemId,
+    startDate,
+    endDate,
     limit,
     before,
   } = {}) {
@@ -609,6 +618,8 @@ export class WorkflowSessionsService {
     if (workflowItemId) query.workflowItemId = workflowItemId;
     if (fromItemId) query.fromItemId = fromItemId;
     if (toItemId) query.toItemId = toItemId;
+    if (startDate) query.startDate = startDate;
+    if (endDate) query.endDate = endDate;
     if (limit) query.limit = limit;
     if (before) query.before = before;
 
