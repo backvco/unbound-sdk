@@ -98,6 +98,18 @@ class OAuthClientsService {
   }
 
   /**
+   * List a client's secrets (id/createdAt/expiresAt/revokedAt/lastUsedAt
+   * only -- never the hash or plaintext). Use the returned `id` values
+   * with revokeSecret() to decommission an old/compromised secret.
+   * @param {string} id
+   * @returns {Promise<Object>} `{ secrets: [...] }`
+   */
+  async listSecrets(id) {
+    this.sdk.validateParams({ id }, { id: { type: 'string', required: true } });
+    return internalRequest(this.sdk, `/oauth/clients/${id}/secrets`, 'GET');
+  }
+
+  /**
    * Mint a new client secret. The old secret keeps working until revoked.
    * @param {string} id
    * @returns {Promise<Object>} `{ secret }` -- plaintext, shown once
