@@ -29,11 +29,18 @@ export class LoginService {
       }
     }
 
+    // api#222: bearer clients get refreshToken back on /login too (same
+    // contract as /login/refresh) -- seed it onto the sdk instance so
+    // autoRefresh has something to send on the very first refresh, and
+    // also return it for a caller that manages the token itself.
+    if (login?.refreshToken) this.sdk.setRefreshToken(login.refreshToken);
+
     return {
       valid: true,
       userId: login.userId,
       namespace: login.namespace,
       url: login.url,
+      refreshToken: login.refreshToken,
     };
   }
 
