@@ -59,6 +59,7 @@ export class BaseSDK {
         baseURL,
         autoRefresh,
         onUnauthorized,
+        refreshToken,
       } = options;
       this.namespace = namespace || process?.env?.namespace;
       this.callId = callId;
@@ -71,6 +72,12 @@ export class BaseSDK {
       this._autoRefresh = autoRefresh === true;
       this._onUnauthorized =
         typeof onUnauthorized === 'function' ? onUnauthorized : null;
+      // Bearer-delivery clients only: the raw refresh token, so autoRefresh
+      // has something to send to POST /login/refresh (cookie clients rely
+      // on the browser's own refreshToken cookie and never need this).
+      // Seeded via this option or setRefreshToken(); updated in place on
+      // every rotation by lib/refreshInterceptor.js.
+      this._refreshToken = refreshToken;
     }
     this.baseURL;
     this.transports = new Map();
@@ -118,6 +125,10 @@ export class BaseSDK {
 
   setToken(token) {
     this.token = token;
+  }
+
+  setRefreshToken(refreshToken) {
+    this._refreshToken = refreshToken;
   }
 
   setNamespace(namespace) {
