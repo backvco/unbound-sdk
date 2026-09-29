@@ -48,6 +48,7 @@ import { ChatService } from './services/chat.js';
 import { DeveloperApisService } from './services/developerApis.js';
 import { TextService } from './services/text.js';
 import { ReportingService } from './services/reporting.js';
+import { OAuthService } from './services/oauth.js';
 import {
   DataImportService,
   DataExportService,
@@ -146,6 +147,7 @@ class UnboundSDK extends BaseSDK {
     this.recents = new RecentsService(this);
     this.search = new SearchService(this);
     this.directory = new DirectoryService(this);
+    this.oauth = new OAuthService(this);
     this.chat = new ChatService(this);
     this.developerApis = new DeveloperApisService(this);
     this.dataImport = new DataImportService(this);
@@ -352,6 +354,7 @@ export { ReportingService } from './services/reporting.js';
 export { RecentsService } from './services/recents.js';
 export { SearchService } from './services/search.js';
 export { DirectoryService } from './services/directory.js';
+export { OAuthService } from './services/oauth.js';
 export { ChatService } from './services/chat.js';
 export { DeveloperApisService } from './services/developerApis.js';
 export {
