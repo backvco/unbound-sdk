@@ -40,6 +40,7 @@
     "*.js",
     "services/**/*.js",
     "transports/**/*.js",
+    "lib/**/*.js",
     "types/**/*.d.ts",
     "proto/**/*.proto",
     "schemas/**/*.js",

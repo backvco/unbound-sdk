@@ -37,6 +37,20 @@ export class LoginService {
     };
   }
 
+  // api#222. Cookie clients: no args -- the refreshToken cookie is sent
+  // automatically and the new authToken/refreshToken cookies come back on
+  // the response, nothing to apply to the SDK instance. Bearer clients:
+  // pass the refresh token string; the response's `token` is returned so
+  // the caller (or lib/refreshInterceptor.js) can call sdk.setToken(token).
+  // Always forceFetch (true): refresh exists to recover a dead session, so
+  // it must never ride a socket transport that itself depends on that
+  // session still being alive.
+  async refresh(refreshToken) {
+    const options = {};
+    if (refreshToken) options.body = { refreshToken };
+    return internalRequest(this.sdk, '/login/refresh', 'POST', options, true);
+  }
+
   async logout() {
     const logout = await internalRequest(this.sdk, '/login', 'DELETE', {}, true);
 
