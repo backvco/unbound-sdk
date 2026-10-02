@@ -66,6 +66,22 @@ describe('CcBotsService', () => {
     assert.equal(calls[0].params.body.modelId, 'bolt-fast');
   });
 
+  test('update PATCHes modelTier', async () => {
+    const { fakeSdk, calls } = buildFakeSdk();
+    await new CcBotsService(fakeSdk).update('bot-1', { modelTier: 'advanced' });
+    assert.equal(calls[0].params.body.modelTier, 'advanced');
+  });
+
+  test('create POSTs modelTier', async () => {
+    const { fakeSdk, calls } = buildFakeSdk();
+    await new CcBotsService(fakeSdk).create({
+      name: 'Sales Bot',
+      slug: 'sales',
+      modelTier: 'basic',
+    });
+    assert.equal(calls[0].params.body.modelTier, 'basic');
+  });
+
   test('create POSTs modelId', async () => {
     const { fakeSdk, calls } = buildFakeSdk();
     await new CcBotsService(fakeSdk).create({
