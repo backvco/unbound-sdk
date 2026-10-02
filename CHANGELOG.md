@@ -1,3 +1,7 @@
+## 4.13.116
+
+- feat: `sdk.lineGroups` — list, get, create, update, delete, extensionAvailable, routingTargets, lines, members
+
 ## 4.13.106
 
 - feat: `sdk.workflows.tools.list()` / `.call(slug, input)` — REST twin of the MCP `tools/list`/`tools/call` methods for `tool`-type workflows (P5)
