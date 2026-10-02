@@ -115,6 +115,8 @@ export class PhoneNumbersService {
       textApp,
       textAppMetaData,
       textChatVisibility,
+      shakenBlockUnsigned,
+      shakenMinAttestation,
     },
   ) {
     this.sdk.validateParams(
@@ -131,6 +133,8 @@ export class PhoneNumbersService {
         textApp,
         textAppMetaData,
         textChatVisibility,
+        shakenBlockUnsigned,
+        shakenMinAttestation,
       },
       {
         id: { type: 'string', required: true },
@@ -146,6 +150,8 @@ export class PhoneNumbersService {
         textApp: { type: 'string', required: false },
         textAppMetaData: { type: 'string', required: false },
         textChatVisibility: { type: 'string', required: false },
+        shakenBlockUnsigned: { type: 'boolean', required: false },
+        shakenMinAttestation: { type: 'string', required: false },
       },
     );
 
@@ -169,6 +175,11 @@ export class PhoneNumbersService {
       updateData.textAppMetaData = textAppMetaData;
     if (textChatVisibility !== undefined)
       updateData.textChatVisibility = textChatVisibility;
+    if (shakenBlockUnsigned !== undefined)
+      updateData.shakenBlockUnsigned = shakenBlockUnsigned;
+    // null clears the floor when the gate is turned off.
+    if (shakenMinAttestation !== undefined)
+      updateData.shakenMinAttestation = shakenMinAttestation;
 
     const params = {
       body: updateData,

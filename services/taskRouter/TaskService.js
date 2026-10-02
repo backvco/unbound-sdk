@@ -1338,6 +1338,52 @@ export class TaskService {
       { body: { channel, isTyping } },
     );
   }
+
+  /**
+   * Voice-join offer on an open non-voice task the caller already owns.
+   * @param {string} taskId
+   * @returns {Promise<{taskId: string, expiresAt: string|null, canAccept: boolean}>}
+   */
+  async voiceJoinState(taskId) {
+    this.sdk.validateParams(
+      { taskId },
+      { taskId: { type: 'string', required: true } },
+    );
+    return await internalRequest(
+      this.sdk,
+      `/taskRouter/tasks/${taskId}/voice-join`,
+      'GET',
+      {},
+    );
+  }
+
+  /** Bridge this worker's phone onto the waiting caller. Sets voiceJoin first. */
+  async voiceJoinAccept(taskId) {
+    this.sdk.validateParams(
+      { taskId },
+      { taskId: { type: 'string', required: true } },
+    );
+    return await internalRequest(
+      this.sdk,
+      `/taskRouter/tasks/${taskId}/voice-join/accept`,
+      'POST',
+      {},
+    );
+  }
+
+  /** Release the task so a voice-capable worker can be found. */
+  async voiceJoinRelease(taskId) {
+    this.sdk.validateParams(
+      { taskId },
+      { taskId: { type: 'string', required: true } },
+    );
+    return await internalRequest(
+      this.sdk,
+      `/taskRouter/tasks/${taskId}/voice-join/release`,
+      'POST',
+      {},
+    );
+  }
 }
 
 // CC task-workspace methods (claim/observe/unobserve/observers/take/access)

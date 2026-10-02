@@ -599,6 +599,7 @@ export class WorkflowSessionsService {
     endDate,
     limit,
     before,
+    activeOnly,
   } = {}) {
     this.sdk.validateParams(
       { workflowId, workflowVersionId },
@@ -622,6 +623,7 @@ export class WorkflowSessionsService {
     if (endDate) query.endDate = endDate;
     if (limit) query.limit = limit;
     if (before) query.before = before;
+    if (activeOnly) query.activeOnly = true;
 
     const result = await internalRequest(this.sdk, '/workflows/sessions/list', 'GET', {
       query,
