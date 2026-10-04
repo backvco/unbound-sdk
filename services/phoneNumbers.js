@@ -115,6 +115,8 @@ export class PhoneNumbersService {
       textApp,
       textAppMetaData,
       textChatVisibility,
+      shakenBlockUnsigned,
+      shakenMinAttestation,
     },
   ) {
     this.sdk.validateParams(
@@ -131,6 +133,8 @@ export class PhoneNumbersService {
         textApp,
         textAppMetaData,
         textChatVisibility,
+        shakenBlockUnsigned,
+        shakenMinAttestation,
       },
       {
         id: { type: 'string', required: true },
@@ -146,6 +150,8 @@ export class PhoneNumbersService {
         textApp: { type: 'string', required: false },
         textAppMetaData: { type: 'string', required: false },
         textChatVisibility: { type: 'string', required: false },
+        shakenBlockUnsigned: { type: 'boolean', required: false },
+        shakenMinAttestation: { type: 'string', required: false },
       },
     );
 
@@ -169,6 +175,11 @@ export class PhoneNumbersService {
       updateData.textAppMetaData = textAppMetaData;
     if (textChatVisibility !== undefined)
       updateData.textChatVisibility = textChatVisibility;
+    if (shakenBlockUnsigned !== undefined)
+      updateData.shakenBlockUnsigned = shakenBlockUnsigned;
+    // null clears the floor when the gate is turned off.
+    if (shakenMinAttestation !== undefined)
+      updateData.shakenMinAttestation = shakenMinAttestation;
 
     const params = {
       body: updateData,
@@ -257,8 +268,19 @@ export class PhoneNumbersService {
    *
    * // Search workflows by name
    * const filtered = await sdk.phoneNumbers.getRoutingOptions({ appType: 'workflows', search: 'customer' });
+   *
+   * // Page through a large appType's destination list (default 50, max 200)
+   * const page = await sdk.phoneNumbers.getRoutingOptions({ appType: 'users', search: 'jo', limit: 50 });
+   * // Returns: { users: [...], hasMore: true }
    */
-  async getRoutingOptions({ mode, type, appType, workflowId, search } = {}) {
+  async getRoutingOptions({
+    mode,
+    type,
+    appType,
+    workflowId,
+    search,
+    limit,
+  } = {}) {
     const validationSchema = {};
     const args = arguments[0] || {};
 
@@ -272,6 +294,8 @@ export class PhoneNumbersService {
       validationSchema.workflowId = { type: 'string', required: false };
     if ('search' in args)
       validationSchema.search = { type: 'string', required: false };
+    if ('limit' in args)
+      validationSchema.limit = { type: 'number', required: false };
 
     if (Object.keys(validationSchema).length > 0) {
       this.sdk.validateParams(args, validationSchema);
@@ -284,6 +308,7 @@ export class PhoneNumbersService {
         appType,
         workflowId,
         search,
+        limit,
       },
     };
 

@@ -1,4 +1,4 @@
-import { internalRequest } from '../../base.js';
+import { internalRequest } from "../../base.js";
 /**
  * Playbooks Service - Manage AI-driven playbook sessions for guided workflows
  */
@@ -28,8 +28,8 @@ export class PlaybooksService {
     this.sdk.validateParams(
       { name },
       {
-        name: { type: 'string', required: true },
-        recordTypeId: { type: 'string', required: false },
+        name: { type: "string", required: true },
+        recordTypeId: { type: "string", required: false },
       },
     );
 
@@ -37,7 +37,12 @@ export class PlaybooksService {
       body: { name, recordTypeId },
     };
 
-    const result = await internalRequest(this.sdk, '/ai/playbooks', 'POST', params);
+    const result = await internalRequest(
+      this.sdk,
+      "/ai/playbooks",
+      "POST",
+      params,
+    );
     return result;
   }
 
@@ -57,11 +62,15 @@ export class PlaybooksService {
     this.sdk.validateParams(
       { playbookId },
       {
-        playbookId: { type: 'string', required: true },
+        playbookId: { type: "string", required: true },
       },
     );
 
-    const result = await internalRequest(this.sdk, `/ai/playbooks/${playbookId}`, 'GET');
+    const result = await internalRequest(
+      this.sdk,
+      `/ai/playbooks/${playbookId}`,
+      "GET",
+    );
     return result;
   }
 
@@ -93,7 +102,12 @@ export class PlaybooksService {
       query: { limit, orderBy, orderDirection, isPublished, recordTypeId },
     };
 
-    const result = await internalRequest(this.sdk, '/ai/playbooks', 'GET', params);
+    const result = await internalRequest(
+      this.sdk,
+      "/ai/playbooks",
+      "GET",
+      params,
+    );
     return result;
   }
 
@@ -124,11 +138,11 @@ export class PlaybooksService {
     this.sdk.validateParams(
       { playbookId },
       {
-        playbookId: { type: 'string', required: true },
-        name: { type: 'string', required: false },
-        isPublished: { type: 'boolean', required: false },
-        recordTypeId: { type: 'string', required: false },
-        passScore: { type: 'number', required: false },
+        playbookId: { type: "string", required: true },
+        name: { type: "string", required: false },
+        isPublished: { type: "boolean", required: false },
+        recordTypeId: { type: "string", required: false },
+        passScore: { type: "number", required: false },
       },
     );
 
@@ -136,9 +150,10 @@ export class PlaybooksService {
       body: { name, isPublished, recordTypeId, passScore },
     };
 
-    const result = await internalRequest(this.sdk, 
+    const result = await internalRequest(
+      this.sdk,
       `/ai/playbooks/${playbookId}`,
-      'PUT',
+      "PUT",
       params,
     );
     return result;
@@ -160,13 +175,14 @@ export class PlaybooksService {
     this.sdk.validateParams(
       { playbookId },
       {
-        playbookId: { type: 'string', required: true },
+        playbookId: { type: "string", required: true },
       },
     );
 
-    const result = await internalRequest(this.sdk, 
+    const result = await internalRequest(
+      this.sdk,
       `/ai/playbooks/${playbookId}`,
-      'DELETE',
+      "DELETE",
     );
     return result;
   }
@@ -202,6 +218,7 @@ export class PlaybooksService {
   async createPlaybookGoal({
     playbookId,
     playbookGoalTypeId,
+    playbookVersionId,
     goal,
     description,
     criteria,
@@ -220,6 +237,7 @@ export class PlaybooksService {
         playbookId,
         playbookGoalTypeId,
         goal,
+        playbookVersionId,
         description,
         criteria,
         scoreType,
@@ -230,26 +248,28 @@ export class PlaybooksService {
         recordTypeId,
       },
       {
-        playbookId: { type: 'string', required: true },
-        playbookGoalTypeId: { type: 'string', required: true },
-        goal: { type: 'string', required: true },
-        description: { type: 'string', required: false },
-        criteria: { type: 'object', required: false },
-        scoreType: { type: 'string', required: false },
-        weight: { type: 'number', required: false },
-        requiredForPass: { type: 'boolean', required: false },
-        role: { type: 'string', required: false },
-        signal: { type: 'string', required: false },
-        window: { type: 'string', required: false },
-        windowTurns: { type: 'number', required: false },
-        visibility: { type: 'string', required: false },
-        recordTypeId: { type: 'string', required: false },
+        playbookId: { type: "string", required: true },
+        playbookGoalTypeId: { type: "string", required: true },
+        goal: { type: "string", required: true },
+        playbookVersionId: { type: "string", required: true },
+        description: { type: "string", required: false },
+        criteria: { type: "object", required: false },
+        scoreType: { type: "string", required: false },
+        weight: { type: "number", required: false },
+        requiredForPass: { type: "boolean", required: false },
+        role: { type: "string", required: false },
+        signal: { type: "string", required: false },
+        window: { type: "string", required: false },
+        windowTurns: { type: "number", required: false },
+        visibility: { type: "string", required: false },
+        recordTypeId: { type: "string", required: false },
       },
     );
 
     const params = {
       body: {
         playbookGoalTypeId,
+        playbookVersionId,
         goal,
         description,
         criteria,
@@ -265,9 +285,10 @@ export class PlaybooksService {
       },
     };
 
-    const result = await internalRequest(this.sdk, 
+    const result = await internalRequest(
+      this.sdk,
       `/ai/playbooks/${playbookId}/goals`,
-      'POST',
+      "POST",
       params,
     );
     return result;
@@ -291,14 +312,15 @@ export class PlaybooksService {
     this.sdk.validateParams(
       { playbookId, goalId },
       {
-        playbookId: { type: 'string', required: true },
-        goalId: { type: 'string', required: true },
+        playbookId: { type: "string", required: true },
+        goalId: { type: "string", required: true },
       },
     );
 
-    const result = await internalRequest(this.sdk, 
+    const result = await internalRequest(
+      this.sdk,
       `/ai/playbooks/${playbookId}/goals/${goalId}`,
-      'GET',
+      "GET",
     );
     return result;
   }
@@ -319,13 +341,14 @@ export class PlaybooksService {
     this.sdk.validateParams(
       { playbookId },
       {
-        playbookId: { type: 'string', required: true },
+        playbookId: { type: "string", required: true },
       },
     );
 
-    const result = await internalRequest(this.sdk, 
+    const result = await internalRequest(
+      this.sdk,
       `/ai/playbooks/${playbookId}/goals`,
-      'GET',
+      "GET",
     );
     return result;
   }
@@ -383,20 +406,20 @@ export class PlaybooksService {
         recordTypeId,
       },
       {
-        goalId: { type: 'string', required: true },
-        playbookGoalTypeId: { type: 'string', required: true },
-        goal: { type: 'string', required: false },
-        description: { type: 'string', required: false },
-        criteria: { type: 'object', required: false },
-        scoreType: { type: 'string', required: false },
-        weight: { type: 'number', required: false },
-        requiredForPass: { type: 'boolean', required: false },
-        role: { type: 'string', required: false },
-        signal: { type: 'string', required: false },
-        window: { type: 'string', required: false },
-        windowTurns: { type: 'number', required: false },
-        visibility: { type: 'string', required: false },
-        recordTypeId: { type: 'string', required: false },
+        goalId: { type: "string", required: true },
+        playbookGoalTypeId: { type: "string", required: true },
+        goal: { type: "string", required: false },
+        description: { type: "string", required: false },
+        criteria: { type: "object", required: false },
+        scoreType: { type: "string", required: false },
+        weight: { type: "number", required: false },
+        requiredForPass: { type: "boolean", required: false },
+        role: { type: "string", required: false },
+        signal: { type: "string", required: false },
+        window: { type: "string", required: false },
+        windowTurns: { type: "number", required: false },
+        visibility: { type: "string", required: false },
+        recordTypeId: { type: "string", required: false },
       },
     );
 
@@ -418,9 +441,10 @@ export class PlaybooksService {
       },
     };
 
-    const result = await internalRequest(this.sdk, 
+    const result = await internalRequest(
+      this.sdk,
       `/ai/playbooks/goals/${goalId}`,
-      'PUT',
+      "PUT",
       params,
     );
     return result;
@@ -442,13 +466,14 @@ export class PlaybooksService {
     this.sdk.validateParams(
       { goalId },
       {
-        goalId: { type: 'string', required: true },
+        goalId: { type: "string", required: true },
       },
     );
 
-    const result = await internalRequest(this.sdk, 
+    const result = await internalRequest(
+      this.sdk,
       `/ai/playbooks/goals/${goalId}`,
-      'DELETE',
+      "DELETE",
     );
     return result;
   }
@@ -467,24 +492,27 @@ export class PlaybooksService {
    *   goalOrder: ['goal_3', 'goal_1', 'goal_2']
    * });
    */
-  async reorderPlaybookGoals({ playbookId, goalOrder }) {
+  async reorderPlaybookGoals({ playbookId, playbookVersionId, goalOrder }) {
     this.sdk.validateParams(
-      { playbookId, goalOrder },
+      { playbookId, playbookVersionId, goalOrder },
       {
-        playbookId: { type: 'string', required: true },
-        goalOrder: { type: 'array', required: true },
+        playbookId: { type: "string", required: true },
+        playbookVersionId: { type: "string", required: true },
+        goalOrder: { type: "array", required: true },
       },
     );
 
     const params = {
       body: {
+        playbookVersionId,
         goalOrder,
       },
     };
 
-    const result = await internalRequest(this.sdk, 
+    const result = await internalRequest(
+      this.sdk,
       `/ai/playbooks/${playbookId}/goals/reorder`,
-      'PUT',
+      "PUT",
       params,
     );
     return result;
@@ -527,15 +555,15 @@ export class PlaybooksService {
     this.sdk.validateParams(
       { name },
       {
-        name: { type: 'string', required: true },
-        description: { type: 'string', required: false },
-        keywords: { type: 'array', required: false },
-        recommendedPhase: { type: 'string', required: false },
-        window: { type: 'string', required: false },
-        windowTurns: { type: 'number', required: false },
-        role: { type: 'string', required: false },
-        signal: { type: 'string', required: false },
-        recordTypeId: { type: 'string', required: false },
+        name: { type: "string", required: true },
+        description: { type: "string", required: false },
+        keywords: { type: "array", required: false },
+        recommendedPhase: { type: "string", required: false },
+        window: { type: "string", required: false },
+        windowTurns: { type: "number", required: false },
+        role: { type: "string", required: false },
+        signal: { type: "string", required: false },
+        recordTypeId: { type: "string", required: false },
       },
     );
 
@@ -553,9 +581,10 @@ export class PlaybooksService {
       },
     };
 
-    const result = await internalRequest(this.sdk, 
-      '/ai/playbooks/goalTypes',
-      'POST',
+    const result = await internalRequest(
+      this.sdk,
+      "/ai/playbooks/goalTypes",
+      "POST",
       params,
     );
     return result;
@@ -577,13 +606,14 @@ export class PlaybooksService {
     this.sdk.validateParams(
       { goalTypeId },
       {
-        goalTypeId: { type: 'string', required: true },
+        goalTypeId: { type: "string", required: true },
       },
     );
 
-    const result = await internalRequest(this.sdk, 
+    const result = await internalRequest(
+      this.sdk,
       `/ai/playbooks/goalTypes/${goalTypeId}`,
-      'GET',
+      "GET",
     );
     return result;
   }
@@ -616,9 +646,10 @@ export class PlaybooksService {
       query: { limit, orderBy, orderDirection, recommendedPhase, recordTypeId },
     };
 
-    const result = await internalRequest(this.sdk, 
-      '/ai/playbooks/goalTypes',
-      'GET',
+    const result = await internalRequest(
+      this.sdk,
+      "/ai/playbooks/goalTypes",
+      "GET",
       params,
     );
     return result;
@@ -660,16 +691,16 @@ export class PlaybooksService {
     this.sdk.validateParams(
       { goalTypeId: id },
       {
-        goalTypeId: { type: 'string', required: true },
-        name: { type: 'string', required: false },
-        description: { type: 'string', required: false },
-        keywords: { type: 'array', required: false },
-        recommendedPhase: { type: 'string', required: false },
-        window: { type: 'string', required: false },
-        windowTurns: { type: 'number', required: false },
-        role: { type: 'string', required: false },
-        signal: { type: 'string', required: false },
-        recordTypeId: { type: 'string', required: false },
+        goalTypeId: { type: "string", required: true },
+        name: { type: "string", required: false },
+        description: { type: "string", required: false },
+        keywords: { type: "array", required: false },
+        recommendedPhase: { type: "string", required: false },
+        window: { type: "string", required: false },
+        windowTurns: { type: "number", required: false },
+        role: { type: "string", required: false },
+        signal: { type: "string", required: false },
+        recordTypeId: { type: "string", required: false },
       },
     );
 
@@ -687,9 +718,10 @@ export class PlaybooksService {
       },
     };
 
-    const result = await internalRequest(this.sdk, 
+    const result = await internalRequest(
+      this.sdk,
       `/ai/playbooks/goalTypes/${id}`,
-      'PUT',
+      "PUT",
       params,
     );
     return result;
@@ -711,13 +743,14 @@ export class PlaybooksService {
     this.sdk.validateParams(
       { goalTypeId },
       {
-        goalTypeId: { type: 'string', required: true },
+        goalTypeId: { type: "string", required: true },
       },
     );
 
-    const result = await internalRequest(this.sdk, 
+    const result = await internalRequest(
+      this.sdk,
       `/ai/playbooks/goalTypes/${goalTypeId}`,
-      'DELETE',
+      "DELETE",
     );
     return result;
   }
@@ -771,14 +804,14 @@ export class PlaybooksService {
     this.sdk.validateParams(
       { playbookId, sipCallId, taskId, workerId },
       {
-        playbookId: { type: 'string', required: true },
-        transcriptionSessionId: { type: 'string', required: false },
-        method: { type: 'string', required: false },
-        userId: { type: 'string', required: false },
-        recordTypeId: { type: 'string', required: false },
-        sipCallId: { type: 'string', required: false },
-        taskId: { type: 'string', required: false },
-        workerId: { type: 'string', required: false },
+        playbookId: { type: "string", required: true },
+        transcriptionSessionId: { type: "string", required: false },
+        method: { type: "string", required: false },
+        userId: { type: "string", required: false },
+        recordTypeId: { type: "string", required: false },
+        sipCallId: { type: "string", required: false },
+        taskId: { type: "string", required: false },
+        workerId: { type: "string", required: false },
       },
     );
 
@@ -794,9 +827,10 @@ export class PlaybooksService {
       },
     };
 
-    const result = await internalRequest(this.sdk, 
+    const result = await internalRequest(
+      this.sdk,
       `/ai/playbooks/sessions/${playbookId}`,
-      'POST',
+      "POST",
       params,
     );
     return result;
@@ -843,20 +877,21 @@ export class PlaybooksService {
     this.sdk.validateParams(
       { sessionId, taskId, workerId, userId },
       {
-        sessionId: { type: 'string', required: false },
-        taskId: { type: 'string', required: false },
-        workerId: { type: 'string', required: false },
-        userId: { type: 'string', required: false },
-        includeQa: { type: 'boolean', required: false },
+        sessionId: { type: "string", required: false },
+        taskId: { type: "string", required: false },
+        workerId: { type: "string", required: false },
+        userId: { type: "string", required: false },
+        includeQa: { type: "boolean", required: false },
       },
     );
 
     if (sessionId) {
       const query = {};
       if (includeQa) query.includeQa = 1;
-      const result = await internalRequest(this.sdk, 
+      const result = await internalRequest(
+        this.sdk,
         `/ai/playbooks/sessions/${sessionId}`,
-        'GET',
+        "GET",
         { query },
       );
       return result;
@@ -868,9 +903,10 @@ export class PlaybooksService {
     if (userId) query.userId = userId;
     if (includeQa) query.includeQa = 1;
 
-    const result = await internalRequest(this.sdk, 
+    const result = await internalRequest(
+      this.sdk,
       `/ai/playbooks/sessions`,
-      'GET',
+      "GET",
       { query },
     );
     return result;
@@ -923,14 +959,14 @@ export class PlaybooksService {
     this.sdk.validateParams(
       { sessionId },
       {
-        sessionId: { type: 'string', required: true },
-        passed: { type: 'boolean', required: false },
-        totalScore: { type: 'number', required: false },
-        achievedGoals: { type: 'number', required: false },
-        totalGoals: { type: 'number', required: false },
-        customerTotalScore: { type: 'number', required: false },
-        customerAchievedGoals: { type: 'number', required: false },
-        customerTotalGoals: { type: 'number', required: false },
+        sessionId: { type: "string", required: true },
+        passed: { type: "boolean", required: false },
+        totalScore: { type: "number", required: false },
+        achievedGoals: { type: "number", required: false },
+        totalGoals: { type: "number", required: false },
+        customerTotalScore: { type: "number", required: false },
+        customerAchievedGoals: { type: "number", required: false },
+        customerTotalGoals: { type: "number", required: false },
       },
     );
 
@@ -946,9 +982,10 @@ export class PlaybooksService {
       },
     };
 
-    const result = await internalRequest(this.sdk, 
+    const result = await internalRequest(
+      this.sdk,
       `/ai/playbooks/sessions/${sessionId}/complete`,
-      'PUT',
+      "PUT",
       params,
     );
     return result;
@@ -1026,15 +1063,15 @@ export class PlaybooksService {
     this.sdk.validateParams(
       { sessionId, goalId },
       {
-        sessionId: { type: 'string', required: true },
-        goalId: { type: 'string', required: true },
-        achieved: { type: 'boolean', required: false },
-        score: { type: 'number', required: false },
-        reason: { type: 'string', required: false },
-        confidence: { type: 'number', required: false },
-        evidence: { type: 'array', required: false },
-        role: { type: 'string', required: false },
-        missed: { type: 'boolean', required: false },
+        sessionId: { type: "string", required: true },
+        goalId: { type: "string", required: true },
+        achieved: { type: "boolean", required: false },
+        score: { type: "number", required: false },
+        reason: { type: "string", required: false },
+        confidence: { type: "number", required: false },
+        evidence: { type: "array", required: false },
+        role: { type: "string", required: false },
+        missed: { type: "boolean", required: false },
       },
     );
 
@@ -1051,9 +1088,10 @@ export class PlaybooksService {
       },
     };
 
-    const result = await internalRequest(this.sdk, 
+    const result = await internalRequest(
+      this.sdk,
       `/ai/playbooks/sessions/${sessionId}/goal`,
-      'POST',
+      "POST",
       params,
     );
     return result;
@@ -1071,15 +1109,15 @@ export class PlaybooksService {
     this.sdk.validateParams(
       { sessionId, goals },
       {
-        sessionId: { type: 'string', required: true },
-        goals: { type: 'array', required: true },
+        sessionId: { type: "string", required: true },
+        goals: { type: "array", required: true },
       },
     );
 
     const result = await internalRequest(
       this.sdk,
       `/ai/playbooks/sessions/${sessionId}/qa`,
-      'PUT',
+      "PUT",
       { body: { goals } },
     );
     return result;
@@ -1096,14 +1134,14 @@ export class PlaybooksService {
     this.sdk.validateParams(
       { sessionId },
       {
-        sessionId: { type: 'string', required: true },
+        sessionId: { type: "string", required: true },
       },
     );
 
     const result = await internalRequest(
       this.sdk,
       `/ai/playbooks/sessions/${sessionId}/qa`,
-      'GET',
+      "GET",
     );
     return result;
   }
@@ -1123,14 +1161,16 @@ export class PlaybooksService {
     limit,
     beforeReviewedAt,
     beforeId,
+    lookbackDays,
   }) {
     this.sdk.validateParams(
       { playbookGoalId },
       {
-        playbookGoalId: { type: 'string', required: true },
-        limit: { type: 'number', required: false },
-        beforeReviewedAt: { type: 'string', required: false },
-        beforeId: { type: 'string', required: false },
+        playbookGoalId: { type: "string", required: true },
+        limit: { type: "number", required: false },
+        beforeReviewedAt: { type: "string", required: false },
+        beforeId: { type: "string", required: false },
+        lookbackDays: { type: "number", required: false },
       },
     );
 
@@ -1138,11 +1178,12 @@ export class PlaybooksService {
     if (limit != null) query.limit = limit;
     if (beforeReviewedAt) query.beforeReviewedAt = beforeReviewedAt;
     if (beforeId) query.beforeId = beforeId;
+    if (lookbackDays != null) query.lookbackDays = lookbackDays;
 
     const result = await internalRequest(
       this.sdk,
       `/ai/playbooks/goals/${playbookGoalId}/disagreements`,
-      'GET',
+      "GET",
       { query },
     );
     return result;
@@ -1155,18 +1196,287 @@ export class PlaybooksService {
    * @param {string} options.playbookId
    * @returns {Promise<Object>} agree-rate payload
    */
-  async getQaAgreeRate({ playbookId }) {
+  async getQaAgreeRate({ playbookId, lookbackDays }) {
     this.sdk.validateParams(
       { playbookId },
       {
-        playbookId: { type: 'string', required: true },
+        playbookId: { type: "string", required: true },
+        lookbackDays: { type: "number", required: false },
+      },
+    );
+
+    const query = {};
+    if (lookbackDays != null) query.lookbackDays = lookbackDays;
+
+    const result = await internalRequest(
+      this.sdk,
+      `/ai/playbooks/${playbookId}/qa/agree-rate`,
+      "GET",
+      { query },
+    );
+    return result;
+  }
+
+  /**
+   * Pending recommendations for a playbook. Does not generate or apply.
+   *
+   * @param {Object} options
+   * @param {string} options.playbookId
+   * @returns {Promise<Object>}
+   */
+  async listRecommendations({ playbookId, playbookVersionId }) {
+    this.sdk.validateParams(
+      { playbookId },
+      {
+        playbookId: { type: "string", required: true },
+        playbookVersionId: { type: "string", required: false },
+      },
+    );
+
+    const query = {};
+    if (playbookVersionId) query.playbookVersionId = playbookVersionId;
+
+    const result = await internalRequest(
+      this.sdk,
+      `/ai/playbooks/${playbookId}/recommendations`,
+      "GET",
+      { query },
+    );
+    return result;
+  }
+
+  /**
+   * One set of goal edits from QA disagreements in a lookback window.
+   * Does not apply them.
+   *
+   * @param {Object} options
+   * @param {string} options.playbookId
+   * @param {number} options.lookbackDays - 7, 30, or 90
+   * @param {string} [options.playbookGoalId]
+   * @returns {Promise<Object>}
+   */
+  async generateRecommendations({
+    playbookId,
+    lookbackDays,
+    playbookGoalId,
+    playbookVersionId,
+  }) {
+    this.sdk.validateParams(
+      { playbookId, lookbackDays },
+      {
+        playbookId: { type: "string", required: true },
+        lookbackDays: { type: "number", required: true },
+        playbookGoalId: { type: "string", required: false },
+        playbookVersionId: { type: "string", required: false },
       },
     );
 
     const result = await internalRequest(
       this.sdk,
-      `/ai/playbooks/${playbookId}/qa/agree-rate`,
-      'GET',
+      `/ai/playbooks/${playbookId}/recommendations`,
+      "POST",
+      { body: { lookbackDays, playbookGoalId, playbookVersionId } },
+    );
+    return result;
+  }
+
+  /**
+   * Apply pending recommendations together. One failure rolls the set back.
+   *
+   * @param {Object} options
+   * @param {string} options.playbookId
+   * @param {string[]} options.suggestionIds
+   * @returns {Promise<Object>}
+   */
+  async applyRecommendations({ playbookId, sourceVersionId, suggestionIds }) {
+    this.sdk.validateParams(
+      { playbookId, sourceVersionId, suggestionIds },
+      {
+        playbookId: { type: "string", required: true },
+        sourceVersionId: { type: "string", required: true },
+        suggestionIds: { type: "array", required: true },
+      },
+    );
+
+    const result = await internalRequest(
+      this.sdk,
+      `/ai/playbooks/${playbookId}/recommendations/apply`,
+      "POST",
+      { body: { sourceVersionId, suggestionIds } },
+    );
+    return result;
+  }
+
+  /**
+   * Versions of a playbook. Backfills version 1 when none exist.
+   *
+   * @param {Object} options
+   * @param {string} options.playbookId
+   * @returns {Promise<Object>} { versions, currentVersionId }
+   */
+  async listVersions({ playbookId }) {
+    this.sdk.validateParams(
+      { playbookId },
+      { playbookId: { type: "string", required: true } },
+    );
+
+    const result = await internalRequest(
+      this.sdk,
+      `/ai/playbooks/${playbookId}/versions`,
+      "GET",
+    );
+    return result;
+  }
+
+  /**
+   * Copy a version into a new draft. Optional suggestions apply onto the copies.
+   *
+   * @param {Object} options
+   * @param {string} options.playbookId
+   * @param {string} options.sourceVersionId
+   * @param {string[]} [options.suggestionIds]
+   * @returns {Promise<Object>} { version, goals }
+   */
+  async createVersion({ playbookId, sourceVersionId, suggestionIds }) {
+    this.sdk.validateParams(
+      { playbookId, sourceVersionId },
+      {
+        playbookId: { type: "string", required: true },
+        sourceVersionId: { type: "string", required: true },
+        suggestionIds: { type: "array", required: false },
+      },
+    );
+
+    const result = await internalRequest(
+      this.sdk,
+      `/ai/playbooks/${playbookId}/versions`,
+      "POST",
+      { body: { sourceVersionId, suggestionIds } },
+    );
+    return result;
+  }
+
+  /**
+   * Publish a draft version. Does not make it current.
+   *
+   * @param {Object} options
+   * @param {string} options.playbookId
+   * @param {string} options.versionId
+   * @returns {Promise<Object>}
+   */
+  async publishVersion({ playbookId, versionId }) {
+    this.sdk.validateParams(
+      { playbookId, versionId },
+      {
+        playbookId: { type: "string", required: true },
+        versionId: { type: "string", required: true },
+      },
+    );
+
+    const result = await internalRequest(
+      this.sdk,
+      `/ai/playbooks/${playbookId}/versions/${versionId}/publish`,
+      "POST",
+      { body: {} },
+    );
+    return result;
+  }
+
+  /**
+   * Point new sessions at a published version and mark the playbook published.
+   *
+   * @param {Object} options
+   * @param {string} options.playbookId
+   * @param {string} options.versionId
+   * @returns {Promise<Object>} { currentVersionId, isPublished, version }
+   */
+  /**
+   * Delete a draft that was never published.
+   *
+   * @param {Object} options
+   * @param {string} options.playbookId
+   * @param {string} options.versionId
+   * @returns {Promise<Object>} { deleted, versionId }
+   */
+  async deleteVersion({ playbookId, versionId }) {
+    this.sdk.validateParams(
+      { playbookId, versionId },
+      {
+        playbookId: { type: "string", required: true },
+        versionId: { type: "string", required: true },
+      },
+    );
+
+    const result = await internalRequest(
+      this.sdk,
+      `/ai/playbooks/${playbookId}/versions/${versionId}`,
+      "DELETE",
+    );
+    return result;
+  }
+
+  async setCurrentVersion({ playbookId, versionId }) {
+    this.sdk.validateParams(
+      { playbookId, versionId },
+      {
+        playbookId: { type: "string", required: true },
+        versionId: { type: "string", required: true },
+      },
+    );
+
+    const result = await internalRequest(
+      this.sdk,
+      `/ai/playbooks/${playbookId}/versions/${versionId}/current`,
+      "POST",
+      { body: {} },
+    );
+    return result;
+  }
+
+  /**
+   * QA disagreements across a playbook version.
+   *
+   * @param {Object} options
+   * @param {string} options.playbookId
+   * @param {string} [options.playbookVersionId]
+   * @param {number} [options.lookbackDays]
+   * @param {number} [options.limit]
+   * @param {string} [options.beforeReviewedAt]
+   * @param {string} [options.beforeId]
+   * @returns {Promise<Object>}
+   */
+  async listPlaybookDisagreements({
+    playbookId,
+    playbookVersionId,
+    lookbackDays,
+    limit,
+    beforeReviewedAt,
+    beforeId,
+  }) {
+    this.sdk.validateParams(
+      { playbookId },
+      {
+        playbookId: { type: "string", required: true },
+        playbookVersionId: { type: "string", required: false },
+        lookbackDays: { type: "number", required: false },
+        limit: { type: "number", required: false },
+        beforeReviewedAt: { type: "string", required: false },
+        beforeId: { type: "string", required: false },
+      },
+    );
+
+    const query = {};
+    if (playbookVersionId) query.playbookVersionId = playbookVersionId;
+    if (lookbackDays != null) query.lookbackDays = lookbackDays;
+    if (limit != null) query.limit = limit;
+    if (beforeReviewedAt) query.beforeReviewedAt = beforeReviewedAt;
+    if (beforeId) query.beforeId = beforeId;
+
+    const result = await internalRequest(
+      this.sdk,
+      `/ai/playbooks/${playbookId}/qa/disagreements`,
+      "GET",
+      { query },
     );
     return result;
   }
@@ -1182,14 +1492,14 @@ export class PlaybooksService {
     this.sdk.validateParams(
       { playbookGoalId },
       {
-        playbookGoalId: { type: 'string', required: true },
+        playbookGoalId: { type: "string", required: true },
       },
     );
 
     const result = await internalRequest(
       this.sdk,
       `/ai/playbooks/goals/${playbookGoalId}/suggest`,
-      'POST',
+      "POST",
       { body: {} },
     );
     return result;
@@ -1208,15 +1518,15 @@ export class PlaybooksService {
     this.sdk.validateParams(
       { suggestionId, action },
       {
-        suggestionId: { type: 'string', required: true },
-        action: { type: 'string', required: true },
+        suggestionId: { type: "string", required: true },
+        action: { type: "string", required: true },
       },
     );
 
     const result = await internalRequest(
       this.sdk,
       `/ai/playbooks/suggestions/${suggestionId}/resolve`,
-      'POST',
+      "POST",
       { body: { action, proposed } },
     );
     return result;

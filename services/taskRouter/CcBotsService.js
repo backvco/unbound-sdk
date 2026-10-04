@@ -31,6 +31,7 @@ export class CcBotsService {
    * @param {string} params.slug
    * @param {string} [params.soulMd]
    * @param {string} [params.modelId] platform catalog id
+   * @param {string} [params.modelTier] basic | standard | advanced
    * @param {string} [params.provider]
    * @param {string} [params.model]
    * @param {string} [params.queueId]
@@ -42,6 +43,7 @@ export class CcBotsService {
     slug,
     soulMd,
     modelId,
+    modelTier,
     provider,
     model,
     queueId,
@@ -57,6 +59,7 @@ export class CcBotsService {
     const body = { name, slug };
     if (soulMd !== undefined) body.soulMd = soulMd;
     if (modelId !== undefined) body.modelId = modelId;
+    if (modelTier !== undefined) body.modelTier = modelTier;
     if (provider !== undefined) body.provider = provider;
     if (model !== undefined) body.model = model;
     if (queueId !== undefined) body.queueId = queueId;
@@ -90,6 +93,7 @@ export class CcBotsService {
       'provider',
       'model',
       'modelId',
+      'modelTier',
       'mediaProvider',
       'mediaModel',
       'voiceId',
@@ -192,6 +196,7 @@ export class CcBotsService {
       'provider',
       'model',
       'modelId',
+      'modelTier',
       'mediaProvider',
       'mediaModel',
       'voiceId',

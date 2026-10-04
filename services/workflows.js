@@ -1,31 +1,20 @@
 import { internalRequest } from '../base.js';
+import { WorkflowToolsService, WorkflowMcpTokensService } from './workflowTools.js';
+
 export class WorkflowsService {
   constructor(sdk) {
     this.sdk = sdk;
     this.items = new WorkflowItemsService(sdk);
     this.connections = new WorkflowConnectionsService(sdk);
     this.sessions = new WorkflowSessionsService(sdk);
+    // P5: MCP tools/tokens surface (workflows-v2-plan.md "REST twin + SDK" row).
+    this.tools = new WorkflowToolsService(sdk);
+    this.mcpTokens = new WorkflowMcpTokensService(sdk);
   }
 
-  async getSettings(type) {
-    this.sdk.validateParams(
-      { type },
-      {
-        type: { type: 'string', required: true },
-      },
-    );
-
+  async listModules({ workflowType } = {}) {
     const params = {
-      query: { type },
-    };
-
-    const result = await internalRequest(this.sdk, '/workflows/settings', 'GET', params);
-    return result;
-  }
-
-  async listModules() {
-    const params = {
-      query: {},
+      query: workflowType ? { workflowType } : {},
     };
 
     const result = await internalRequest(this.sdk, '/workflows/modules', 'GET', params);
@@ -104,6 +93,48 @@ export class WorkflowsService {
       '/workflows/timeControl/simulate',
       'POST',
       params,
+    );
+    return result;
+  }
+
+  // Delete guard (soft-delete workflows / hard-delete draft versions):
+  // resolves everything a workflow (or a specific draft version) is
+  // referenced by, so the client can block the delete with a named list
+  // instead of a generic FK error. Exactly one of workflowId/
+  // workflowVersionId is expected.
+  async references({ workflowId, workflowVersionId } = {}) {
+    this.sdk.validateParams(
+      { workflowId, workflowVersionId },
+      {
+        workflowId: { type: 'string', required: false },
+        workflowVersionId: { type: 'string', required: false },
+      },
+    );
+
+    const query = {};
+    if (workflowId) query.workflowId = workflowId;
+    if (workflowVersionId) query.workflowVersionId = workflowVersionId;
+
+    const result = await internalRequest(this.sdk, '/workflows/references', 'GET', {
+      query,
+    });
+    return result;
+  }
+
+  // P6 §6 — variable catalogue (inputs/system/context/module outputs) for
+  // the designer's `{{` autocomplete + variables panel.
+  async variables(versionId) {
+    this.sdk.validateParams(
+      { versionId },
+      {
+        versionId: { type: 'string', required: true },
+      },
+    );
+
+    const result = await internalRequest(
+      this.sdk,
+      `/workflows/${versionId}/variables`,
+      'GET',
     );
     return result;
   }
@@ -403,11 +434,10 @@ export class WorkflowSessionsService {
       },
     );
 
-    const result = await internalRequest(this.sdk, 
-      `/workflows/sessions/${sessionId}`,
-      'GET',
-    );
-    return result;
+    return this.sdk.objects.byId({
+      object: 'workflowSessions',
+      id: sessionId,
+    });
   }
 
   async update(sessionId, updateData) {
@@ -431,35 +461,28 @@ export class WorkflowSessionsService {
     return result;
   }
 
-  async complete(sessionId) {
+  /**
+   * @param {string} sessionId
+   * @param {string} [reason] - passed through as body.reason -- the
+   *   sessionComplete.js controller already accepts this (defaults to
+   *   'completed' server-side); P7's exitProgramMember.js passes
+   *   'programExit'. Backward compatible -- omitting it is unchanged.
+   */
+  async complete(sessionId, reason) {
     this.sdk.validateParams(
-      { sessionId },
+      { sessionId, reason },
       {
         sessionId: { type: 'string', required: true },
+        reason: { type: 'string', required: false },
       },
     );
 
-    const params = {};
+    const params = reason ? { body: { reason } } : {};
 
-    const result = await internalRequest(this.sdk, 
+    const result = await internalRequest(this.sdk,
       `/workflows/session/${sessionId}/complete`,
       'PUT',
       params,
-    );
-    return result;
-  }
-
-  async delete(sessionId) {
-    this.sdk.validateParams(
-      { sessionId },
-      {
-        sessionId: { type: 'string', required: true },
-      },
-    );
-
-    const result = await internalRequest(this.sdk, 
-      `/workflows/sessions/${sessionId}`,
-      'DELETE',
     );
     return result;
   }
@@ -499,7 +522,14 @@ export class WorkflowSessionsService {
     return result;
   }
 
-  async analytics(workflowVersionId, { startDate, endDate } = {}) {
+  // search: phone/email/name, same matching as sessions.list(). allVersions:
+  // widen the summary cards + abandoned-by-module to every version of this
+  // version's workflow (module/connector traffic on the canvas always
+  // stays scoped to workflowVersionId -- the canvas is per-version).
+  async analytics(
+    workflowVersionId,
+    { startDate, endDate, search, allVersions } = {},
+  ) {
     this.sdk.validateParams(
       { workflowVersionId, startDate, endDate },
       {
@@ -509,15 +539,95 @@ export class WorkflowSessionsService {
       },
     );
 
-    const params = {
-      query: { startDate, endDate },
-    };
+    const query = { startDate, endDate };
+    if (search) query.search = search;
+    if (allVersions) query.allVersions = true;
 
-    const result = await internalRequest(this.sdk, 
+    const result = await internalRequest(this.sdk,
       `/workflows/${workflowVersionId}/analytics`,
       'GET',
-      params,
+      { query },
     );
+    return result;
+  }
+
+  // P10 click-to-filter: GET /workflows/:workflowVersionId/sessions ->
+  // {sessionIds}. filter is {workflowItemId?, fromItemId?, toItemId?,
+  // startDate?, endDate?} -- workflowItemId alone, or fromItemId+toItemId
+  // together, is required (validated server-side in sessionsByPath.js).
+  async sessionsByPath(workflowVersionId, filter = {}) {
+    this.sdk.validateParams(
+      { workflowVersionId },
+      {
+        workflowVersionId: { type: 'string', required: true },
+      },
+    );
+
+    const { workflowItemId, fromItemId, toItemId, startDate, endDate } =
+      filter || {};
+    const query = {};
+    if (workflowItemId) query.workflowItemId = workflowItemId;
+    if (fromItemId) query.fromItemId = fromItemId;
+    if (toItemId) query.toItemId = toItemId;
+    if (startDate) query.startDate = startDate;
+    if (endDate) query.endDate = endDate;
+
+    const result = await internalRequest(
+      this.sdk,
+      `/workflows/${workflowVersionId}/sessions`,
+      'GET',
+      { query },
+    );
+    return result;
+  }
+
+  // Sessions page rebuild: sessions for a workflow across every version
+  // (pass workflowId) or one version (pass workflowVersionId), with
+  // server-side search across phone/email/caller-name so the list shows a
+  // real caller instead of a raw session id. GET /workflows/sessions/list.
+  // Either workflowId or workflowVersionId is required; the rest is
+  // optional (workflowItemId / fromItemId+toItemId reuse the same P10
+  // path-filter shape as sessionsByPath, and require workflowVersionId).
+  async list({
+    workflowId,
+    workflowVersionId,
+    search,
+    workflowItemId,
+    fromItemId,
+    toItemId,
+    startDate,
+    endDate,
+    limit,
+    before,
+    activeOnly,
+  } = {}) {
+    this.sdk.validateParams(
+      { workflowId, workflowVersionId },
+      {
+        workflowId: { type: 'string', required: false },
+        workflowVersionId: { type: 'string', required: false },
+      },
+    );
+    if (!workflowId && !workflowVersionId) {
+      throw new Error('workflowId or workflowVersionId is required.');
+    }
+
+    const query = {};
+    if (workflowId) query.workflowId = workflowId;
+    if (workflowVersionId) query.workflowVersionId = workflowVersionId;
+    if (search) query.search = search;
+    if (workflowItemId) query.workflowItemId = workflowItemId;
+    if (fromItemId) query.fromItemId = fromItemId;
+    if (toItemId) query.toItemId = toItemId;
+    if (startDate) query.startDate = startDate;
+    if (endDate) query.endDate = endDate;
+    if (limit) query.limit = limit;
+    if (before) query.before = before;
+    if (activeOnly) query.activeOnly = true;
+
+    const result = await internalRequest(this.sdk, '/workflows/sessions/list', 'GET', {
+      query,
+    });
     return result;
   }
 }

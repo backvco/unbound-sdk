@@ -24,6 +24,10 @@ export class SmsService {
    * @param {string} [params.taskId] - Task the message was sent under (multi-channel-per-task attribution)
    * @param {boolean} [params.force] - Force-send past a busy-conversation
    *   (409 TEXT_CONVERSATION_BUSY) collision
+   * @param {boolean} [params.system] - Internal/master-auth-only: skip
+   *   people/company auto-link and conversation open/bump, tag the row
+   *   isSystem=1 (P15, verification-code sends). Ignored unless the caller
+   *   holds internal/master auth.
    * @returns {Promise<Object>} Message details
    */
   async send({
@@ -38,6 +42,7 @@ export class SmsService {
     engagementSessionId,
     taskId,
     force,
+    system,
   }) {
     const messageData = {};
     if (from) messageData.from = from;
@@ -50,6 +55,7 @@ export class SmsService {
     if (engagementSessionId) messageData.engagementSessionId = engagementSessionId;
     if (taskId) messageData.taskId = taskId;
     if (force !== undefined) messageData.force = force;
+    if (system !== undefined) messageData.system = system;
 
     // `to` is string | string[] (group MMS, up to 8 recipients) --
     // validated by hand since sdk.validateParams has no multi-type support
@@ -79,6 +85,7 @@ export class SmsService {
         engagementSessionId: { type: 'string', required: false },
         taskId: { type: 'string', required: false },
         force: { type: 'boolean', required: false },
+        system: { type: 'boolean', required: false },
       },
     );
 
