@@ -568,14 +568,23 @@ export class BaseSDK {
         return handleUnauthorized(this, {
           status: response.status,
           endpoint,
+          method,
           alreadyRetried: retryCtx?.originalParams?.__skipAutoRefresh === true,
           originalError: httpError,
           retry: () =>
+            // forceFetch: true (not retryCtx.forceFetch) -- the retry must
+            // always go over plain HTTP, never the original transport. A
+            // socket transport call that 401'd still holds the pre-rotation
+            // JWT (the rotation reaches the socket asynchronously via NATS),
+            // so retrying over the same socket would 401 again and trigger
+            // onUnauthorized even though the refresh above just succeeded.
+            // See _getAvailableTransport (base.js:~185): forceFetch skips
+            // transports entirely and goes straight to HTTP.
             this.#request(
               endpoint,
               method,
               { ...(retryCtx.originalParams || {}), __skipAutoRefresh: true },
-              retryCtx.forceFetch,
+              true,
             ),
         });
       }

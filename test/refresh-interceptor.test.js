@@ -21,10 +21,17 @@ test('shouldAttemptRefresh :: false when autoRefresh is off', () => {
   assert.equal(shouldAttemptRefresh(sdk, 401, '/objects'), false);
 });
 
-test('shouldAttemptRefresh :: false for /login* endpoints (never refresh a refresh)', () => {
+test('shouldAttemptRefresh :: false for POST /login/refresh, POST /login, DELETE /login (never refresh a refresh)', () => {
   const sdk = makeSdk();
-  assert.equal(shouldAttemptRefresh(sdk, 401, '/login/refresh'), false);
-  assert.equal(shouldAttemptRefresh(sdk, 401, '/login'), false);
+  assert.equal(shouldAttemptRefresh(sdk, 401, '/login/refresh', 'POST'), false);
+  assert.equal(shouldAttemptRefresh(sdk, 401, '/login', 'POST'), false);
+  assert.equal(shouldAttemptRefresh(sdk, 401, '/login', 'DELETE'), false);
+});
+
+test('shouldAttemptRefresh :: true for GET /login/validate and other /login/* GETs (reload after access-cookie expiry must recover)', () => {
+  const sdk = makeSdk();
+  assert.equal(shouldAttemptRefresh(sdk, 401, '/login/validate', 'GET'), true);
+  assert.equal(shouldAttemptRefresh(sdk, 401, '/login/sessions', 'GET'), true);
 });
 
 test('shouldAttemptRefresh :: false for non-401 status', () => {
@@ -189,6 +196,23 @@ test('handleUnauthorized :: two different SDK instances refresh independently (n
   assert.equal(sdkA.token, 'a-new-token');
   assert.equal(sdkB.token, 'b-new-token');
   assert.deepEqual(calls.sort(), ['a', 'b']);
+});
+
+test('handleUnauthorized :: cookie-mode refresh (no token in response) clears the stale in-memory access token', async () => {
+  const sdk = makeSdk({
+    refreshImpl: async () => ({}), // cookie clients: no token string, Set-Cookie already rotated
+  });
+  sdk.token = 'stale-bearer-token';
+
+  const result = await handleUnauthorized(sdk, {
+    status: 401,
+    endpoint: '/objects',
+    originalError: new Error('401'),
+    retry: async () => 'ok',
+  });
+
+  assert.equal(sdk.token, null);
+  assert.equal(result, 'ok');
 });
 
 test('handleUnauthorized :: retry itself comes back 401 :: calls onUnauthorized with the retry error, rethrows it', async () => {
