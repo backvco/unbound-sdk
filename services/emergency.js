@@ -9,6 +9,19 @@ export class EmergencyService {
     return await internalRequest(this.sdk, '/emergency/me', 'GET', {});
   }
 
+  async deleteMyLocation() {
+    return await internalRequest(this.sdk, '/emergency/me', 'DELETE', {});
+  }
+
+  async listPersonalPlaces() {
+    return await internalRequest(this.sdk, '/emergency/personal', 'GET', {});
+  }
+
+  async deletePersonalPlace(id) {
+    this.sdk.validateParams({ id }, { id: { type: 'string', required: true } });
+    return await internalRequest(this.sdk, `/emergency/personal/${id}`, 'DELETE', {});
+  }
+
   async saveMyLocation(body) {
     this.sdk.validateParams(
       { body },
@@ -49,6 +62,18 @@ export class EmergencyService {
     );
     return await internalRequest(this.sdk, `/emergency/sites/${id}`, 'PATCH', {
       body,
+    });
+  }
+
+  async listSiteDevices(id) {
+    this.sdk.validateParams({ id }, { id: { type: 'string', required: true } });
+    return await internalRequest(this.sdk, `/emergency/sites/${id}/devices`, 'GET', {});
+  }
+
+  async listSiteCalls(id, query = {}) {
+    this.sdk.validateParams({ id }, { id: { type: 'string', required: true } });
+    return await internalRequest(this.sdk, `/emergency/sites/${id}/calls`, 'GET', {
+      query,
     });
   }
 
