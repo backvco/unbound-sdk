@@ -1038,6 +1038,8 @@ export class ObjectsService {
     description = null,
     feedPostChanges = null,
     feedPostWindowSeconds = null,
+    showInNav = null,
+    navLabel = null,
   }) {
     this.sdk.validateParams(
       {
@@ -1047,6 +1049,8 @@ export class ObjectsService {
         description,
         feedPostChanges,
         feedPostWindowSeconds,
+        showInNav,
+        navLabel,
       },
       {
         objectName: { type: 'string', required: true },
@@ -1055,6 +1059,8 @@ export class ObjectsService {
         description: { type: 'string', required: false },
         feedPostChanges: { type: 'boolean', required: false },
         feedPostWindowSeconds: { type: 'number', required: false },
+        showInNav: { type: 'boolean', required: false },
+        navLabel: { type: 'string', required: false },
       },
     );
 
@@ -1065,6 +1071,8 @@ export class ObjectsService {
     if (feedPostChanges !== null) body.feedPostChanges = feedPostChanges;
     if (feedPostWindowSeconds !== null)
       body.feedPostWindowSeconds = feedPostWindowSeconds;
+    if (showInNav !== null) body.showInNav = showInNav;
+    if (navLabel !== null) body.navLabel = navLabel;
 
     const params = { body };
 
