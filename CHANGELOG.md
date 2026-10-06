@@ -1,3 +1,12 @@
+## 4.13.127
+
+- feat: `sdk.messageTemplates.templates.preview({templateId|body, peopleId})` — `POST /messageTemplates/templates/:id/preview` (or `/templates/preview` with a raw `body` and no saved template) — interpolated text + unresolved-variable report + SMS fits/segment count (journeys-plan.md §6.4)
+- feat: `sdk.messageTemplates.templates.sendTest(id)` — `POST /messageTemplates/templates/:id/sendTest`, sends to the caller's own on-file number only
+- feat: `sdk.messageTemplates.templates.usage(id)` — `GET /messageTemplates/templates/:id/usage` → `{journeyCount, activeMemberCount, journeys}`
+- feat: `sdk.messageTemplates.templates.versions.list(templateId)` — `GET /messageTemplates/templates/:id/versions`; `.restore(templateId, version)` — `POST /messageTemplates/templates/:id/versions/:version/restore` (restore always appends a new version)
+- feat: `sdk.messageTemplates.templates.create()`/`.update()` accept `media` (array of `{url, type, name?}`, MMS attachments); responses include `media` + `version`
+- new export: `MessageTemplateVersionsService`
+
 ## 4.13.124
 
 - feat: `sdk.layouts.listSystem()` — `GET /layouts/system`, the GLOBAL system layouts (tier='system', 'home' excluded) for the Layout Builder list

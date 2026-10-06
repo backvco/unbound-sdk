@@ -339,7 +339,10 @@ export { JourneyMembersService } from './services/journeys/JourneyMembersService
 export { EmergencyService } from './services/emergency.js';
 export { WebchatService, WebchatWidgetsService } from './services/webchat.js';
 export { CobrowseService, CobrowseVisitorService } from './services/cobrowse.js';
-export { MessageTemplatesService } from './services/messageTemplates.js';
+export {
+  MessageTemplatesService,
+  MessageTemplateVersionsService,
+} from './services/messageTemplates.js';
 export { WebchatVisitorService } from './services/webchat/VisitorService.js';
 export { ExternalOAuthService } from './services/externalOAuth.js';
 export { GoogleCalendarService } from './services/googleCalendar.js';

@@ -129,7 +129,8 @@ export class MessageTemplatesCrudService {
    * @param {string} options.body
    * @param {'draft'|'active'} [options.status]
    * @param {number} [options.sortOrder]
-   * @returns {Promise<Object>}
+   * @param {Array<{url: string, type: 'image'|'video'|'audio'|'document', name?: string}>} [options.media] - MMS attachments, max 10
+   * @returns {Promise<Object>} includes `version` (starts at 1; a version row is written on every save)
    */
   async create(options) {
     this.sdk.validateParams(
@@ -153,9 +154,12 @@ export class MessageTemplatesCrudService {
   }
 
   /**
-   * Update a stored message template.
+   * Update a stored message template. A name/body/media change writes a
+   * new row to the version history (a status-only or group-move save does
+   * not).
    * @param {string} id
    * @param {Object} options
+   * @param {Array<{url: string, type: 'image'|'video'|'audio'|'document', name?: string}>} [options.media]
    * @returns {Promise<Object>}
    */
   async update(id, options) {
@@ -182,6 +186,108 @@ export class MessageTemplatesCrudService {
       'DELETE',
     );
   }
+
+  /**
+   * Preview a template interpolated against a record (or a raw body with
+   * no saved template), with unresolved-variable highlighting and SMS
+   * character/segment count (journeys-plan.md §6.4). Pass either a saved
+   * `templateId` or a raw `body`.
+   * @param {Object} options
+   * @param {string} [options.templateId]
+   * @param {string} [options.body] - raw body when there is no saved template
+   * @param {string} [options.peopleId] - record to interpolate against
+   * @returns {Promise<{text: string, unresolved: string[], fits: boolean, segments: number}>}
+   */
+  async preview({ templateId, body, peopleId } = {}) {
+    if (!templateId && !body) {
+      throw new Error('preview requires templateId or body');
+    }
+    const endpoint = templateId
+      ? `/messageTemplates/templates/${templateId}/preview`
+      : '/messageTemplates/templates/preview';
+    return internalRequest(this.sdk, endpoint, 'POST', {
+      body: { templateId, body, peopleId },
+    });
+  }
+
+  /**
+   * Send a test SMS of the interpolated template to the caller's own
+   * on-file number (never an arbitrary address).
+   * @param {string} id
+   * @returns {Promise<{sent: boolean, to: string}>}
+   */
+  async sendTest(id) {
+    this.sdk.validateParams({ id }, { id: { type: 'string', required: true } });
+    return internalRequest(
+      this.sdk,
+      `/messageTemplates/templates/${id}/sendTest`,
+      'POST',
+    );
+  }
+
+  /**
+   * "Used by N journeys, M active members" (journeys-plan.md §6.4).
+   * @param {string} id
+   * @returns {Promise<{journeyCount: number, activeMemberCount: number, journeys: Object[]}>}
+   */
+  async usage(id) {
+    this.sdk.validateParams({ id }, { id: { type: 'string', required: true } });
+    return internalRequest(
+      this.sdk,
+      `/messageTemplates/templates/${id}/usage`,
+      'GET',
+    );
+  }
+}
+
+/**
+ * Version history for a stored message template (save is live; history +
+ * restore). A restore always appends a new version — history is
+ * append-only, never a destructive rewrite.
+ */
+export class MessageTemplateVersionsService {
+  constructor(sdk) {
+    this.sdk = sdk;
+  }
+
+  /**
+   * List a template's saved versions, newest first.
+   * @param {string} templateId
+   * @returns {Promise<Object[]>}
+   */
+  async list(templateId) {
+    this.sdk.validateParams(
+      { templateId },
+      { templateId: { type: 'string', required: true } },
+    );
+    return internalRequest(
+      this.sdk,
+      `/messageTemplates/templates/${templateId}/versions`,
+      'GET',
+    );
+  }
+
+  /**
+   * Restore a prior version — writes a NEW version with that version's
+   * content and returns the updated template.
+   * @param {string} templateId
+   * @param {number} version
+   * @returns {Promise<Object>}
+   */
+  async restore(templateId, version) {
+    this.sdk.validateParams(
+      { templateId, version },
+      {
+        templateId: { type: 'string', required: true },
+        version: { type: 'number', required: true },
+      },
+    );
+    return internalRequest(
+      this.sdk,
+      `/messageTemplates/templates/${templateId}/versions/${version}/restore`,
+      'POST',
+    );
+  }
 }
 
 export class MessageTemplatesService {
@@ -189,6 +295,7 @@ export class MessageTemplatesService {
     this.sdk = sdk;
     this.groups = new MessageTemplateGroupsService(sdk);
     this.templates = new MessageTemplatesCrudService(sdk);
+    this.templates.versions = new MessageTemplateVersionsService(sdk);
   }
 
   /**
