@@ -1040,6 +1040,7 @@ export class ObjectsService {
     feedPostWindowSeconds = null,
     showInNav = null,
     navLabel = null,
+    icon = null,
   }) {
     this.sdk.validateParams(
       {
@@ -1051,6 +1052,7 @@ export class ObjectsService {
         feedPostWindowSeconds,
         showInNav,
         navLabel,
+        icon,
       },
       {
         objectName: { type: 'string', required: true },
@@ -1061,6 +1063,7 @@ export class ObjectsService {
         feedPostWindowSeconds: { type: 'number', required: false },
         showInNav: { type: 'boolean', required: false },
         navLabel: { type: 'string', required: false },
+        icon: { type: 'string', required: false },
       },
     );
 
@@ -1073,6 +1076,7 @@ export class ObjectsService {
       body.feedPostWindowSeconds = feedPostWindowSeconds;
     if (showInNav !== null) body.showInNav = showInNav;
     if (navLabel !== null) body.navLabel = navLabel;
+    if (icon !== null) body.icon = icon;
 
     const params = { body };
 
