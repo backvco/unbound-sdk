@@ -1,10 +1,7 @@
-import { SmsTemplatesService } from './SmsTemplatesService.js';
-
 import { internalRequest } from '../../base.js';
 export class SmsService {
   constructor(sdk) {
     this.sdk = sdk;
-    this.templates = new SmsTemplatesService(sdk);
   }
 
   /**

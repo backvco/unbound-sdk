@@ -297,13 +297,6 @@ await api.messaging.email.send({
   htmlBody: '<h1>Hello World!</h1>',
 });
 
-// Templates
-await api.messaging.sms.templates.create({
-  name: 'welcome',
-  message: 'Welcome {{name}}!',
-  variables: { name: 'string' },
-});
-
 // Campaign Management
 await api.messaging.campaigns.tollFree.create({
   companyName: 'Acme Corp',
