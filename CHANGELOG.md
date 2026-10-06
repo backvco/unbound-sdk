@@ -1,3 +1,9 @@
+## 4.13.123
+
+- feat: `sdk.journeys` — list, get, create, update, archive, stats; `sdk.journeys.types` — list, get, create, update, remove; `sdk.journeys.goals` — list, create, update, remove (generic-object-backed, like `sdk.users.setStatus` wraps `sdk.objects.updateById`) (journeys-plan.md §2/§4, P2)
+- feat: `sdk.journeys.members` — list, get, enroll (dryRun), actions (bulk by ids or filter), fix, events — custom `/journeys/:id/members*` routes (journeyMembers is read-only via generic query, writes only through these)
+- removed: `sdk.objects.runMarketingProgramNow`, `sdk.objects.listMarketingProgramMembers` — moved to `sdk.journeys` (Programs strip, P2)
+
 ## 4.13.122
 
 - feat: `sdk.schedules` — list, get, create, update, remove, setAssignment, clearAssignment, usedBy, listHolidaySets, resolve, isOpen, nextOpen, simulate (journeys-plan.md §5)
