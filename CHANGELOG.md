@@ -1,3 +1,8 @@
+## 4.13.122
+
+- feat: `sdk.schedules` — list, get, create, update, remove, setAssignment, clearAssignment, usedBy, listHolidaySets, resolve, isOpen, nextOpen, simulate (journeys-plan.md §5)
+- feat: `sdk.schedules.timeOff` — list, listTeam, create, update, remove, isUserAway
+
 ## 4.13.116
 
 - feat: `sdk.lineGroups` — list, get, create, update, delete, extensionAvailable, routingTargets, lines, members
