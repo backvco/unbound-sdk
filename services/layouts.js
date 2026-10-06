@@ -177,15 +177,24 @@ export class LayoutsService {
     return result;
   }
 
-  async clone(id, { name } = {}) {
+  async listSystem() {
+    const result = await internalRequest(this.sdk, '/layouts/system', 'GET', {});
+    return result;
+  }
+
+  // recordTypeId is only sent when provided -- cloning a GLOBAL system layout
+  // into a tenant row targets a specific record type.
+  async clone(id, { name, recordTypeId } = {}) {
     this.sdk.validateParams(
       { id },
       { id: { type: 'string', required: true } },
     );
 
-    const params = {
-      body: { name },
-    };
+    const body = { name };
+    if (recordTypeId !== undefined && recordTypeId !== null) {
+      body.recordTypeId = recordTypeId;
+    }
+    const params = { body };
 
     const result = await internalRequest(this.sdk, `/layouts/${id}/clone`, 'POST', params);
     return result;

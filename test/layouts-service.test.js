@@ -48,6 +48,36 @@ describe('LayoutsService.clone', () => {
 	});
 });
 
+describe('LayoutsService.clone with recordTypeId', () => {
+	test('includes recordTypeId in the body when provided', async () => {
+		const { fakeSdk, calls } = buildFakeSdk();
+		const svc = new LayoutsService(fakeSdk);
+
+		await svc.clone('sys-1', { name: 'Company Detail', recordTypeId: 'rt-1' });
+
+		assert.equal(calls[0].endpoint, '/layouts/sys-1/clone');
+		assert.equal(calls[0].method, 'POST');
+		assert.deepEqual(calls[0].params, {
+			body: { name: 'Company Detail', recordTypeId: 'rt-1' },
+		});
+	});
+});
+
+describe('LayoutsService.listSystem', () => {
+	test('GETs /layouts/system', async () => {
+		const { fakeSdk, calls } = buildFakeSdk();
+		const svc = new LayoutsService(fakeSdk);
+
+		const result = await svc.listSystem();
+
+		assert.equal(calls.length, 1);
+		assert.equal(calls[0].endpoint, '/layouts/system');
+		assert.equal(calls[0].method, 'GET');
+		assert.deepEqual(calls[0].params, {});
+		assert.deepEqual(result, { ok: true });
+	});
+});
+
 describe('LayoutsService.getSystemSource', () => {
 	test('GETs /layouts/:id/system-source', async () => {
 		const { fakeSdk, calls } = buildFakeSdk();

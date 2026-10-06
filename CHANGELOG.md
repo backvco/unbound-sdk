@@ -1,3 +1,8 @@
+## 4.13.124
+
+- feat: `sdk.layouts.listSystem()` — `GET /layouts/system`, the GLOBAL system layouts (tier='system', 'home' excluded) for the Layout Builder list
+- feat: `sdk.layouts.clone(id, { name, recordTypeId })` — `recordTypeId` is sent only when provided (clone a system layout into a tenant record type)
+
 ## 4.13.123
 
 - feat: `sdk.journeys` — list, get, create, update, archive, stats; `sdk.journeys.types` — list, get, create, update, remove; `sdk.journeys.goals` — list, create, update, remove (generic-object-backed, like `sdk.users.setStatus` wraps `sdk.objects.updateById`) (journeys-plan.md §2/§4, P2)
