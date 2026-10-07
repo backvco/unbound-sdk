@@ -25,6 +25,7 @@ import { RingGroupsService } from './services/ringGroups.js';
 import { LineGroupsService } from './services/lineGroups.js';
 import { SchedulesService } from './services/schedules/SchedulesService.js';
 import { JourneysService } from './services/journeys/JourneysService.js';
+import { WorkflowTemplatesService } from './services/workflowTemplates/WorkflowTemplatesService.js';
 import { EmergencyService } from './services/emergency.js';
 import { WebchatService } from './services/webchat.js';
 import { CobrowseService } from './services/cobrowse.js';
@@ -129,6 +130,7 @@ class UnboundSDK extends BaseSDK {
     this.lineGroups = new LineGroupsService(this);
     this.schedules = new SchedulesService(this);
     this.journeys = new JourneysService(this);
+    this.workflowTemplates = new WorkflowTemplatesService(this);
     this.emergency = new EmergencyService(this);
     this.webchat = new WebchatService(this);
     this.cobrowse = new CobrowseService(this);
@@ -336,6 +338,8 @@ export { SchedulesService } from './services/schedules/SchedulesService.js';
 export { TimeOffService } from './services/schedules/TimeOffService.js';
 export { JourneysService } from './services/journeys/JourneysService.js';
 export { JourneyMembersService } from './services/journeys/JourneyMembersService.js';
+export { JourneyDraftService } from './services/journeys/JourneysService.js';
+export { WorkflowTemplatesService } from './services/workflowTemplates/WorkflowTemplatesService.js';
 export { EmergencyService } from './services/emergency.js';
 export { WebchatService, WebchatWidgetsService } from './services/webchat.js';
 export { CobrowseService, CobrowseVisitorService } from './services/cobrowse.js';
@@ -376,3 +380,4 @@ export {
   DataExportService,
 } from './services/dataImport.js';
 export { BaseSDK } from './base.js';
+export { layoutJourney, MAX_LANES as JOURNEY_LAYOUT_MAX_LANES } from './lib/journeyLayout.js';

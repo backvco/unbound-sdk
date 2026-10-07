@@ -1,5 +1,14 @@
 import { internalRequest } from '../../base.js';
 import { JourneyMembersService } from './JourneyMembersService.js';
+import { JourneyDraftService } from './JourneyDraftService.js';
+
+function pickDefined(fields) {
+  const body = {};
+  for (const [key, value] of Object.entries(fields)) {
+    if (value !== undefined) body[key] = value;
+  }
+  return body;
+}
 
 /**
  * Journeys (journeys-plan.md §2/§4) -- `sdk.journeys.*`.
@@ -21,6 +30,7 @@ export class JourneysService {
     this.members = new JourneyMembersService(sdk);
     this.types = new JourneyTypesService(sdk);
     this.goals = new JourneyGoalsService(sdk);
+    this.draft = new JourneyDraftService(sdk);
   }
 
   /**
@@ -101,6 +111,95 @@ export class JourneysService {
       `/journeys/${journeyId}/stats`,
       'GET',
       {},
+    );
+  }
+
+  /**
+   * No-send dry run: per step, the resolved channel (override -> primary),
+   * rendered message, and landing date for a given person (journeys-plan.md
+   * §7.6, P4 templates area).
+   *
+   * @param {string} id
+   * @param {Object} params
+   * @param {string} params.peopleId
+   * @returns {Promise<Object>} { steps: [{ stepKey, channel, message, landingAt }] }
+   */
+  async preview(id, { peopleId } = {}) {
+    this.sdk.validateParams(
+      { id, peopleId },
+      {
+        id: { type: 'string', required: true },
+        peopleId: { type: 'string', required: true },
+      },
+    );
+    return await internalRequest(this.sdk, `/journeys/${id}/preview`, 'GET', {
+      query: { peopleId },
+    });
+  }
+
+  /**
+   * Enrols the caller as an `isTest` member: sends redirect to the caller's
+   * own email/number, waits compress to `TEST_RUN_WAIT_SECONDS`, and the
+   * member is excluded from stats/event counts.
+   *
+   * @param {string} id
+   * @param {Object} [params]
+   * @param {string} [params.peopleId]
+   * @param {string} [params.testEmail] - override destination
+   * @param {string} [params.testPhone] - override destination
+   * @returns {Promise<Object>} Enrolled test member
+   */
+  async testRun(id, { peopleId, testEmail, testPhone } = {}) {
+    this.sdk.validateParams({ id }, { id: { type: 'string', required: true } });
+    return await internalRequest(
+      this.sdk,
+      `/journeys/${id}/test-run`,
+      'POST',
+      { body: pickDefined({ peopleId, testEmail, testPhone }) },
+    );
+  }
+
+  /**
+   * Export + install into the same account, keeping template refs
+   * (journeys-plan.md §7.7).
+   *
+   * @param {string} id
+   * @param {Object} [params]
+   * @param {string} [params.name]
+   * @returns {Promise<Object>} New journey + workflow + draft version
+   */
+  async clone(id, { name } = {}) {
+    this.sdk.validateParams({ id }, { id: { type: 'string', required: true } });
+    return await internalRequest(this.sdk, `/journeys/${id}/clone`, 'POST', {
+      body: pickDefined({ name }),
+    });
+  }
+
+  /**
+   * Save this journey into the account's template library
+   * (`workflowTemplates`, journeys-plan.md §7.7).
+   *
+   * @param {string} id
+   * @param {Object} params
+   * @param {string} params.name
+   * @param {string} [params.summary]
+   * @param {string} [params.category]
+   * @param {'platform'|'account'} [params.visibility]
+   * @returns {Promise<Object>} Created workflowTemplates row
+   */
+  async saveAsTemplate(id, { name, summary, category, visibility } = {}) {
+    this.sdk.validateParams(
+      { id, name },
+      {
+        id: { type: 'string', required: true },
+        name: { type: 'string', required: true },
+      },
+    );
+    return await internalRequest(
+      this.sdk,
+      `/journeys/${id}/save-as-template`,
+      'POST',
+      { body: pickDefined({ name, summary, category, visibility }) },
     );
   }
 }
@@ -213,4 +312,4 @@ class JourneyGoalsService {
   }
 }
 
-export { JourneyTypesService, JourneyGoalsService };
+export { JourneyTypesService, JourneyGoalsService, JourneyDraftService };

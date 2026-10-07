@@ -1,3 +1,13 @@
+## 4.13.128
+
+- feat: `sdk.journeys.draft.{get, saveSteps, convertToAdvanced, publishCheck}` — `GET /journeys/:id/draft`, `PUT /journeys/:id/draft/steps {doc}`, `POST /journeys/:id/convert-to-advanced`, `GET /journeys/:id/publish-check` (journeys-plan.md §7.3/§7.4, P4 compile area)
+- feat: `sdk.journeys.preview(id, {peopleId})` — `GET /journeys/:id/preview`, no-send per-step channel/message/landing-date dry run
+- feat: `sdk.journeys.testRun(id, {peopleId, testEmail?, testPhone?})` — `POST /journeys/:id/test-run`
+- feat: `sdk.journeys.clone(id, {name?})` — `POST /journeys/:id/clone`
+- feat: `sdk.journeys.saveAsTemplate(id, {name, summary?, category?, visibility?})` — `POST /journeys/:id/save-as-template`
+- feat: `sdk.workflowTemplates.{list, install}` — `GET /journeys/templates`, `POST /journeys/templates/:id/install` (journeys-plan.md §7.7); no `get` method — the API has no single-template GET route; platform authoring is INTERNAL-only (`/internal/journeys/templates`) and has no SDK surface since no first-party INTERNAL extension point exists in this package
+- new export: `JourneyDraftService`, `WorkflowTemplatesService`
+
 ## 4.13.127
 
 - feat: `sdk.messageTemplates.templates.preview({templateId|body, peopleId})` — `POST /messageTemplates/templates/:id/preview` (or `/templates/preview` with a raw `body` and no saved template) — interpolated text + unresolved-variable report + SMS fits/segment count (journeys-plan.md §6.4)

@@ -2,6 +2,8 @@ import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import { JourneysService } from '../services/journeys/JourneysService.js';
 import { JourneyMembersService } from '../services/journeys/JourneyMembersService.js';
+import { JourneyDraftService } from '../services/journeys/JourneyDraftService.js';
+import { WorkflowTemplatesService } from '../services/workflowTemplates/WorkflowTemplatesService.js';
 
 /**
  * Build a minimal SDK double. `calls` captures internalRequest (custom
@@ -54,6 +56,14 @@ function journeys(fakeSdk) {
 
 function members(fakeSdk) {
   return new JourneyMembersService(fakeSdk);
+}
+
+function draft(fakeSdk) {
+  return new JourneyDraftService(fakeSdk);
+}
+
+function workflowTemplates(fakeSdk) {
+  return new WorkflowTemplatesService(fakeSdk);
 }
 
 describe('JourneysService.list', () => {
@@ -307,5 +317,151 @@ describe('JourneyMembersService.events', () => {
 
     assert.equal(calls[0].endpoint, '/journeys/jny-1/members/jnm-1/events');
     assert.equal(calls[0].method, 'GET');
+  });
+});
+
+describe('JourneysService.preview', () => {
+  test('GETs /journeys/:id/preview with peopleId query', async () => {
+    const { fakeSdk, calls } = buildFakeSdk();
+
+    await journeys(fakeSdk).preview('jny-1', { peopleId: 'ppl-1' });
+
+    assert.equal(calls[0].endpoint, '/journeys/jny-1/preview');
+    assert.equal(calls[0].method, 'GET');
+    assert.deepEqual(calls[0].params.query, { peopleId: 'ppl-1' });
+  });
+});
+
+describe('JourneysService.testRun', () => {
+  test('POSTs /journeys/:id/test-run', async () => {
+    const { fakeSdk, calls } = buildFakeSdk();
+
+    await journeys(fakeSdk).testRun('jny-1', { peopleId: 'ppl-1' });
+
+    assert.equal(calls[0].endpoint, '/journeys/jny-1/test-run');
+    assert.equal(calls[0].method, 'POST');
+    assert.deepEqual(calls[0].params.body, { peopleId: 'ppl-1' });
+  });
+
+  test('omits undefined overrides', async () => {
+    const { fakeSdk, calls } = buildFakeSdk();
+
+    await journeys(fakeSdk).testRun('jny-1');
+
+    assert.deepEqual(calls[0].params.body, {});
+  });
+});
+
+describe('JourneysService.clone', () => {
+  test('POSTs /journeys/:id/clone', async () => {
+    const { fakeSdk, calls } = buildFakeSdk();
+
+    await journeys(fakeSdk).clone('jny-1', { name: 'Copy' });
+
+    assert.equal(calls[0].endpoint, '/journeys/jny-1/clone');
+    assert.equal(calls[0].method, 'POST');
+    assert.deepEqual(calls[0].params.body, { name: 'Copy' });
+  });
+});
+
+describe('JourneysService.saveAsTemplate', () => {
+  test('POSTs /journeys/:id/save-as-template', async () => {
+    const { fakeSdk, calls } = buildFakeSdk();
+
+    await journeys(fakeSdk).saveAsTemplate('jny-1', {
+      name: '3-touch drip',
+      visibility: 'account',
+    });
+
+    assert.equal(calls[0].endpoint, '/journeys/jny-1/save-as-template');
+    assert.equal(calls[0].method, 'POST');
+    assert.deepEqual(calls[0].params.body, {
+      name: '3-touch drip',
+      visibility: 'account',
+    });
+  });
+});
+
+describe('JourneyDraftService.get', () => {
+  test('GETs /journeys/:id/draft', async () => {
+    const { fakeSdk, calls } = buildFakeSdk();
+
+    await draft(fakeSdk).get('jny-1');
+
+    assert.equal(calls[0].endpoint, '/journeys/jny-1/draft');
+    assert.equal(calls[0].method, 'GET');
+  });
+});
+
+describe('JourneyDraftService.saveSteps', () => {
+  test('PUTs /journeys/:id/draft/steps with {doc}', async () => {
+    const { fakeSdk, calls } = buildFakeSdk();
+    const doc = { version: 1, steps: [] };
+
+    await draft(fakeSdk).saveSteps('jny-1', doc);
+
+    assert.equal(calls[0].endpoint, '/journeys/jny-1/draft/steps');
+    assert.equal(calls[0].method, 'PUT');
+    assert.deepEqual(calls[0].params.body, { doc });
+  });
+});
+
+describe('JourneyDraftService.convertToAdvanced', () => {
+  test('POSTs /journeys/:id/convert-to-advanced', async () => {
+    const { fakeSdk, calls } = buildFakeSdk();
+
+    await draft(fakeSdk).convertToAdvanced('jny-1');
+
+    assert.equal(calls[0].endpoint, '/journeys/jny-1/convert-to-advanced');
+    assert.equal(calls[0].method, 'POST');
+  });
+});
+
+describe('JourneyDraftService.publishCheck', () => {
+  test('GETs /journeys/:id/publish-check', async () => {
+    const { fakeSdk, calls } = buildFakeSdk();
+
+    await draft(fakeSdk).publishCheck('jny-1');
+
+    assert.equal(calls[0].endpoint, '/journeys/jny-1/publish-check');
+    assert.equal(calls[0].method, 'GET');
+  });
+});
+
+describe('WorkflowTemplatesService.list', () => {
+  test('GETs /journeys/templates with workflowType query', async () => {
+    const { fakeSdk, calls } = buildFakeSdk();
+
+    await workflowTemplates(fakeSdk).list({ workflowType: 'journey' });
+
+    assert.equal(calls[0].endpoint, '/journeys/templates');
+    assert.equal(calls[0].method, 'GET');
+    assert.deepEqual(calls[0].params.query, { workflowType: 'journey' });
+  });
+
+  test('omits an undefined workflowType from the query', async () => {
+    const { fakeSdk, calls } = buildFakeSdk();
+
+    await workflowTemplates(fakeSdk).list();
+
+    assert.deepEqual(calls[0].params.query, {});
+  });
+});
+
+describe('WorkflowTemplatesService.install', () => {
+  test('POSTs /journeys/templates/:id/install', async () => {
+    const { fakeSdk, calls } = buildFakeSdk();
+
+    await workflowTemplates(fakeSdk).install('wft-1', {
+      journeyTypeId: 'jnt-1',
+      answers: { queueId: 'q-1' },
+    });
+
+    assert.equal(calls[0].endpoint, '/journeys/templates/wft-1/install');
+    assert.equal(calls[0].method, 'POST');
+    assert.deepEqual(calls[0].params.body, {
+      journeyTypeId: 'jnt-1',
+      answers: { queueId: 'q-1' },
+    });
   });
 });
