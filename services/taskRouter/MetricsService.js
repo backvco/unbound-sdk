@@ -60,6 +60,9 @@ export class MetricsService {
    *   limit: 50
    * });
    * console.log(queueMetrics.metrics.queue.avgWaitTime); // 45.3
+   * // Sales queues (queueType='sales') additionally carry metrics.sales:
+   * // { dueNow, overdue, takenOnTimePct, timeToActionMedianSeconds,
+   * //   touchesCompletedToday, conversionsToday } (omitted for other queues)
    *
    * @example
    * // Get worker metrics for last hour

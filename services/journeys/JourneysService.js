@@ -143,6 +143,42 @@ export class JourneysService {
   }
 
   /**
+   * Diff of the current published journeyDoc vs the draft, by stepKey (P7).
+   *
+   * @param {string} id
+   * @returns {Promise<Object>} { oldVersionId, newVersionId, added, removed, changed }
+   */
+  async publishDiff(id) {
+    this.sdk.validateParams({ id }, { id: { type: 'string', required: true } });
+    return await internalRequest(
+      this.sdk,
+      `/journeys/${id}/publish-diff`,
+      'GET',
+      {},
+    );
+  }
+
+  /**
+   * Publish the draft (runs publish-check; blocking items fail). Pass
+   * `{mode:'migrate', mapping}` to move open members on the old version to
+   * mapped landing steps at their next safe point (journeys-plan.md §7.5);
+   * omit for a plain publish (members stay on their version). Requires
+   * salesEnabled.
+   *
+   * @param {string} id
+   * @param {Object} [opts]
+   * @param {'migrate'|'leave'} [opts.mode]
+   * @param {Object<string,string>} [opts.mapping] removed stepKey -> landing stepKey | 'leave'
+   * @returns {Promise<Object>} { versionId, oldVersionId, migrationPlan }
+   */
+  async publish(id, { mode, mapping } = {}) {
+    this.sdk.validateParams({ id }, { id: { type: 'string', required: true } });
+    return await internalRequest(this.sdk, `/journeys/${id}/publish`, 'POST', {
+      body: { migrate: pickDefined({ mode, mapping }) },
+    });
+  }
+
+  /**
    * Per-step funnel (journeys-plan.md §9, P6): entered / outcome split /
    * conversions from journeyMemberEvents. Test members are excluded.
    *

@@ -35,6 +35,8 @@ export class JourneyMembersService {
    * @param {string} [opts.ownerUserId]
    * @param {string} [opts.statusReason]
    * @param {string} [opts.search]
+   * @param {boolean} [opts.isTest] true = test-run members only, false = exclude them; omit = no filter
+   * @param {'company'} [opts.groupBy] server-grouped mode: { groups: [{ companyId, companyName, counts, members }] }
    * @returns {Promise<Object>} Paged member rows
    */
   async list(journeyId, opts = {}) {

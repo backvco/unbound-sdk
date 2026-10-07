@@ -1,3 +1,10 @@
+## 4.13.131
+
+- feat: `sdk.journeys.publishDiff(id)` — `GET /journeys/:id/publish-diff` (old vs draft steps by stepKey, P7)
+- feat: `sdk.journeys.publish(id, {mode, mapping})` — `POST /journeys/:id/publish`; `mode:'migrate'` moves open members to the new version at their next safe point (journeys-plan.md §7.5)
+- docs: `isTest` + `groupBy` params on `sdk.journeys.members.list` / `exportCsvUrl`
+- docs: `sdk.taskRouter.metrics.getCurrent({queueId})` result gains an additive `metrics.sales` block for sales queues (dueNow, overdue, takenOnTimePct, timeToActionMedianSeconds, touchesCompletedToday, conversionsToday)
+
 ## 4.13.130
 
 - feat: `sdk.journeys.funnel(journeyId)` — `GET /journeys/:id/funnel` per-step entered / outcome split / conversions (journeys-plan.md §9, P6)
