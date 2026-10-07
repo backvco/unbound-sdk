@@ -353,41 +353,29 @@ export class VoiceService {
     return this.transcribe(voiceChannelId, 'stop', direction);
   }
 
-  async transfer({
-    channels,
-    to,
-    callerIdName,
-    callerIdNumber,
-    timeout,
-    voiceApp,
-  }) {
+  /**
+   * Server-side blind transfer of a live call (call-transfer-api-plan.md
+   * §2.2/§2.7).
+   *
+   * @param {Object} params
+   * @param {string} params.callId
+   * @param {string} params.to - extension, E.164, or a routable service id
+   * @returns {Promise<{correlationId: string}>}
+   */
+  async transferCall({ callId, to }) {
     this.sdk.validateParams(
-      { channels },
+      { callId, to },
       {
-        channels: { type: 'array', required: true },
-        to: { type: 'string', required: false },
-        callerIdName: { type: 'string', required: false },
-        callerIdNumber: { type: 'string', required: false },
-        timeout: { type: 'number', required: false },
-        voiceApp: { type: 'object', required: false },
+        callId: { type: 'string', required: true },
+        to: { type: 'string', required: true },
       },
     );
 
-    const bodyData = { channels };
-    if (to) bodyData.to = to;
-    if (callerIdName) bodyData.callerIdName = callerIdName;
-    if (callerIdNumber) bodyData.callerIdNumber = callerIdNumber;
-    if (timeout !== undefined) bodyData.timeout = timeout;
-    if (voiceApp) bodyData.voiceApp = voiceApp;
-
-    const params = {
-      body: bodyData,
-    };
-
-    const result = await internalRequest(this.sdk, 
-      '/voice/calls/transfer',
+    const result = await internalRequest(
+      this.sdk,
+      `/voice/calls/${callId}/transfer`,
       'POST',
-      params,
+      { body: { to } },
     );
     return result;
   }
