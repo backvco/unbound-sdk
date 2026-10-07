@@ -142,6 +142,23 @@ export class OperatorPanelsService {
   }
 
   /**
+   * @param {string} id - panel id
+   * @returns {Promise<{results: Array<{principalType: 'user'|'group', principalId: string, name: string|null}>}>}
+   */
+  async getAccess(id) {
+    this.sdk.validateParams(
+      { id },
+      { id: { type: 'string', required: true } },
+    );
+    return await internalRequest(
+      this.sdk,
+      `/operatorPanels/${id}/access`,
+      'GET',
+      {},
+    );
+  }
+
+  /**
    * @param {string} kind - users | groups | queues | ringGroups | workflows | records
    * @param {string} [q] - search text
    */
