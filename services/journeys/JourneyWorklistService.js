@@ -60,6 +60,7 @@ export class JourneyWorklistService {
    * @param {Object} [filter]
    * @param {string} [filter.stepType]
    * @param {string} [filter.journeyId]
+   * @param {string} [filter.taskId] take this exact task (validated server-side: worklist, pending, owner-or-pool)
    * @returns {Promise<{data: JourneyWorklistTask|null}>} null when nothing is due
    */
   async takeNext(filter = {}) {

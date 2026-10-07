@@ -2,6 +2,8 @@ import { internalRequest } from '../../base.js';
 import { JourneyMembersService } from './JourneyMembersService.js';
 import { JourneyDraftService } from './JourneyDraftService.js';
 import { JourneyWorklistService } from './JourneyWorklistService.js';
+import { JourneyTypesService } from './JourneyTypesService.js';
+import { JourneyGoalsService } from './JourneyGoalsService.js';
 
 function pickDefined(fields) {
   const body = {};
@@ -141,6 +143,87 @@ export class JourneysService {
   }
 
   /**
+   * Per-step funnel (journeys-plan.md §9, P6): entered / outcome split /
+   * conversions from journeyMemberEvents. Test members are excluded.
+   *
+   * @param {string} journeyId
+   * @returns {Promise<Object>} { steps: [{ stepKey, type, title, entered, outcomes, conversions }] }
+   */
+  async funnel(journeyId) {
+    this.sdk.validateParams(
+      { journeyId },
+      { journeyId: { type: 'string', required: true } },
+    );
+    return await internalRequest(
+      this.sdk,
+      `/journeys/${journeyId}/funnel`,
+      'GET',
+      {},
+    );
+  }
+
+  /**
+   * Journey-level metrics (P6): enrolled, active, needsAttention, repliedPct,
+   * convertedPct, bounced, optedOut, timeToConvertMedianSeconds, byStatus.
+   *
+   * @param {string} journeyId
+   * @returns {Promise<Object>}
+   */
+  async metrics(journeyId) {
+    this.sdk.validateParams(
+      { journeyId },
+      { journeyId: { type: 'string', required: true } },
+    );
+    return await internalRequest(
+      this.sdk,
+      `/journeys/${journeyId}/metrics`,
+      'GET',
+      {},
+    );
+  }
+
+  /**
+   * Journey-wide activity feed (P6): journeyMemberEvents, newest first.
+   *
+   * @param {string} journeyId
+   * @param {Object} [opts]
+   * @param {string} [opts.stepKey]
+   * @param {string} [opts.memberId]
+   * @param {number} [opts.page]
+   * @param {number} [opts.pageSize]
+   * @returns {Promise<Object>} { rows, total }
+   */
+  async events(journeyId, opts = {}) {
+    this.sdk.validateParams(
+      { journeyId },
+      { journeyId: { type: 'string', required: true } },
+    );
+    return await internalRequest(
+      this.sdk,
+      `/journeys/${journeyId}/events`,
+      'GET',
+      { query: pickDefined(opts) },
+    );
+  }
+
+  /**
+   * Rep metrics (P6): per owner — due, overdue, doneOnTime,
+   * timeToActionMedianSeconds — from touch tasks. Requires salesEnabled.
+   *
+   * @param {Object} [opts]
+   * @param {string} [opts.journeyTypeId]
+   * @param {string} [opts.journeyId]
+   * @param {string} [opts.from] ISO date-time
+   * @param {string} [opts.to] ISO date-time
+   * @returns {Promise<Object>} { reps: [{ userId, due, overdue, doneOnTime, timeToActionMedianSeconds }] }
+   */
+  async repsMetrics(opts = {}) {
+    return await internalRequest(this.sdk, '/journeys/reps/metrics', 'GET', {
+      query: pickDefined(opts),
+    });
+  }
+
+  /**
    * No-send dry run: per step, the resolved channel (override -> primary),
    * rendered message, and landing date for a given person (journeys-plan.md
    * §7.6, P4 templates area).
@@ -227,114 +310,6 @@ export class JourneysService {
       'POST',
       { body: pickDefined({ name, summary, category, visibility }) },
     );
-  }
-}
-
-/**
- * `sdk.journeys.types.*` -- journeyTypes generic-object CRUD. `queueId`
- * stays empty until P5.
- */
-class JourneyTypesService {
-  constructor(sdk) {
-    this.sdk = sdk;
-  }
-
-  async list(opts = {}) {
-    return await this.sdk.objects.query({ object: 'journeyTypes', ...opts });
-  }
-
-  async get(id) {
-    this.sdk.validateParams({ id }, { id: { type: 'string', required: true } });
-    return await this.sdk.objects.byId({ id });
-  }
-
-  /**
-   * @param {Object} body
-   * @param {string} body.name
-   * @returns {Promise<Object>} Created journeyType
-   */
-  async create(body) {
-    this.sdk.validateParams(
-      { name: body?.name },
-      { name: { type: 'string', required: true } },
-    );
-    return await this.sdk.objects.create({ object: 'journeyTypes', body });
-  }
-
-  async update(id, update) {
-    this.sdk.validateParams(
-      { id, update },
-      {
-        id: { type: 'string', required: true },
-        update: { type: 'object', required: true },
-      },
-    );
-    return await this.sdk.objects.updateById({
-      object: 'journeyTypes',
-      id,
-      update,
-    });
-  }
-
-  async remove(id) {
-    this.sdk.validateParams({ id }, { id: { type: 'string', required: true } });
-    return await this.sdk.objects.deleteById({ object: 'journeyTypes', id });
-  }
-}
-
-/**
- * `sdk.journeys.goals.*` -- journeyGoals generic-object CRUD (no `get`;
- * goals are listed/edited inline on the journey, matching the plan's CRUD
- * surface for this object).
- */
-class JourneyGoalsService {
-  constructor(sdk) {
-    this.sdk = sdk;
-  }
-
-  /**
-   * @param {Object} [opts] - sdk.objects.query opts; pass `where: { journeyId }` to scope
-   * @returns {Promise<Object>} Query result
-   */
-  async list(opts = {}) {
-    return await this.sdk.objects.query({ object: 'journeyGoals', ...opts });
-  }
-
-  /**
-   * @param {Object} body
-   * @param {string} body.journeyId
-   * @param {string} body.goalType
-   * @returns {Promise<Object>} Created journeyGoal
-   */
-  async create(body) {
-    this.sdk.validateParams(
-      { journeyId: body?.journeyId, goalType: body?.goalType },
-      {
-        journeyId: { type: 'string', required: true },
-        goalType: { type: 'string', required: true },
-      },
-    );
-    return await this.sdk.objects.create({ object: 'journeyGoals', body });
-  }
-
-  async update(id, update) {
-    this.sdk.validateParams(
-      { id, update },
-      {
-        id: { type: 'string', required: true },
-        update: { type: 'object', required: true },
-      },
-    );
-    return await this.sdk.objects.updateById({
-      object: 'journeyGoals',
-      id,
-      update,
-    });
-  }
-
-  async remove(id) {
-    this.sdk.validateParams({ id }, { id: { type: 'string', required: true } });
-    return await this.sdk.objects.deleteById({ object: 'journeyGoals', id });
   }
 }
 

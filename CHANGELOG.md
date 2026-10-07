@@ -1,3 +1,14 @@
+## 4.13.130
+
+- feat: `sdk.journeys.funnel(journeyId)` — `GET /journeys/:id/funnel` per-step entered / outcome split / conversions (journeys-plan.md §9, P6)
+- feat: `sdk.journeys.metrics(journeyId)` — `GET /journeys/:id/metrics` (enrolled, active, needsAttention, repliedPct, convertedPct, bounced, optedOut, timeToConvertMedianSeconds)
+- feat: `sdk.journeys.events(journeyId, {stepKey?, memberId?, page?, pageSize?})` — `GET /journeys/:id/events` journey-wide activity feed
+- feat: `sdk.journeys.repsMetrics({journeyTypeId?, journeyId?, from?, to?})` — `GET /journeys/reps/metrics`
+- feat: `sdk.journeys.members.exportCsvUrl(journeyId, filter)` — URL for `GET /journeys/:id/members/export.csv` (same filter/sort params as `list`)
+- feat: `sdk.journeys.members.list(journeyId, {groupBy:'company'})` passes through to the server-grouped mode
+- feat: `sdk.journeys.worklist.takeNext({taskId})` — take an exact task (validated server-side)
+- refactor: `JourneyTypesService` / `JourneyGoalsService` moved to their own files (same exports)
+
 ## 4.13.129
 
 - feat: `sdk.journeys.worklist.list({bucket?, stepType?, journeyId?, page?, pageSize?})` — `GET /journeys/worklist`, cross-journey view of the caller's (or the pool's) open touch tasks + upcoming members (journeys-plan.md §9, P5)

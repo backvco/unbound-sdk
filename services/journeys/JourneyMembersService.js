@@ -56,6 +56,29 @@ export class JourneyMembersService {
   }
 
   /**
+   * URL for the CSV export of the members grid (P6) — same filter / sort
+   * params as `list`. The browser downloads it directly (cookie auth); Node
+   * callers fetch it with their own token.
+   *
+   * @param {string} journeyId
+   * @param {Object} [opts] same keys as `list` (status, stepKey, ownerUserId, statusReason, search, sort, sortDir)
+   * @returns {string} absolute URL
+   */
+  exportCsvUrl(journeyId, opts = {}) {
+    this.sdk.validateParams(
+      { journeyId },
+      { journeyId: { type: 'string', required: true } },
+    );
+    const { status, ...rest } = opts;
+    const query = pickDefined({
+      ...rest,
+      status: Array.isArray(status) ? status.join(',') : status,
+    });
+    const qs = new URLSearchParams(query).toString();
+    return `${this.sdk.baseURL}/journeys/${journeyId}/members/export.csv${qs ? `?${qs}` : ''}`;
+  }
+
+  /**
    * @param {string} journeyId
    * @param {string} memberId
    * @returns {Promise<Object>} Single member row
