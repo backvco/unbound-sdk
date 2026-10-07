@@ -339,6 +339,7 @@ export { TimeOffService } from './services/schedules/TimeOffService.js';
 export { JourneysService } from './services/journeys/JourneysService.js';
 export { JourneyMembersService } from './services/journeys/JourneyMembersService.js';
 export { JourneyDraftService } from './services/journeys/JourneysService.js';
+export { JourneyWorklistService } from './services/journeys/JourneyWorklistService.js';
 export { WorkflowTemplatesService } from './services/workflowTemplates/WorkflowTemplatesService.js';
 export { EmergencyService } from './services/emergency.js';
 export { WebchatService, WebchatWidgetsService } from './services/webchat.js';

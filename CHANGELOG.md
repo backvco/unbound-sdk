@@ -1,3 +1,12 @@
+## 4.13.129
+
+- feat: `sdk.journeys.worklist.list({bucket?, stepType?, journeyId?, page?, pageSize?})` — `GET /journeys/worklist`, cross-journey view of the caller's (or the pool's) open touch tasks + upcoming members (journeys-plan.md §9, P5)
+- feat: `sdk.journeys.worklist.takeNext({stepType?, journeyId?})` — `POST /journeys/worklist/take-next`, takes the next due touch task via `transitionTask` (same path as a manual take)
+- feat: `sdk.journeys.members.draft(memberId, {stepKey?, channel})` — `POST /journeys/members/:memberId/draft`, context-aware AI draft for a human touch-task step
+- docs: `JourneysService.js` documents the P5 generic-object field additions (`queues.queueType`/`deliveryMode`, `queueDispositions.outcome`/`countsAsConversion`/`flagsBadContact`, `users.salesEnabled`) and the new task fields (`deliveryMode`, `dueAt`, `journeyMemberId`, `journeyId`, `journeyStepKey`, `journeyStepChannel`) — no dedicated SDK service exists for queues/dispositions/users (generic-object CRUD only), so no new service was added for these, just documentation
+- docs: `JourneyMembersService.actions()` documents that "reassign-all-owned-by" is the existing `action:'reassign'` + `filter:{ownerUserId}` combination — no new method added (reuse, confirmed against `memberActions.js`)
+- new export: `JourneyWorklistService`
+
 ## 4.13.128
 
 - feat: `sdk.journeys.draft.{get, saveSteps, convertToAdvanced, publishCheck}` — `GET /journeys/:id/draft`, `PUT /journeys/:id/draft/steps {doc}`, `POST /journeys/:id/convert-to-advanced`, `GET /journeys/:id/publish-check` (journeys-plan.md §7.3/§7.4, P4 compile area)

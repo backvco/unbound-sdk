@@ -114,9 +114,12 @@ export class JourneyMembersService {
    * @param {Object} body
    * @param {'pause'|'resume'|'remove'|'reassign'|'changeChannel'} body.action
    * @param {string[]} [body.ids] - Either ids or filter is required
-   * @param {Object} [body.filter]
+   * @param {Object} [body.filter] - e.g. `{ ownerUserId }` to target every
+   *   member currently owned by one rep (P5 "reassign-all-owned-by" is this
+   *   `action:'reassign'` + `filter:{ownerUserId}` combination -- no
+   *   dedicated endpoint/method was added).
    * @param {string} [body.reason]
-   * @param {string} [body.ownerUserId]
+   * @param {string} [body.ownerUserId] - New owner for `action:'reassign'`
    * @param {Object} [body.channels]
    * @returns {Promise<Object>} { results }
    */
@@ -184,6 +187,33 @@ export class JourneyMembersService {
       `/journeys/${journeyId}/members/${memberId}/events`,
       'GET',
       {},
+    );
+  }
+
+  /**
+   * Context-aware AI draft for a human touch-task step (record, step
+   * intent, prior conversation) -- journeys-plan.md §9 P5. Not the final
+   * send content; the rep edits/sends from the task itself.
+   *
+   * @param {string} memberId
+   * @param {Object} body
+   * @param {string} [body.stepKey]
+   * @param {'email'|'sms'} body.channel
+   * @returns {Promise<{data: {draft: string, channel: string, stepKey: string}}>}
+   */
+  async draft(memberId, body = {}) {
+    this.sdk.validateParams(
+      { memberId, channel: body?.channel },
+      {
+        memberId: { type: 'string', required: true },
+        channel: { type: 'string', required: true },
+      },
+    );
+    return await internalRequest(
+      this.sdk,
+      `/journeys/members/${memberId}/draft`,
+      'POST',
+      { body: pickDefined(body) },
     );
   }
 }

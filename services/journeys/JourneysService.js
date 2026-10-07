@@ -1,6 +1,7 @@
 import { internalRequest } from '../../base.js';
 import { JourneyMembersService } from './JourneyMembersService.js';
 import { JourneyDraftService } from './JourneyDraftService.js';
+import { JourneyWorklistService } from './JourneyWorklistService.js';
 
 function pickDefined(fields) {
   const body = {};
@@ -22,6 +23,30 @@ function pickDefined(fields) {
  * and the member-grid/enrol/action/fix/events/stats endpoints are custom
  * routes under `/journeys/`, covered by `members` and `stats`.
  *
+ * P5 (journeys-plan.md §8, sales queues + human steps) added fields to
+ * several generic objects rather than new endpoints -- no dedicated SDK
+ * service exists for these, so they are documented here instead:
+ * - `sdk.objects` object `'queues'`: `queueType` ('support'|'sales',
+ *   default 'support'), `deliveryMode` ('push'|'worklist', default
+ *   'push'). A sales queue is auto-created with a journey type
+ *   (`queueType:'sales', deliveryMode:'worklist'`) and its id is set on
+ *   `journeyTypes.queueId`.
+ * - `sdk.objects` object `'queueDispositions'`: `outcome`
+ *   ('positive'|'neutral'|'negative'|null), `countsAsConversion`
+ *   (boolean), `flagsBadContact` (boolean) -- drive a journey member's
+ *   `converted` / `needsAttention:badContact` transitions when a touch
+ *   task is given that disposition.
+ * - `sdk.objects` object `'users'` (`users_acct`): `salesEnabled`
+ *   (boolean, default false) -- required (alongside normal object
+ *   permissions) for journeys build/enrol/member-action/worklist-take
+ *   endpoints; member-grid reads stay open to object-read permission.
+ * - Task rows (`sdk.taskRouter.task.*`, `sdk.journeys.worklist.*`) gain
+ *   `deliveryMode` ('push'|'worklist'), `dueAt` (ISO datetime|null),
+ *   `journeyMemberId`, `journeyId`, `journeyStepKey`, `journeyStepChannel`
+ *   ('email'|'sms'|'call'|'other') on a journey touch task
+ *   (`type:'journey'`). See `JourneyWorklistService`'s
+ *   `JourneyWorklistTask` typedef for the full shape.
+ *
  * @see app1-api src/services/journeys/routes.js
  */
 export class JourneysService {
@@ -31,6 +56,7 @@ export class JourneysService {
     this.types = new JourneyTypesService(sdk);
     this.goals = new JourneyGoalsService(sdk);
     this.draft = new JourneyDraftService(sdk);
+    this.worklist = new JourneyWorklistService(sdk);
   }
 
   /**
@@ -312,4 +338,9 @@ class JourneyGoalsService {
   }
 }
 
-export { JourneyTypesService, JourneyGoalsService, JourneyDraftService };
+export {
+  JourneyTypesService,
+  JourneyGoalsService,
+  JourneyDraftService,
+  JourneyWorklistService,
+};
