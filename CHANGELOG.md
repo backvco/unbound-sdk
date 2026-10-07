@@ -1,3 +1,7 @@
+## 4.13.133
+
+- feat: `sdk.taskRouter.task.publicReply({subject})` — optional explicit subject for journey touch-task emails / first email on a task (thread replies still inherit). (4.13.132 was an empty version bump.)
+
 ## 4.13.131
 
 - feat: `sdk.journeys.publishDiff(id)` — `GET /journeys/:id/publish-diff` (old vs draft steps by stepKey, P7)

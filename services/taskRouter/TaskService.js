@@ -1129,6 +1129,7 @@ export class TaskService {
    * @param {string} options.taskId
    * @param {string} [options.html]
    * @param {string} [options.text]
+   * @param {string} [options.subject] - explicit subject (journey touch tasks / first email on a task); thread replies omit it and inherit
    * @param {string|string[]} [options.extraTo]
    * @param {string|string[]} [options.extraCc]
    * @param {string|string[]} [options.extraBcc]
@@ -1141,6 +1142,7 @@ export class TaskService {
       taskId,
       html,
       text,
+      subject,
       extraTo,
       extraCc,
       extraBcc,
@@ -1157,6 +1159,7 @@ export class TaskService {
     const body = {};
     if (html !== undefined) body.html = html;
     if (text !== undefined) body.text = text;
+    if (subject !== undefined) body.subject = subject;
     if (extraTo !== undefined) body.extraTo = extraTo;
     if (extraCc !== undefined) body.extraCc = extraCc;
     if (extraBcc !== undefined) body.extraBcc = extraBcc;
