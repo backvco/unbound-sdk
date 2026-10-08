@@ -1252,6 +1252,7 @@ export class TaskService {
    * @param {string} [options.note] - Optional note for the receiving agent
    * @param {string} [options.reasonCode] - Transfer reason code — e.g. 'wrong_department', 'customer_requested', 'out_of_scope', 'policy_never_bot', 'language', 'other'. Required when the caller's worker is a bot.
    * @param {string} [options.reason] - One-sentence transfer reason. Required when the caller's worker is a bot.
+   * @param {number} [options.priorityAdjust] - Amount to add to (or, negative, subtract from) the task's priority on the new task created in the target queue.
    * @returns {Promise<Object>} { taskId, newTaskId }
    *
    * @example
@@ -1264,16 +1265,18 @@ export class TaskService {
    * });
    */
   async transfer(options = {}) {
-    const { taskId, target, note, reasonCode, reason } = options;
+    const { taskId, target, note, reasonCode, reason, priorityAdjust } =
+      options;
 
     this.sdk.validateParams(
-      { taskId, target, note, reasonCode, reason },
+      { taskId, target, note, reasonCode, reason, priorityAdjust },
       {
         taskId: { type: 'string', required: true },
         target: { type: 'object', required: true },
         note: { type: 'string', required: false },
         reasonCode: { type: 'string', required: false },
         reason: { type: 'string', required: false },
+        priorityAdjust: { type: 'number', required: false },
       },
     );
 
@@ -1281,12 +1284,49 @@ export class TaskService {
     if (note !== undefined) params.body.note = note;
     if (reasonCode !== undefined) params.body.reasonCode = reasonCode;
     if (reason !== undefined) params.body.reason = reason;
+    if (priorityAdjust !== undefined)
+      params.body.priorityAdjust = priorityAdjust;
 
     return await internalRequest(
       this.sdk,
       '/taskRouter/tasks/transfer',
       'PUT',
       params,
+    );
+  }
+
+  /**
+   * Advisory preview of where a transfer would land right now — calls the
+   * same resolver the real transfer uses, so a UI can show "sent to Queue
+   * Y" before the transfer completes. Never guaranteed to land there under
+   * load; the real transfer re-resolves at claim time.
+   *
+   * @param {string} taskId - The task ID to preview a transfer destination for (required)
+   * @param {Object} options - Parameters
+   * @param {string} options.queueId - Candidate destination queue ID (required)
+   * @returns {Promise<Object>} Resolved destination, shaped by the same logic `transfer` itself uses for this queue/task type.
+   *
+   * @example
+   * const preview = await sdk.taskRouter.task.resolveTransferDestination('task123', {
+   *   queueId: 'billingQueue1',
+   * });
+   */
+  async resolveTransferDestination(taskId, options = {}) {
+    const { queueId } = options;
+
+    this.sdk.validateParams(
+      { taskId, queueId },
+      {
+        taskId: { type: 'string', required: true },
+        queueId: { type: 'string', required: true },
+      },
+    );
+
+    return await internalRequest(
+      this.sdk,
+      `/taskRouter/tasks/${taskId}/resolveTransferDestination`,
+      'POST',
+      { body: { queueId } },
     );
   }
 
