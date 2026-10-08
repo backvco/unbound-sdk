@@ -12,10 +12,22 @@ export class VoicemailDropTypesService {
 
   /**
    * List voicemail drop types.
+   * @param {Object} [params]
+   * @param {boolean} [params.includeInactive]
    * @returns {Promise<{results: Object[]}>}
    */
-  async list() {
-    return internalRequest(this.sdk, '/voicemailDrops/types', 'GET');
+  async list(params = {}) {
+    return internalRequest(this.sdk, '/voicemailDrops/types', 'GET', { query: { ...params } });
+  }
+
+  /**
+   * Get a single voicemail drop type.
+   * @param {string} id
+   * @returns {Promise<Object>}
+   */
+  async get(id) {
+    this.sdk.validateParams({ id }, { id: { type: 'string', required: true } });
+    return internalRequest(this.sdk, `/voicemailDrops/types/${id}`, 'GET');
   }
 
   /**
@@ -57,6 +69,31 @@ export class VoicemailDropTypesService {
   async remove(id) {
     this.sdk.validateParams({ id }, { id: { type: 'string', required: true } });
     return internalRequest(this.sdk, `/voicemailDrops/types/${id}`, 'DELETE');
+  }
+
+  /**
+   * Set which users/groups can see a voicemail drop type.
+   * @param {string} id
+   * @param {Object} options
+   * @param {string[]} [options.userIds]
+   * @param {string[]} [options.groupIds]
+   * @returns {Promise<Object>}
+   */
+  async setAccess(id, { userIds, groupIds } = {}) {
+    this.sdk.validateParams({ id }, { id: { type: 'string', required: true } });
+    return internalRequest(this.sdk, `/voicemailDrops/types/${id}/access`, 'PUT', {
+      body: { userIds, groupIds },
+    });
+  }
+
+  /**
+   * List users who have recorded a voicemail drop message for this type.
+   * @param {string} id
+   * @returns {Promise<{results: Object[]}>}
+   */
+  async recordings(id) {
+    this.sdk.validateParams({ id }, { id: { type: 'string', required: true } });
+    return internalRequest(this.sdk, `/voicemailDrops/types/${id}/recordings`, 'GET');
   }
 }
 
