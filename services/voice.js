@@ -380,6 +380,40 @@ export class VoiceService {
     return result;
   }
 
+  /**
+   * Drop a pre-recorded/TTS voicemail message on an active outbound call and
+   * release the leg immediately (voicemail-drop-plan.md §4.2, §5).
+   *
+   * @param {Object} options
+   * @param {string} options.callId - The call ID to drop the message on (required)
+   * @param {string} options.dropId - The voicemail drop message id to play (required)
+   * @returns {Promise<Object>} result.status
+   *
+   * @example
+   * const result = await sdk.voice.voicemailDrop({ callId: 'call123', dropId: 'vmd_456' });
+   */
+  async voicemailDrop({ callId, dropId }) {
+    this.sdk.validateParams(
+      { callId, dropId },
+      {
+        callId: { type: 'string', required: true },
+        dropId: { type: 'string', required: true },
+      },
+    );
+
+    const params = {
+      body: { dropId },
+    };
+
+    const result = await internalRequest(
+      this.sdk,
+      `/voice/calls/${callId}/voicemailDrop`,
+      'PUT',
+      params,
+    );
+    return result;
+  }
+
   async conference(channels) {
     this.sdk.validateParams(
       { channels },

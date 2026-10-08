@@ -60,6 +60,7 @@ import {
   DataImportService,
   DataExportService,
 } from './services/dataImport.js';
+import { VoicemailDropsService } from './services/voicemailDrops.js';
 
 class UnboundSDK extends BaseSDK {
   constructor(options = {}) {
@@ -166,6 +167,7 @@ class UnboundSDK extends BaseSDK {
     this.developerApis = new DeveloperApisService(this);
     this.dataImport = new DataImportService(this);
     this.dataExport = new DataExportService(this);
+    this.voicemailDrops = new VoicemailDropsService(this);
 
     // Add additional services that might be missing
     this._initializeAdditionalServices();
@@ -387,5 +389,9 @@ export {
   DataImportService,
   DataExportService,
 } from './services/dataImport.js';
+export {
+  VoicemailDropsService,
+  VoicemailDropTypesService,
+} from './services/voicemailDrops.js';
 export { BaseSDK } from './base.js';
 export { layoutJourney, MAX_LANES as JOURNEY_LAYOUT_MAX_LANES } from './lib/journeyLayout.js';

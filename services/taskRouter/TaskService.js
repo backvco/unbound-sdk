@@ -741,6 +741,10 @@ export class TaskService {
    *
    * @param {Object} options - Parameters
    * @param {string} options.taskId - The task ID to move to wrap-up (required)
+   * @param {boolean} [options.skipSipHangup] - Skip hanging up the worker's SIP leg (e.g. a voicemail
+   *   drop already released the leg; see voicemail-drop-plan.md §4.2.4)
+   * @param {string} [options.dispositionId] - Disposition to pre-fill/stamp for this wrap-up
+   * @param {Object} [options.metadata] - Extra context to carry into wrap-up (e.g. voicemail drop id/duration)
    * @returns {Promise<Object>} Object containing the task ID and new status
    * @returns {string} result.taskId - The task ID that was modified
    * @returns {string} result.status - The new status ('wrapUp')
@@ -754,24 +758,37 @@ export class TaskService {
    * // Move a held task to wrap-up
    * const result = await sdk.taskRouter.task.wrapUp({ taskId: 'task456' });
    * console.log(result.taskId); // "task456"
+   *
+   * @example
+   * // Voicemail drop: leg already released, pre-fill disposition
+   * const result = await sdk.taskRouter.task.wrapUp({
+   *   taskId: 'task789',
+   *   skipSipHangup: true,
+   *   dispositionId: 'disp_leftVoicemail',
+   *   metadata: { voicemailDropId: 'vmd_123', durationMs: 23000 },
+   * });
    */
   async wrapUp(options = {}) {
-    const { taskId } = options;
+    const { taskId, skipSipHangup, dispositionId, metadata } = options;
 
     this.sdk.validateParams(
-      { taskId },
+      { taskId, skipSipHangup, dispositionId, metadata },
       {
         taskId: { type: 'string', required: true },
+        skipSipHangup: { type: 'boolean', required: false },
+        dispositionId: { type: 'string', required: false },
+        metadata: { type: 'object', required: false },
       },
     );
 
-    const params = {
-      body: {
-        taskId,
-      },
-    };
+    const body = { taskId };
+    if (skipSipHangup !== undefined) body.skipSipHangup = skipSipHangup;
+    if (dispositionId !== undefined) body.dispositionId = dispositionId;
+    if (metadata !== undefined) body.metadata = metadata;
 
-    const result = await internalRequest(this.sdk, 
+    const params = { body };
+
+    const result = await internalRequest(this.sdk,
       '/taskRouter/tasks/wrapUp',
       'PUT',
       params,
