@@ -189,23 +189,40 @@ export class PhoneNumbersService {
     return result;
   }
 
-  async updateCnam(phoneNumber, { cnam }) {
+  async updateCnam(id, { enabled, name }) {
     this.sdk.validateParams(
-      { phoneNumber, cnam },
+      { id, enabled, name },
       {
-        phoneNumber: { type: 'string', required: true },
-        cnam: { type: 'string', required: true },
+        id: { type: 'string', required: true },
+        enabled: { type: 'boolean', required: true },
+        name: { type: 'string', required: false },
       },
     );
 
     const params = {
-      body: { cnam },
+      body: { enabled, ...(name !== undefined ? { name } : {}) },
     };
 
-    const result = await internalRequest(this.sdk, 
-      `/phoneNumbers/cnam/${phoneNumber}`,
+    const result = await internalRequest(this.sdk,
+      `/phoneNumbers/${id}/cnam`,
       'PUT',
       params,
+    );
+    return result;
+  }
+
+  async checkCnam(id) {
+    this.sdk.validateParams(
+      { id },
+      {
+        id: { type: 'string', required: true },
+      },
+    );
+
+    const result = await internalRequest(this.sdk,
+      `/phoneNumbers/${id}/cnam/check`,
+      'POST',
+      {},
     );
     return result;
   }
