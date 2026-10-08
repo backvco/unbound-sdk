@@ -1,3 +1,8 @@
+## 4.13.144
+
+- feat: `sdk.journeys.listStats(ids)` — `GET /journeys/list-stats?ids=a,b,c`, bulk equivalent of `stats(journeyId)` for the Journeys list page (one request instead of N)
+- feat: `sdk.journeys.remove(id)` — `DELETE /journeys/:id`, a REAL hard delete distinct from `archive()`. Only succeeds when the journey is a draft or has zero members (any status); otherwise 409 `JOURNEY_HAS_MEMBERS` — archive it instead.
+
 ## 4.13.133
 
 - feat: `sdk.taskRouter.task.publicReply({subject})` — optional explicit subject for journey touch-task emails / first email on a task (thread replies still inherit). (4.13.132 was an empty version bump.)

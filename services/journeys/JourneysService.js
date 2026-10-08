@@ -143,6 +143,41 @@ export class JourneysService {
   }
 
   /**
+   * Bulk equivalent of `stats()` for the Journeys list page -- one request
+   * instead of N. Journeys not found (or with no members) still get an
+   * entry, zeroed.
+   *
+   * @param {string[]} ids
+   * @returns {Promise<Object<string, {byStatus: Object, needsAttentionByReason: Object, total: number}>>}
+   */
+  async listStats(ids) {
+    this.sdk.validateParams(
+      { ids },
+      { ids: { type: 'array', required: true } },
+    );
+    if (!ids.length) return {};
+    return await internalRequest(this.sdk, '/journeys/list-stats', 'GET', {
+      query: { ids: ids.join(',') },
+    });
+  }
+
+  /**
+   * REAL delete -- distinct from `archive()`. Only succeeds server-side
+   * when the journey is still a draft, or has zero members in any status;
+   * otherwise the API refuses with 409 `JOURNEY_HAS_MEMBERS` (archive it
+   * instead). Hard-deletes the journey row plus its companion workflow
+   * (and that workflow's versions/items/ports/connections) -- unlike
+   * `archive()`, this cannot be undone.
+   *
+   * @param {string} id
+   * @returns {Promise<Object>} { deleted: true, id, workflowId, memberCount }
+   */
+  async remove(id) {
+    this.sdk.validateParams({ id }, { id: { type: 'string', required: true } });
+    return await internalRequest(this.sdk, `/journeys/${id}`, 'DELETE', {});
+  }
+
+  /**
    * Diff of the current published journeyDoc vs the draft, by stepKey (P7).
    *
    * @param {string} id

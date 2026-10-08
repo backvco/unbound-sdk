@@ -138,6 +138,39 @@ describe('JourneysService.stats', () => {
   });
 });
 
+describe('JourneysService.listStats', () => {
+  test('GETs /journeys/list-stats with a joined ids query', async () => {
+    const { fakeSdk, calls } = buildFakeSdk();
+
+    await journeys(fakeSdk).listStats(['jny-1', 'jny-2']);
+
+    assert.equal(calls[0].endpoint, '/journeys/list-stats');
+    assert.equal(calls[0].method, 'GET');
+    assert.deepEqual(calls[0].params.query, { ids: 'jny-1,jny-2' });
+  });
+
+  test('returns {} for an empty ids array without a request', async () => {
+    const { fakeSdk, calls } = buildFakeSdk();
+
+    const result = await journeys(fakeSdk).listStats([]);
+
+    assert.deepEqual(result, {});
+    assert.equal(calls.length, 0);
+  });
+});
+
+describe('JourneysService.remove', () => {
+  test('DELETEs /journeys/:id (real delete, not archive)', async () => {
+    const { fakeSdk, calls, objectCalls } = buildFakeSdk();
+
+    await journeys(fakeSdk).remove('jny-1');
+
+    assert.equal(calls[0].endpoint, '/journeys/jny-1');
+    assert.equal(calls[0].method, 'DELETE');
+    assert.equal(objectCalls.length, 0);
+  });
+});
+
 describe('JourneysService.types', () => {
   test('list queries the journeyTypes object', async () => {
     const { fakeSdk, objectCalls } = buildFakeSdk();
