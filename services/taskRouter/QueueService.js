@@ -163,4 +163,181 @@ export class QueueService {
       { body: { routingSteps } },
     );
   }
+
+  /**
+   * List a queue's alert rules (queueAlertRules table). Each rule fires
+   * when its trigger metric crosses `threshold` by `comparator` and
+   * stays there for `sustainSeconds` (proactive-alerts-plan.md §13/D1-D7).
+   *
+   * @param {string} queueId - The queue ID (required)
+   * @returns {Promise<Object>} result
+   * @returns {Object[]} result.alertRules - Rules for the queue
+   *
+   * @example
+   * const { alertRules } = await sdk.taskRouter.queues.alerts.list('queue123');
+   */
+  async alertsList(queueId) {
+    this.sdk.validateParams(
+      { queueId },
+      { queueId: { type: 'string', required: true } },
+    );
+
+    return await internalRequest(
+      this.sdk,
+      `/taskRouter/queues/${queueId}/alertRules`,
+      'GET',
+    );
+  }
+
+  /**
+   * Create a new alert rule on a queue.
+   *
+   * @param {string} queueId - The queue ID (required)
+   * @param {Object} rule - The rule to create
+   * @param {string} rule.channel - 'phoneCall' | 'chat' | 'email' | 'sms' | 'fax' | 'other' | 'whatsApp' | 'rcs' | 'all'
+   * @param {string} rule.trigger - 'pendingTasks' | 'longestWait' | 'serviceLevel' | 'availableAgents' | 'abandonmentRate' | 'abandonCount' | 'occupancy' | 'overflowMaxWait' | 'overflowNoAgents' | 'overflowCapacity' | 'overflowClosed'
+   * @param {string} [rule.comparator] - 'gte' | 'lte' (defaults per trigger: serviceLevel/availableAgents -> lte, else gte)
+   * @param {number} rule.threshold
+   * @param {number} [rule.hysteresisValue]
+   * @param {number} [rule.windowMinutes] - Required 1-60 iff trigger is 'abandonCount'
+   * @param {number} [rule.sustainSeconds]
+   * @param {number} [rule.cooldownSeconds]
+   * @param {number} [rule.dailyCap]
+   * @param {string} [rule.scheduleId]
+   * @param {boolean} [rule.sendRecovery]
+   * @param {number} [rule.escalateAfterSeconds]
+   * @param {Object[]} rule.actions - `[{type:'email'|'sms'|'notification', userIds:[], teamIds:[]} | {type:'chat', channelId?, userIds?} | {type:'workflow', workflowId}]`
+   * @param {Object[]} [rule.escalateActions] - Same shape as `actions`
+   * @param {boolean} [rule.isEnabled]
+   * @returns {Promise<Object>} result
+   * @returns {Object} result.alertRule - The created rule
+   *
+   * @example
+   * await sdk.taskRouter.queues.alerts.create('queue123', {
+   *   channel: 'phoneCall',
+   *   trigger: 'longestWait',
+   *   threshold: 60,
+   *   sustainSeconds: 60,
+   *   actions: [{ type: 'notification', userIds: ['user1'], teamIds: [] }],
+   * });
+   */
+  async alertsCreate(queueId, rule) {
+    this.sdk.validateParams(
+      { queueId, rule },
+      {
+        queueId: { type: 'string', required: true },
+        rule: { type: 'object', required: true },
+      },
+    );
+
+    return await internalRequest(
+      this.sdk,
+      `/taskRouter/queues/${queueId}/alertRules`,
+      'POST',
+      { body: rule },
+    );
+  }
+
+  /**
+   * Patch an existing alert rule.
+   *
+   * @param {string} queueId - The queue ID (required)
+   * @param {string} ruleId - The alert rule ID (required)
+   * @param {Object} patch - Partial fields to update (same shape as `create`'s `rule`)
+   * @returns {Promise<Object>} result
+   * @returns {Object} result.alertRule - The updated rule
+   *
+   * @example
+   * await sdk.taskRouter.queues.alerts.update('queue123', 'rule1', { threshold: 90 });
+   */
+  async alertsUpdate(queueId, ruleId, patch) {
+    this.sdk.validateParams(
+      { queueId, ruleId, patch },
+      {
+        queueId: { type: 'string', required: true },
+        ruleId: { type: 'string', required: true },
+        patch: { type: 'object', required: true },
+      },
+    );
+
+    return await internalRequest(
+      this.sdk,
+      `/taskRouter/queues/${queueId}/alertRules/${ruleId}`,
+      'PATCH',
+      { body: patch },
+    );
+  }
+
+  /**
+   * Delete an alert rule.
+   *
+   * @param {string} queueId - The queue ID (required)
+   * @param {string} ruleId - The alert rule ID (required)
+   * @returns {Promise<Object>} result
+   *
+   * @example
+   * await sdk.taskRouter.queues.alerts.remove('queue123', 'rule1');
+   */
+  async alertsRemove(queueId, ruleId) {
+    this.sdk.validateParams(
+      { queueId, ruleId },
+      {
+        queueId: { type: 'string', required: true },
+        ruleId: { type: 'string', required: true },
+      },
+    );
+
+    return await internalRequest(
+      this.sdk,
+      `/taskRouter/queues/${queueId}/alertRules/${ruleId}`,
+      'DELETE',
+    );
+  }
+
+  /**
+   * List a queue's alert event history (queueAlertEvents table): fired,
+   * escalated, cleared, and suppressed events.
+   *
+   * @param {string} queueId - The queue ID (required)
+   * @param {Object} [options]
+   * @param {number} [options.limit] - Max rows to return (default 50)
+   * @param {string} [options.before] - ISO timestamp cursor; only events before this time
+   * @returns {Promise<Object>} result
+   * @returns {Object[]} result.alertEvents
+   *
+   * @example
+   * const { alertEvents } = await sdk.taskRouter.queues.alerts.history('queue123', { limit: 20 });
+   */
+  async alertsHistory(queueId, { limit, before } = {}) {
+    this.sdk.validateParams(
+      { queueId },
+      { queueId: { type: 'string', required: true } },
+    );
+
+    const query = {};
+    if (limit !== undefined) query.limit = limit;
+    if (before !== undefined) query.before = before;
+
+    return await internalRequest(
+      this.sdk,
+      `/taskRouter/queues/${queueId}/alertEvents`,
+      'GET',
+      { query },
+    );
+  }
 }
+
+// Exposes alert-rule methods as `sdk.taskRouter.queues.alerts.*` while
+// keeping them implemented as plain methods on QueueService above (so they
+// share `this.sdk`/validateParams without a second internalRequest wiring).
+Object.defineProperty(QueueService.prototype, 'alerts', {
+  get() {
+    return {
+      list: (queueId) => this.alertsList(queueId),
+      create: (queueId, rule) => this.alertsCreate(queueId, rule),
+      update: (queueId, ruleId, patch) => this.alertsUpdate(queueId, ruleId, patch),
+      remove: (queueId, ruleId) => this.alertsRemove(queueId, ruleId),
+      history: (queueId, options) => this.alertsHistory(queueId, options),
+    };
+  },
+});
