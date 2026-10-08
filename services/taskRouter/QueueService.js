@@ -95,4 +95,72 @@ export class QueueService {
       'GET',
     );
   }
+
+  /**
+   * Get a queue's per-channel skill-tier routing steps
+   * (skill-proficiency-tiers-plan.md D2/§3.3). Step 0 (Expert only, full
+   * requirements) is implicit and never included in the returned list.
+   *
+   * @param {string} queueId - The queue ID (required)
+   * @returns {Promise<Object>} result
+   * @returns {string} result.queueId
+   * @returns {Object} result.routingSteps - Keyed by channel ('phoneCall'|'chat'|'email'|'sms'),
+   *   e.g. `{ phoneCall: { steps: [{afterSec, allowedTiers, ignoreOptionalSkills, dropRequiredSkillIds}], learningNeverAutoRoute } }`
+   *
+   * @example
+   * const { routingSteps } = await sdk.taskRouter.queues.getRoutingSteps('queue123');
+   */
+  async getRoutingSteps(queueId) {
+    this.sdk.validateParams(
+      { queueId },
+      { queueId: { type: 'string', required: true } },
+    );
+
+    return await internalRequest(
+      this.sdk,
+      `/taskRouter/queues/${queueId}/routingSteps`,
+      'GET',
+    );
+  }
+
+  /**
+   * Replace a queue's per-channel skill-tier routing steps. `afterSec`
+   * must be strictly increasing within each channel's `steps` list; the
+   * API validates this and rejects out-of-order steps.
+   *
+   * @param {string} queueId - The queue ID (required)
+   * @param {Object} routingSteps - Keyed by channel ('phoneCall'|'chat'|'email'|'sms')
+   * @param {Object[]} routingSteps[channel].steps - `[{afterSec, allowedTiers, ignoreOptionalSkills, dropRequiredSkillIds}]`
+   * @param {boolean} [routingSteps[channel].learningNeverAutoRoute] - Coach-only: never auto-route Learning-tier workers on this channel
+   * @returns {Promise<Object>} result
+   * @returns {string} result.queueId
+   * @returns {Object} result.routingSteps - The stored steps, as written (normalized)
+   *
+   * @example
+   * await sdk.taskRouter.queues.setRoutingSteps('queue123', {
+   *   phoneCall: {
+   *     steps: [
+   *       { afterSec: 30, allowedTiers: ['expert', 'proficient'], ignoreOptionalSkills: false, dropRequiredSkillIds: [] },
+   *       { afterSec: 90, allowedTiers: ['expert', 'proficient', 'learning'], ignoreOptionalSkills: true, dropRequiredSkillIds: [] },
+   *     ],
+   *     learningNeverAutoRoute: false,
+   *   },
+   * });
+   */
+  async setRoutingSteps(queueId, routingSteps) {
+    this.sdk.validateParams(
+      { queueId, routingSteps },
+      {
+        queueId: { type: 'string', required: true },
+        routingSteps: { type: 'object', required: true },
+      },
+    );
+
+    return await internalRequest(
+      this.sdk,
+      `/taskRouter/queues/${queueId}/routingSteps`,
+      'PUT',
+      { body: { routingSteps } },
+    );
+  }
 }

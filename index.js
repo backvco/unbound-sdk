@@ -41,6 +41,7 @@ import { RecordTypesService } from './services/recordTypes.js';
 import { GenerateIdService } from './services/generateId.js';
 import { EngagementMetricsService } from './services/engagementMetrics.js';
 import { TaskRouterService } from './services/taskRouter.js';
+import { SkillsService } from './services/skills.js';
 import { KnowledgeBaseService } from './services/knowledgeBase.js';
 import { FaxService } from './services/fax.js';
 import { DocumentsService } from './services/documents.js';
@@ -148,6 +149,7 @@ class UnboundSDK extends BaseSDK {
     this.generateId = new GenerateIdService(this);
     this.engagementMetrics = new EngagementMetricsService(this);
     this.taskRouter = new TaskRouterService(this);
+    this.skills = new SkillsService(this);
     this.text = new TextService(this);
     this.knowledgeBase = new KnowledgeBaseService(this);
     this.fax = new FaxService(this);
