@@ -30,7 +30,7 @@ export class JourneyMembersService {
    * @param {number} [opts.pageSize]
    * @param {string} [opts.sort]
    * @param {string} [opts.sortDir]
-   * @param {string[]} [opts.status]
+   * @param {string[]} [opts.status] active | paused | needsAttention | waiting (owner at capacity) | completed | converted | exited | removed
    * @param {string} [opts.stepKey]
    * @param {string} [opts.ownerUserId]
    * @param {string} [opts.statusReason]
@@ -110,7 +110,9 @@ export class JourneyMembersService {
    * @param {string[]} [body.peopleIds] - Either peopleIds or filter is required
    * @param {Object} [body.filter]
    * @param {Object} [body.overrides] - Per-member channel overrides
-   * @param {string} [body.ownerUserId]
+   * @param {string} [body.ownerUserId] - used with ownerMode 'user'
+   * @param {'journeyDefault'|'recordOwner'|'user'|'pool'} [body.ownerMode] - journey/type default | each person's people.ownerId | one explicit user for all | no owner
+   * @param {{mode:'pool'}|{mode:'user', ownerUserId:string}} [body.ownerFallback] - with ownerMode 'recordOwner': what people WITHOUT a record owner get (default pool)
    * @param {string} [body.source]
    * @param {boolean} [body.dryRun]
    * @param {string} [body.primaryChannel]

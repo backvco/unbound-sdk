@@ -1,3 +1,7 @@
+## 4.13.145
+
+- docs: journeyTypes/journeys ownership settings (poolClaimMode, syncPersonOwner, ownerScope, ownerMissingPolicy, maxActiveMembersPerOwner) on `sdk.journeys.types.create/update` + `sdk.journeys.create/update`; member status `waiting` (statusReason `ownerCapacity`); `members.enroll` accepts `ownerMode` ('journeyDefault'|'recordOwner'|'user'|'pool') and `ownerFallback` ({mode:'pool'}|{mode:'user', ownerUserId}); `worklist.takeNext` may 409 `OWNER_AT_CAPACITY` ({cap, active} on err.body)
+
 ## 4.13.144
 
 - feat: `sdk.journeys.listStats(ids)` — `GET /journeys/list-stats?ids=a,b,c`, bulk equivalent of `stats(journeyId)` for the Journeys list page (one request instead of N)
