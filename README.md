@@ -159,6 +159,12 @@ await api.login.login('username', 'password');
 await api.login.logout();
 await api.login.validate();
 await api.login.changePassword('current', 'new');
+
+// User sessions (refresh-token families) -- list/revoke your own, or an
+// account admin acting on another user in the same account
+await api.login.listSessions({ includeClosed: true });
+await api.login.revokeSession(sessionId);
+await api.login.revokeAllSessions({ keepCurrent: true });
 ```
 
 #### Objects (`api.objects`)

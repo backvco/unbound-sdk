@@ -146,11 +146,85 @@ export class LoginService {
       body: { email },
     };
 
-    const result = await internalRequest(this.sdk, 
+    const result = await internalRequest(this.sdk,
       '/login/forgotPassword',
       'POST',
       options,
       true,
+    );
+    return result;
+  }
+
+  /**
+   * User sessions (one row per refresh-token family). userId defaults to
+   * the caller; passing someone else's userId requires the caller to hold
+   * admin:user:manage AND that user to be in the caller's own account --
+   * the API 403s otherwise.
+   * @param {object} [params]
+   * @param {string} [params.userId] -- defaults to the caller
+   * @param {boolean} [params.includeClosed] -- also return closed
+   *   (revoked/expired) sessions from the last 30 days
+   * @returns {Promise<{ sessions: Array<object> }>}
+   */
+  async listSessions({ userId, includeClosed } = {}) {
+    const query = {};
+    if (userId) query.userId = userId;
+    if (includeClosed) query.includeClosed = true;
+
+    const options = { query };
+    const result = await internalRequest(this.sdk,
+      '/login/sessions',
+      'GET',
+      options,
+    );
+    return result;
+  }
+
+  /**
+   * Revoke a single session (refresh-token family) by id.
+   * @param {string} sessionId
+   * @param {object} [params]
+   * @param {string} [params.userId] -- defaults to the caller; same
+   *   self-or-admin-same-account rule as listSessions
+   * @returns {Promise<{ revoked: boolean, id: string, current: boolean }>}
+   */
+  async revokeSession(sessionId, { userId } = {}) {
+    this.sdk.validateParams(
+      { sessionId },
+      {
+        sessionId: { type: 'string', required: true },
+      },
+    );
+
+    const options = {};
+    if (userId) options.body = { userId };
+
+    const result = await internalRequest(this.sdk,
+      `/login/sessions/${sessionId}`,
+      'DELETE',
+      options,
+    );
+    return result;
+  }
+
+  /**
+   * Revoke every live session for a user.
+   * @param {object} [params]
+   * @param {string} [params.userId] -- defaults to the caller
+   * @param {boolean} [params.keepCurrent] -- when acting on your own
+   *   sessions, leave the session you're calling from untouched
+   * @returns {Promise<{ revoked: number }>}
+   */
+  async revokeAllSessions({ userId, keepCurrent } = {}) {
+    const body = {};
+    if (userId) body.userId = userId;
+    if (keepCurrent) body.keepCurrent = true;
+
+    const options = { body };
+    const result = await internalRequest(this.sdk,
+      '/login/sessions/revoke-all',
+      'POST',
+      options,
     );
     return result;
   }
