@@ -180,6 +180,27 @@ export class LicensesService {
     );
   }
 
+  /**
+   * Get a user's active/disabled status (read-side of setUserStatus,
+   * W1-3). Allowed for the caller's own userId with no scope, or for any
+   * userId in the account when holding admin:user:manage.
+   * @param {string} userId
+   * @returns {Promise<Object>} `{ userId, status, updatedAt? }`
+   * @example
+   * await sdk.licenses.getUserStatus('user-123');
+   */
+  async getUserStatus(userId) {
+    this.sdk.validateParams(
+      { userId },
+      { userId: { type: 'string', required: true } },
+    );
+    return internalRequest(
+      this.sdk,
+      `/permissions/users/${userId}/status`,
+      'GET',
+    );
+  }
+
   // -- Brand-owner methods (requireBrandOwner; 2D api routes) --------------
 
   /**
