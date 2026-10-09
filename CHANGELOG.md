@@ -1,3 +1,17 @@
+## 4.13.116
+
+- feat: `sdk.lineGroups` — list, get, create, update, delete, extensionAvailable, routingTargets, lines, members
+
+## 4.13.106
+
+- feat: `sdk.workflows.tools.list()` / `.call(slug, input)` — REST twin of the MCP `tools/list`/`tools/call` methods for `tool`-type workflows (P5)
+- feat: `sdk.workflows.mcpTokens.create({name})` / `.list()` / `.revoke(id)` — mint/list/revoke long-lived `mcp`-scoped bearer tokens (P5 W22)
+
+## 4.13.104
+
+- fix: `sdk.workflows.sessions.get(id)` now calls the generic object GET (`items.get` pattern) instead of a nonexistent `/workflows/sessions/:id` route
+- removed: `sdk.workflows.sessions.delete`, `sdk.workflows.getSettings` — dead, no matching api route, no callers anywhere in the codebase (W24)
+
 ## 4.13.103
 
 - feat: `sdk.ai.generative.chat` accepts optional `usageContext` (`{ feature?, taskId?, sipCallId?, queueId?, cdrId? }`) — telemetry-only turn attribution for call-analysis callers (transcription sentiment/summary/subject/playbook, AI assist, webchat sentiment, notes summaries, …), never affects the prompt, session, caching, or response (contracts §9)
