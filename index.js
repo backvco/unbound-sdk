@@ -23,6 +23,11 @@ import { DealRegistrationsService } from './services/dealRegistrations.js';
 import { SipEndpointsService } from './services/sipEndpoints.js';
 import { RingGroupsService } from './services/ringGroups.js';
 import { LineGroupsService } from './services/lineGroups.js';
+import { ParkingService } from './services/parking.js';
+import { OperatorPanelsService } from './services/operatorPanels.js';
+import { SchedulesService } from './services/schedules/SchedulesService.js';
+import { JourneysService } from './services/journeys/JourneysService.js';
+import { WorkflowTemplatesService } from './services/workflowTemplates/WorkflowTemplatesService.js';
 import { EmergencyService } from './services/emergency.js';
 import { WebchatService } from './services/webchat.js';
 import { CobrowseService } from './services/cobrowse.js';
@@ -36,6 +41,7 @@ import { RecordTypesService } from './services/recordTypes.js';
 import { GenerateIdService } from './services/generateId.js';
 import { EngagementMetricsService } from './services/engagementMetrics.js';
 import { TaskRouterService } from './services/taskRouter.js';
+import { SkillsService } from './services/skills.js';
 import { KnowledgeBaseService } from './services/knowledgeBase.js';
 import { FaxService } from './services/fax.js';
 import { DocumentsService } from './services/documents.js';
@@ -56,6 +62,7 @@ import {
   DataImportService,
   DataExportService,
 } from './services/dataImport.js';
+import { VoicemailDropsService } from './services/voicemailDrops.js';
 
 class UnboundSDK extends BaseSDK {
   constructor(options = {}) {
@@ -127,6 +134,11 @@ class UnboundSDK extends BaseSDK {
     this.sipEndpoints = new SipEndpointsService(this);
     this.ringGroups = new RingGroupsService(this);
     this.lineGroups = new LineGroupsService(this);
+    this.parking = new ParkingService(this);
+    this.operatorPanels = new OperatorPanelsService(this);
+    this.schedules = new SchedulesService(this);
+    this.journeys = new JourneysService(this);
+    this.workflowTemplates = new WorkflowTemplatesService(this);
     this.emergency = new EmergencyService(this);
     this.webchat = new WebchatService(this);
     this.cobrowse = new CobrowseService(this);
@@ -140,6 +152,7 @@ class UnboundSDK extends BaseSDK {
     this.generateId = new GenerateIdService(this);
     this.engagementMetrics = new EngagementMetricsService(this);
     this.taskRouter = new TaskRouterService(this);
+    this.skills = new SkillsService(this);
     this.text = new TextService(this);
     this.knowledgeBase = new KnowledgeBaseService(this);
     this.fax = new FaxService(this);
@@ -158,6 +171,7 @@ class UnboundSDK extends BaseSDK {
     this.developerApis = new DeveloperApisService(this);
     this.dataImport = new DataImportService(this);
     this.dataExport = new DataExportService(this);
+    this.voicemailDrops = new VoicemailDropsService(this);
 
     // Add additional services that might be missing
     this._initializeAdditionalServices();
@@ -332,10 +346,21 @@ export { DealRegistrationsService } from './services/dealRegistrations.js';
 export { SipEndpointsService } from './services/sipEndpoints.js';
 export { RingGroupsService } from './services/ringGroups.js';
 export { LineGroupsService } from './services/lineGroups.js';
+export { ParkingService } from './services/parking.js';
+export { SchedulesService } from './services/schedules/SchedulesService.js';
+export { TimeOffService } from './services/schedules/TimeOffService.js';
+export { JourneysService } from './services/journeys/JourneysService.js';
+export { JourneyMembersService } from './services/journeys/JourneyMembersService.js';
+export { JourneyDraftService } from './services/journeys/JourneysService.js';
+export { JourneyWorklistService } from './services/journeys/JourneyWorklistService.js';
+export { WorkflowTemplatesService } from './services/workflowTemplates/WorkflowTemplatesService.js';
 export { EmergencyService } from './services/emergency.js';
 export { WebchatService, WebchatWidgetsService } from './services/webchat.js';
 export { CobrowseService, CobrowseVisitorService } from './services/cobrowse.js';
-export { MessageTemplatesService } from './services/messageTemplates.js';
+export {
+  MessageTemplatesService,
+  MessageTemplateVersionsService,
+} from './services/messageTemplates.js';
 export { WebchatVisitorService } from './services/webchat/VisitorService.js';
 export { ExternalOAuthService } from './services/externalOAuth.js';
 export { GoogleCalendarService } from './services/googleCalendar.js';
@@ -370,4 +395,9 @@ export {
   DataImportService,
   DataExportService,
 } from './services/dataImport.js';
+export {
+  VoicemailDropsService,
+  VoicemailDropTypesService,
+} from './services/voicemailDrops.js';
 export { BaseSDK } from './base.js';
+export { layoutJourney, MAX_LANES as JOURNEY_LAYOUT_MAX_LANES } from './lib/journeyLayout.js';

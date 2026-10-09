@@ -1038,6 +1038,9 @@ export class ObjectsService {
     description = null,
     feedPostChanges = null,
     feedPostWindowSeconds = null,
+    showInNav = null,
+    navLabel = null,
+    icon = null,
   }) {
     this.sdk.validateParams(
       {
@@ -1047,6 +1050,9 @@ export class ObjectsService {
         description,
         feedPostChanges,
         feedPostWindowSeconds,
+        showInNav,
+        navLabel,
+        icon,
       },
       {
         objectName: { type: 'string', required: true },
@@ -1055,6 +1061,9 @@ export class ObjectsService {
         description: { type: 'string', required: false },
         feedPostChanges: { type: 'boolean', required: false },
         feedPostWindowSeconds: { type: 'number', required: false },
+        showInNav: { type: 'boolean', required: false },
+        navLabel: { type: 'string', required: false },
+        icon: { type: 'string', required: false },
       },
     );
 
@@ -1065,6 +1074,9 @@ export class ObjectsService {
     if (feedPostChanges !== null) body.feedPostChanges = feedPostChanges;
     if (feedPostWindowSeconds !== null)
       body.feedPostWindowSeconds = feedPostWindowSeconds;
+    if (showInNav !== null) body.showInNav = showInNav;
+    if (navLabel !== null) body.navLabel = navLabel;
+    if (icon !== null) body.icon = icon;
 
     const params = { body };
 
@@ -1417,43 +1429,4 @@ export class ObjectsService {
     );
   }
 
-  /**
-   * P7 (workflows-v2-plan.md W10/W11/W23) -- runs an immediate full
-   * enter+exit sweep for a journey program. Same diff-and-enqueue path a
-   * scheduled tick runs, so this can never 429.
-   * @param {string} programId
-   * @returns {Promise<{queued: true, enterEnqueued: number, exitEnqueued: number}>}
-   */
-  async runMarketingProgramNow(programId) {
-    this.sdk.validateParams(
-      { programId },
-      { programId: { type: 'string', required: true } },
-    );
-    return internalRequest(
-      this.sdk,
-      `/object/marketing-programs/${programId}/run`,
-      'POST',
-      { body: {} },
-    );
-  }
-
-  /**
-   * P7 -- paginated member list for a journey program (joined to people
-   * for display name; never raw peopleId).
-   * @param {string} programId
-   * @param {{nextId?: string, limit?: number}} [opts]
-   * @returns {Promise<{results: object[], pagination: object}>}
-   */
-  async listMarketingProgramMembers(programId, opts = {}) {
-    this.sdk.validateParams(
-      { programId },
-      { programId: { type: 'string', required: true } },
-    );
-    return internalRequest(
-      this.sdk,
-      `/object/marketing-programs/${programId}/members`,
-      'GET',
-      { query: opts },
-    );
-  }
 }

@@ -1,3 +1,78 @@
+## 4.13.145
+
+- docs: journeyTypes/journeys ownership settings (poolClaimMode, syncPersonOwner, ownerScope, ownerMissingPolicy, maxActiveMembersPerOwner) on `sdk.journeys.types.create/update` + `sdk.journeys.create/update`; member status `waiting` (statusReason `ownerCapacity`); `members.enroll` accepts `ownerMode` ('journeyDefault'|'recordOwner'|'user'|'pool') and `ownerFallback` ({mode:'pool'}|{mode:'user', ownerUserId}); `worklist.takeNext` may 409 `OWNER_AT_CAPACITY` ({cap, active} on err.body)
+
+## 4.13.144
+
+- feat: `sdk.journeys.listStats(ids)` — `GET /journeys/list-stats?ids=a,b,c`, bulk equivalent of `stats(journeyId)` for the Journeys list page (one request instead of N)
+- feat: `sdk.journeys.remove(id)` — `DELETE /journeys/:id`, a REAL hard delete distinct from `archive()`. Only succeeds when the journey is a draft or has zero members (any status); otherwise 409 `JOURNEY_HAS_MEMBERS` — archive it instead.
+
+## 4.13.133
+
+- feat: `sdk.taskRouter.task.publicReply({subject})` — optional explicit subject for journey touch-task emails / first email on a task (thread replies still inherit). (4.13.132 was an empty version bump.)
+
+## 4.13.131
+
+- feat: `sdk.journeys.publishDiff(id)` — `GET /journeys/:id/publish-diff` (old vs draft steps by stepKey, P7)
+- feat: `sdk.journeys.publish(id, {mode, mapping})` — `POST /journeys/:id/publish`; `mode:'migrate'` moves open members to the new version at their next safe point (journeys-plan.md §7.5)
+- docs: `isTest` + `groupBy` params on `sdk.journeys.members.list` / `exportCsvUrl`
+- docs: `sdk.taskRouter.metrics.getCurrent({queueId})` result gains an additive `metrics.sales` block for sales queues (dueNow, overdue, takenOnTimePct, timeToActionMedianSeconds, touchesCompletedToday, conversionsToday)
+
+## 4.13.130
+
+- feat: `sdk.journeys.funnel(journeyId)` — `GET /journeys/:id/funnel` per-step entered / outcome split / conversions (journeys-plan.md §9, P6)
+- feat: `sdk.journeys.metrics(journeyId)` — `GET /journeys/:id/metrics` (enrolled, active, needsAttention, repliedPct, convertedPct, bounced, optedOut, timeToConvertMedianSeconds)
+- feat: `sdk.journeys.events(journeyId, {stepKey?, memberId?, page?, pageSize?})` — `GET /journeys/:id/events` journey-wide activity feed
+- feat: `sdk.journeys.repsMetrics({journeyTypeId?, journeyId?, from?, to?})` — `GET /journeys/reps/metrics`
+- feat: `sdk.journeys.members.exportCsvUrl(journeyId, filter)` — URL for `GET /journeys/:id/members/export.csv` (same filter/sort params as `list`)
+- feat: `sdk.journeys.members.list(journeyId, {groupBy:'company'})` passes through to the server-grouped mode
+- feat: `sdk.journeys.worklist.takeNext({taskId})` — take an exact task (validated server-side)
+- refactor: `JourneyTypesService` / `JourneyGoalsService` moved to their own files (same exports)
+
+## 4.13.129
+
+- feat: `sdk.journeys.worklist.list({bucket?, stepType?, journeyId?, page?, pageSize?})` — `GET /journeys/worklist`, cross-journey view of the caller's (or the pool's) open touch tasks + upcoming members (journeys-plan.md §9, P5)
+- feat: `sdk.journeys.worklist.takeNext({stepType?, journeyId?})` — `POST /journeys/worklist/take-next`, takes the next due touch task via `transitionTask` (same path as a manual take)
+- feat: `sdk.journeys.members.draft(memberId, {stepKey?, channel})` — `POST /journeys/members/:memberId/draft`, context-aware AI draft for a human touch-task step
+- docs: `JourneysService.js` documents the P5 generic-object field additions (`queues.queueType`/`deliveryMode`, `queueDispositions.outcome`/`countsAsConversion`/`flagsBadContact`, `users.salesEnabled`) and the new task fields (`deliveryMode`, `dueAt`, `journeyMemberId`, `journeyId`, `journeyStepKey`, `journeyStepChannel`) — no dedicated SDK service exists for queues/dispositions/users (generic-object CRUD only), so no new service was added for these, just documentation
+- docs: `JourneyMembersService.actions()` documents that "reassign-all-owned-by" is the existing `action:'reassign'` + `filter:{ownerUserId}` combination — no new method added (reuse, confirmed against `memberActions.js`)
+- new export: `JourneyWorklistService`
+
+## 4.13.128
+
+- feat: `sdk.journeys.draft.{get, saveSteps, convertToAdvanced, publishCheck}` — `GET /journeys/:id/draft`, `PUT /journeys/:id/draft/steps {doc}`, `POST /journeys/:id/convert-to-advanced`, `GET /journeys/:id/publish-check` (journeys-plan.md §7.3/§7.4, P4 compile area)
+- feat: `sdk.journeys.preview(id, {peopleId})` — `GET /journeys/:id/preview`, no-send per-step channel/message/landing-date dry run
+- feat: `sdk.journeys.testRun(id, {peopleId, testEmail?, testPhone?})` — `POST /journeys/:id/test-run`
+- feat: `sdk.journeys.clone(id, {name?})` — `POST /journeys/:id/clone`
+- feat: `sdk.journeys.saveAsTemplate(id, {name, summary?, category?, visibility?})` — `POST /journeys/:id/save-as-template`
+- feat: `sdk.workflowTemplates.{list, install}` — `GET /journeys/templates`, `POST /journeys/templates/:id/install` (journeys-plan.md §7.7); no `get` method — the API has no single-template GET route; platform authoring is INTERNAL-only (`/internal/journeys/templates`) and has no SDK surface since no first-party INTERNAL extension point exists in this package
+- new export: `JourneyDraftService`, `WorkflowTemplatesService`
+
+## 4.13.127
+
+- feat: `sdk.messageTemplates.templates.preview({templateId|body, peopleId})` — `POST /messageTemplates/templates/:id/preview` (or `/templates/preview` with a raw `body` and no saved template) — interpolated text + unresolved-variable report + SMS fits/segment count (journeys-plan.md §6.4)
+- feat: `sdk.messageTemplates.templates.sendTest(id)` — `POST /messageTemplates/templates/:id/sendTest`, sends to the caller's own on-file number only
+- feat: `sdk.messageTemplates.templates.usage(id)` — `GET /messageTemplates/templates/:id/usage` → `{journeyCount, activeMemberCount, journeys}`
+- feat: `sdk.messageTemplates.templates.versions.list(templateId)` — `GET /messageTemplates/templates/:id/versions`; `.restore(templateId, version)` — `POST /messageTemplates/templates/:id/versions/:version/restore` (restore always appends a new version)
+- feat: `sdk.messageTemplates.templates.create()`/`.update()` accept `media` (array of `{url, type, name?}`, MMS attachments); responses include `media` + `version`
+- new export: `MessageTemplateVersionsService`
+
+## 4.13.124
+
+- feat: `sdk.layouts.listSystem()` — `GET /layouts/system`, the GLOBAL system layouts (tier='system', 'home' excluded) for the Layout Builder list
+- feat: `sdk.layouts.clone(id, { name, recordTypeId })` — `recordTypeId` is sent only when provided (clone a system layout into a tenant record type)
+
+## 4.13.123
+
+- feat: `sdk.journeys` — list, get, create, update, archive, stats; `sdk.journeys.types` — list, get, create, update, remove; `sdk.journeys.goals` — list, create, update, remove (generic-object-backed, like `sdk.users.setStatus` wraps `sdk.objects.updateById`) (journeys-plan.md §2/§4, P2)
+- feat: `sdk.journeys.members` — list, get, enroll (dryRun), actions (bulk by ids or filter), fix, events — custom `/journeys/:id/members*` routes (journeyMembers is read-only via generic query, writes only through these)
+- removed: `sdk.objects.runMarketingProgramNow`, `sdk.objects.listMarketingProgramMembers` — moved to `sdk.journeys` (Programs strip, P2)
+
+## 4.13.122
+
+- feat: `sdk.schedules` — list, get, create, update, remove, setAssignment, clearAssignment, usedBy, listHolidaySets, resolve, isOpen, nextOpen, simulate (journeys-plan.md §5)
+- feat: `sdk.schedules.timeOff` — list, listTeam, create, update, remove, isUserAway
+
 ## 4.13.116
 
 - feat: `sdk.lineGroups` — list, get, create, update, delete, extensionAvailable, routingTargets, lines, members

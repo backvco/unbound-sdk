@@ -24,6 +24,8 @@ export class RecentsService {
    * @param {boolean} [params.hasRecording] - Calls/meetings with a recording.
    * @param {boolean} [params.hasTranscription] - Calls/meetings/voicemail
    *   with a transcript.
+   * @param {string} [params.voicemailBoxId] - Review this mailbox. Omit
+   *   to list the current user's own voicemail.
    * @returns {Promise<{items: Object[], nextCursor: string|null}>}
    */
   async list({
@@ -38,6 +40,7 @@ export class RecentsService {
     missed,
     hasRecording,
     hasTranscription,
+    voicemailBoxId,
   } = {}) {
     this.sdk.validateParams(
       {
@@ -51,6 +54,7 @@ export class RecentsService {
         missed,
         hasRecording,
         hasTranscription,
+        voicemailBoxId,
       },
       {
         limit: { type: 'number', required: false },
@@ -63,6 +67,7 @@ export class RecentsService {
         missed: { type: 'boolean', required: false },
         hasRecording: { type: 'boolean', required: false },
         hasTranscription: { type: 'boolean', required: false },
+        voicemailBoxId: { type: 'string', required: false },
       },
     );
 
@@ -90,6 +95,7 @@ export class RecentsService {
     if (hasTranscription !== undefined) {
       query.hasTranscription = hasTranscription;
     }
+    if (voicemailBoxId !== undefined) query.voicemailBoxId = voicemailBoxId;
 
     const params = { query };
 
@@ -127,6 +133,16 @@ export class RecentsService {
 
     const result = await internalRequest(this.sdk, '/recents/smsThread', 'GET', params);
     return result;
+  }
+
+  /**
+   * Mailboxes the current user can review: their own, then any personal
+   * boxes shared with them. Each row includes that box's unread count.
+   *
+   * @returns {Promise<{boxes: Object[]}>}
+   */
+  async voicemailBoxes() {
+    return await internalRequest(this.sdk, '/recents/voicemailBoxes', 'GET');
   }
 
   /**

@@ -1,6 +1,6 @@
 {
   "name": "@unboundcx/sdk",
-  "version": "4.13.146-security.0",
+  "version": "4.13.146-security.1",
   "description": "Official JavaScript SDK for the Unbound API - A comprehensive toolkit for integrating with Unbound's communication, AI, and data management services",
   "main": "index.js",
   "type": "module",
@@ -40,11 +40,11 @@
     "*.js",
     "services/**/*.js",
     "transports/**/*.js",
-    "lib/**/*.js",
     "types/**/*.d.ts",
     "proto/**/*.proto",
     "schemas/**/*.js",
     "schemas/**/*.md",
+    "lib/**/*.js",
     "README.md",
     "LICENSE"
   ],
@@ -64,6 +64,9 @@
     },
     "./schemas/*": {
       "import": "./schemas/*.js"
+    },
+    "./lib/*": {
+      "import": "./lib/*.js"
     }
   },
   "scripts": {

@@ -22,6 +22,7 @@ export class EmailTemplatesService {
    * @param {string} [params.text] - Plain text template body
    * @param {Object} [params.design] - Block-tree design JSON (compiled server-side)
    * @param {string} [params.appearance] - `client` or `marketing` (immutable after create)
+   * @param {string} [params.emailType] - `marketing` | `sales` | `transactional` (defaults to `marketing`; separate from `appearance`)
    * @param {boolean} [params.allowOneOff] - Usable as a one-off / compose send
    * @param {boolean} [params.allowCampaign] - Usable in campaigns / journeys
    * @param {string} [params.brandKitId] - Brand kit to apply
@@ -57,6 +58,7 @@ export class EmailTemplatesService {
     variables,
     design,
     appearance,
+    emailType,
     allowOneOff,
     allowCampaign,
     brandKitId,
@@ -72,6 +74,7 @@ export class EmailTemplatesService {
         variables: { type: 'array', required: false },
         design: { type: 'object', required: false },
         appearance: { type: 'string', required: false },
+        emailType: { type: 'string', required: false },
         allowOneOff: { type: 'boolean', required: false },
         allowCampaign: { type: 'boolean', required: false },
         brandKitId: { type: 'string', required: false },
@@ -88,6 +91,7 @@ export class EmailTemplatesService {
         variables,
         design,
         appearance,
+        emailType,
         allowOneOff,
         allowCampaign,
         brandKitId,
@@ -95,7 +99,7 @@ export class EmailTemplatesService {
       }),
     };
 
-    const result = await internalRequest(this.sdk, 
+    const result = await internalRequest(this.sdk,
       '/messaging/email/template',
       'POST',
       options,
@@ -114,6 +118,7 @@ export class EmailTemplatesService {
    * @param {string} [params.text] - Plain text template body
    * @param {Object} [params.design] - Block-tree design JSON (compiled server-side)
    * @param {string} [params.appearance] - Usually omit; immutable after create
+   * @param {string} [params.emailType] - `marketing` | `sales` | `transactional` (not immutable)
    * @param {boolean} [params.allowOneOff] - Usable as a one-off / compose send
    * @param {boolean} [params.allowCampaign] - Usable in campaigns / journeys
    * @param {string} [params.brandKitId] - Brand kit to apply
@@ -147,6 +152,7 @@ export class EmailTemplatesService {
       variables,
       design,
       appearance,
+      emailType,
       allowOneOff,
       allowCampaign,
       brandKitId,
@@ -164,6 +170,7 @@ export class EmailTemplatesService {
         variables: { type: 'array', required: false },
         design: { type: 'object', required: false },
         appearance: { type: 'string', required: false },
+        emailType: { type: 'string', required: false },
         allowOneOff: { type: 'boolean', required: false },
         allowCampaign: { type: 'boolean', required: false },
         brandKitId: { type: 'string', required: false },
@@ -180,6 +187,7 @@ export class EmailTemplatesService {
         variables,
         design,
         appearance,
+        emailType,
         allowOneOff,
         allowCampaign,
         brandKitId,
@@ -187,7 +195,7 @@ export class EmailTemplatesService {
       }),
     };
 
-    const result = await internalRequest(this.sdk, 
+    const result = await internalRequest(this.sdk,
       `/messaging/email/template/${id}`,
       'PUT',
       options,

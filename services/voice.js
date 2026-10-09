@@ -353,40 +353,62 @@ export class VoiceService {
     return this.transcribe(voiceChannelId, 'stop', direction);
   }
 
-  async transfer({
-    channels,
-    to,
-    callerIdName,
-    callerIdNumber,
-    timeout,
-    voiceApp,
-  }) {
+  /**
+   * Server-side blind transfer of a live call (call-transfer-api-plan.md
+   * §2.2/§2.7).
+   *
+   * @param {Object} params
+   * @param {string} params.callId
+   * @param {string} params.to - extension, E.164, or a routable service id
+   * @returns {Promise<{correlationId: string}>}
+   */
+  async transferCall({ callId, to }) {
     this.sdk.validateParams(
-      { channels },
+      { callId, to },
       {
-        channels: { type: 'array', required: true },
-        to: { type: 'string', required: false },
-        callerIdName: { type: 'string', required: false },
-        callerIdNumber: { type: 'string', required: false },
-        timeout: { type: 'number', required: false },
-        voiceApp: { type: 'object', required: false },
+        callId: { type: 'string', required: true },
+        to: { type: 'string', required: true },
       },
     );
 
-    const bodyData = { channels };
-    if (to) bodyData.to = to;
-    if (callerIdName) bodyData.callerIdName = callerIdName;
-    if (callerIdNumber) bodyData.callerIdNumber = callerIdNumber;
-    if (timeout !== undefined) bodyData.timeout = timeout;
-    if (voiceApp) bodyData.voiceApp = voiceApp;
+    const result = await internalRequest(
+      this.sdk,
+      `/voice/calls/${callId}/transfer`,
+      'POST',
+      { body: { to } },
+    );
+    return result;
+  }
+
+  /**
+   * Drop a pre-recorded/TTS voicemail message on an active outbound call and
+   * release the leg immediately (voicemail-drop-plan.md §4.2, §5).
+   *
+   * @param {Object} options
+   * @param {string} options.callId - The call ID to drop the message on (required)
+   * @param {string} options.dropId - The voicemail drop message id to play (required)
+   * @returns {Promise<Object>} result.status
+   *
+   * @example
+   * const result = await sdk.voice.voicemailDrop({ callId: 'call123', dropId: 'vmd_456' });
+   */
+  async voicemailDrop({ callId, dropId }) {
+    this.sdk.validateParams(
+      { callId, dropId },
+      {
+        callId: { type: 'string', required: true },
+        dropId: { type: 'string', required: true },
+      },
+    );
 
     const params = {
-      body: bodyData,
+      body: { dropId },
     };
 
-    const result = await internalRequest(this.sdk, 
-      '/voice/calls/transfer',
-      'POST',
+    const result = await internalRequest(
+      this.sdk,
+      `/voice/calls/${callId}/voicemailDrop`,
+      'PUT',
       params,
     );
     return result;

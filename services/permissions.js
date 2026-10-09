@@ -542,6 +542,27 @@ export class PermissionsService {
   }
 
   /**
+   * Account-wide defaults for any settings-catalog key (settingsAccountDefaults
+   * table) — a generic tier below systemDefault and above nothing; resolver
+   * order is user override -> group -> account default -> systemDefault.
+   * @returns {Promise<Object>} { [key]: value }
+   */
+  async getAccountSettingDefaults() {
+    return internalRequest(this.sdk, '/permissions/settings/accountDefaults', 'GET');
+  }
+
+  /** Set one account-wide default for a settings-catalog key. */
+  async setAccountSettingDefault(key, value) {
+    key = String(key);
+    this.sdk.validateParams({ key }, { key: { type: 'string', required: true } });
+    return internalRequest(this.sdk,
+      `/permissions/settings/accountDefaults/${key}`,
+      'PUT',
+      { body: { value } },
+    );
+  }
+
+  /**
    * Per-user, per-account JSON app state (UI state such as saved tab-sets).
    * Distinct from settings: free-form JSON, not catalog-validated.
    * @param {string|number} userId - User ID (required)

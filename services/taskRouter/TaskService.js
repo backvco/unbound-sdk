@@ -741,6 +741,10 @@ export class TaskService {
    *
    * @param {Object} options - Parameters
    * @param {string} options.taskId - The task ID to move to wrap-up (required)
+   * @param {boolean} [options.skipSipHangup] - Skip hanging up the worker's SIP leg (e.g. a voicemail
+   *   drop already released the leg; see voicemail-drop-plan.md §4.2.4)
+   * @param {string} [options.dispositionId] - Disposition to pre-fill/stamp for this wrap-up
+   * @param {Object} [options.metadata] - Extra context to carry into wrap-up (e.g. voicemail drop id/duration)
    * @returns {Promise<Object>} Object containing the task ID and new status
    * @returns {string} result.taskId - The task ID that was modified
    * @returns {string} result.status - The new status ('wrapUp')
@@ -754,24 +758,37 @@ export class TaskService {
    * // Move a held task to wrap-up
    * const result = await sdk.taskRouter.task.wrapUp({ taskId: 'task456' });
    * console.log(result.taskId); // "task456"
+   *
+   * @example
+   * // Voicemail drop: leg already released, pre-fill disposition
+   * const result = await sdk.taskRouter.task.wrapUp({
+   *   taskId: 'task789',
+   *   skipSipHangup: true,
+   *   dispositionId: 'disp_leftVoicemail',
+   *   metadata: { voicemailDropId: 'vmd_123', durationMs: 23000 },
+   * });
    */
   async wrapUp(options = {}) {
-    const { taskId } = options;
+    const { taskId, skipSipHangup, dispositionId, metadata } = options;
 
     this.sdk.validateParams(
-      { taskId },
+      { taskId, skipSipHangup, dispositionId, metadata },
       {
         taskId: { type: 'string', required: true },
+        skipSipHangup: { type: 'boolean', required: false },
+        dispositionId: { type: 'string', required: false },
+        metadata: { type: 'object', required: false },
       },
     );
 
-    const params = {
-      body: {
-        taskId,
-      },
-    };
+    const body = { taskId };
+    if (skipSipHangup !== undefined) body.skipSipHangup = skipSipHangup;
+    if (dispositionId !== undefined) body.dispositionId = dispositionId;
+    if (metadata !== undefined) body.metadata = metadata;
 
-    const result = await internalRequest(this.sdk, 
+    const params = { body };
+
+    const result = await internalRequest(this.sdk,
       '/taskRouter/tasks/wrapUp',
       'PUT',
       params,
@@ -1129,6 +1146,7 @@ export class TaskService {
    * @param {string} options.taskId
    * @param {string} [options.html]
    * @param {string} [options.text]
+   * @param {string} [options.subject] - explicit subject (journey touch tasks / first email on a task); thread replies omit it and inherit
    * @param {string|string[]} [options.extraTo]
    * @param {string|string[]} [options.extraCc]
    * @param {string|string[]} [options.extraBcc]
@@ -1141,6 +1159,7 @@ export class TaskService {
       taskId,
       html,
       text,
+      subject,
       extraTo,
       extraCc,
       extraBcc,
@@ -1157,6 +1176,7 @@ export class TaskService {
     const body = {};
     if (html !== undefined) body.html = html;
     if (text !== undefined) body.text = text;
+    if (subject !== undefined) body.subject = subject;
     if (extraTo !== undefined) body.extraTo = extraTo;
     if (extraCc !== undefined) body.extraCc = extraCc;
     if (extraBcc !== undefined) body.extraBcc = extraBcc;
@@ -1249,6 +1269,7 @@ export class TaskService {
    * @param {string} [options.note] - Optional note for the receiving agent
    * @param {string} [options.reasonCode] - Transfer reason code — e.g. 'wrong_department', 'customer_requested', 'out_of_scope', 'policy_never_bot', 'language', 'other'. Required when the caller's worker is a bot.
    * @param {string} [options.reason] - One-sentence transfer reason. Required when the caller's worker is a bot.
+   * @param {number} [options.priorityAdjust] - Amount to add to (or, negative, subtract from) the task's priority on the new task created in the target queue.
    * @returns {Promise<Object>} { taskId, newTaskId }
    *
    * @example
@@ -1261,16 +1282,18 @@ export class TaskService {
    * });
    */
   async transfer(options = {}) {
-    const { taskId, target, note, reasonCode, reason } = options;
+    const { taskId, target, note, reasonCode, reason, priorityAdjust } =
+      options;
 
     this.sdk.validateParams(
-      { taskId, target, note, reasonCode, reason },
+      { taskId, target, note, reasonCode, reason, priorityAdjust },
       {
         taskId: { type: 'string', required: true },
         target: { type: 'object', required: true },
         note: { type: 'string', required: false },
         reasonCode: { type: 'string', required: false },
         reason: { type: 'string', required: false },
+        priorityAdjust: { type: 'number', required: false },
       },
     );
 
@@ -1278,12 +1301,49 @@ export class TaskService {
     if (note !== undefined) params.body.note = note;
     if (reasonCode !== undefined) params.body.reasonCode = reasonCode;
     if (reason !== undefined) params.body.reason = reason;
+    if (priorityAdjust !== undefined)
+      params.body.priorityAdjust = priorityAdjust;
 
     return await internalRequest(
       this.sdk,
       '/taskRouter/tasks/transfer',
       'PUT',
       params,
+    );
+  }
+
+  /**
+   * Advisory preview of where a transfer would land right now — calls the
+   * same resolver the real transfer uses, so a UI can show "sent to Queue
+   * Y" before the transfer completes. Never guaranteed to land there under
+   * load; the real transfer re-resolves at claim time.
+   *
+   * @param {string} taskId - The task ID to preview a transfer destination for (required)
+   * @param {Object} options - Parameters
+   * @param {string} options.queueId - Candidate destination queue ID (required)
+   * @returns {Promise<Object>} Resolved destination, shaped by the same logic `transfer` itself uses for this queue/task type.
+   *
+   * @example
+   * const preview = await sdk.taskRouter.task.resolveTransferDestination('task123', {
+   *   queueId: 'billingQueue1',
+   * });
+   */
+  async resolveTransferDestination(taskId, options = {}) {
+    const { queueId } = options;
+
+    this.sdk.validateParams(
+      { taskId, queueId },
+      {
+        taskId: { type: 'string', required: true },
+        queueId: { type: 'string', required: true },
+      },
+    );
+
+    return await internalRequest(
+      this.sdk,
+      `/taskRouter/tasks/${taskId}/resolveTransferDestination`,
+      'POST',
+      { body: { queueId } },
     );
   }
 
