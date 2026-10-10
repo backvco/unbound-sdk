@@ -13,6 +13,8 @@
  * npm install mime-types
  */
 
+import { handleUnauthorized } from './lib/refreshInterceptor.js';
+
 const requestBySdk = new WeakMap();
 const SDK_REQUEST = Symbol.for('unbound.sdk.request');
 
@@ -49,12 +51,33 @@ export class BaseSDK {
       this.fwRequestId = arguments[3];
     } else {
       // New object-based parameters
-      const { namespace, callId, token, fwRequestId, baseURL } = options;
+      const {
+        namespace,
+        callId,
+        token,
+        fwRequestId,
+        baseURL,
+        autoRefresh,
+        onUnauthorized,
+        refreshToken,
+      } = options;
       this.namespace = namespace || process?.env?.namespace;
       this.callId = callId;
       this.token = token;
       this.fwRequestId = fwRequestId;
       this._constructorBaseURL = baseURL;
+      // api#222 -- opt-in only (default false): existing callers get no
+      // behavior change. When on, a 401 from any non-/login* endpoint
+      // triggers one single-flight refresh + one retry (lib/refreshInterceptor.js).
+      this._autoRefresh = autoRefresh === true;
+      this._onUnauthorized =
+        typeof onUnauthorized === 'function' ? onUnauthorized : null;
+      // Bearer-delivery clients only: the raw refresh token, so autoRefresh
+      // has something to send to POST /login/refresh (cookie clients rely
+      // on the browser's own refreshToken cookie and never need this).
+      // Seeded via this option or setRefreshToken(); updated in place on
+      // every rotation by lib/refreshInterceptor.js.
+      this._refreshToken = refreshToken;
     }
     this.baseURL;
     this.transports = new Map();
@@ -102,6 +125,10 @@ export class BaseSDK {
 
   setToken(token) {
     this.token = token;
+  }
+
+  setRefreshToken(refreshToken) {
+    this._refreshToken = refreshToken;
   }
 
   setNamespace(namespace) {
@@ -278,6 +305,7 @@ export class BaseSDK {
           params,
           returnRawResponse,
           startTime,
+          forceFetch,
         );
       }
     } else {
@@ -292,6 +320,7 @@ export class BaseSDK {
         params,
         returnRawResponse,
         startTime,
+        forceFetch,
       );
     }
 
@@ -307,6 +336,7 @@ export class BaseSDK {
       method,
       endpoint,
       duration,
+      { originalParams: params, forceFetch },
     );
   }
 
@@ -357,6 +387,7 @@ export class BaseSDK {
     params = {},
     returnRawResponse = false,
     startTime = Date.now(),
+    forceFetch = false,
   ) {
     const { body, query, headers = {} } = params;
 
@@ -438,10 +469,20 @@ export class BaseSDK {
       return response;
     }
 
-    return this._processResponse(response, 'https', method, endpoint, duration);
+    return this._processResponse(response, 'https', method, endpoint, duration, {
+      originalParams: params,
+      forceFetch,
+    });
   }
 
-  async _processResponse(response, transport, method, endpoint, duration = 0) {
+  async _processResponse(
+    response,
+    transport,
+    method,
+    endpoint,
+    duration = 0,
+    retryCtx = {},
+  ) {
     // Check if the response indicates an HTTP error
     // These are API/configuration errors, not transport failures
 
@@ -516,6 +557,36 @@ export class BaseSDK {
           } :: ${responseRequestId} :: ${duration}ms`,
           httpError,
         );
+      }
+
+      // api#222 -- opt-in single-flight refresh + one retry on 401. Off by
+      // default (this._autoRefresh set only via the `autoRefresh` ctor
+      // option); the retry's own params carry `__skipAutoRefresh` so a 401
+      // on the RETRY itself always falls through to onUnauthorized instead
+      // of looping.
+      if (response.status === 401 && this._autoRefresh) {
+        return handleUnauthorized(this, {
+          status: response.status,
+          endpoint,
+          method,
+          alreadyRetried: retryCtx?.originalParams?.__skipAutoRefresh === true,
+          originalError: httpError,
+          retry: () =>
+            // forceFetch: true (not retryCtx.forceFetch) -- the retry must
+            // always go over plain HTTP, never the original transport. A
+            // socket transport call that 401'd still holds the pre-rotation
+            // JWT (the rotation reaches the socket asynchronously via NATS),
+            // so retrying over the same socket would 401 again and trigger
+            // onUnauthorized even though the refresh above just succeeded.
+            // See _getAvailableTransport (base.js:~185): forceFetch skips
+            // transports entirely and goes straight to HTTP.
+            this.#request(
+              endpoint,
+              method,
+              { ...(retryCtx.originalParams || {}), __skipAutoRefresh: true },
+              true,
+            ),
+        });
       }
 
       throw httpError;

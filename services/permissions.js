@@ -303,6 +303,33 @@ export class PermissionsService {
   }
 
   /**
+   * Direct holders of a permission set — for the Setup -> Permission Sets
+   * Members panel. A user who only has the set via group membership is
+   * NOT included in `users` here; look up that group's `members` (from
+   * listGroups()) to show them nested under the group instead.
+   * @param {string} setId - Permission set ID
+   * @returns {Promise<Object>} { users: [{userId, name, email, grantType}], groups: [{groupId, name, grantType}] }
+   * @example
+   * const { users, groups } = await sdk.permissions.listSetAssignments('set-123');
+   */
+  async listSetAssignments(setId) {
+    setId = String(setId);
+    this.sdk.validateParams(
+      { setId },
+      {
+        setId: { type: 'string', required: true },
+      },
+    );
+
+    const result = await internalRequest(
+      this.sdk,
+      `/permissions/sets/${setId}/assignments`,
+      'GET',
+    );
+    return result;
+  }
+
+  /**
    * Assign a permission set to a principal (user or group)
    * @param {Object} assignment - Assignment configuration
    * @param {string} assignment.permissionSetId - Permission set ID (required)

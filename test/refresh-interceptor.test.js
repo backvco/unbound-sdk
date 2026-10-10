@@ -1,0 +1,239 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { handleUnauthorized, shouldAttemptRefresh } from '../lib/refreshInterceptor.js';
+
+function makeSdk({ autoRefresh = true, refreshImpl, onUnauthorized } = {}) {
+  return {
+    _autoRefresh: autoRefresh,
+    _onUnauthorized: onUnauthorized,
+    token: 'old-token',
+    setToken(t) {
+      this.token = t;
+    },
+    login: {
+      refresh: refreshImpl || (async () => ({ token: 'new-token' })),
+    },
+  };
+}
+
+test('shouldAttemptRefresh :: false when autoRefresh is off', () => {
+  const sdk = makeSdk({ autoRefresh: false });
+  assert.equal(shouldAttemptRefresh(sdk, 401, '/objects'), false);
+});
+
+test('shouldAttemptRefresh :: false for POST /login/refresh, POST /login, DELETE /login (never refresh a refresh)', () => {
+  const sdk = makeSdk();
+  assert.equal(shouldAttemptRefresh(sdk, 401, '/login/refresh', 'POST'), false);
+  assert.equal(shouldAttemptRefresh(sdk, 401, '/login', 'POST'), false);
+  assert.equal(shouldAttemptRefresh(sdk, 401, '/login', 'DELETE'), false);
+});
+
+test('shouldAttemptRefresh :: true for GET /login/validate and other /login/* GETs (reload after access-cookie expiry must recover)', () => {
+  const sdk = makeSdk();
+  assert.equal(shouldAttemptRefresh(sdk, 401, '/login/validate', 'GET'), true);
+  assert.equal(shouldAttemptRefresh(sdk, 401, '/login/sessions', 'GET'), true);
+});
+
+test('shouldAttemptRefresh :: false for non-401 status', () => {
+  const sdk = makeSdk();
+  assert.equal(shouldAttemptRefresh(sdk, 500, '/objects'), false);
+});
+
+test('shouldAttemptRefresh :: true for a 401 on a non-login endpoint with autoRefresh on', () => {
+  const sdk = makeSdk();
+  assert.equal(shouldAttemptRefresh(sdk, 401, '/objects'), true);
+});
+
+test('handleUnauthorized :: autoRefresh off :: rethrows original error without calling refresh', async () => {
+  const sdk = makeSdk({ autoRefresh: false });
+  let refreshCalled = false;
+  sdk.login.refresh = async () => {
+    refreshCalled = true;
+    return {};
+  };
+  const originalError = new Error('401');
+  await assert.rejects(
+    () =>
+      handleUnauthorized(sdk, {
+        status: 401,
+        endpoint: '/objects',
+        originalError,
+        retry: async () => 'should not run',
+      }),
+    (err) => err === originalError,
+  );
+  assert.equal(refreshCalled, false);
+});
+
+test('handleUnauthorized :: alreadyRetried :: rethrows without a second refresh (never loop)', async () => {
+  const sdk = makeSdk();
+  let refreshCalled = false;
+  sdk.login.refresh = async () => {
+    refreshCalled = true;
+    return {};
+  };
+  const originalError = new Error('401');
+  await assert.rejects(
+    () =>
+      handleUnauthorized(sdk, {
+        status: 401,
+        endpoint: '/objects',
+        alreadyRetried: true,
+        originalError,
+        retry: async () => 'should not run',
+      }),
+    (err) => err === originalError,
+  );
+  assert.equal(refreshCalled, false);
+});
+
+test('handleUnauthorized :: happy path :: refreshes once, applies new token, retries once, returns retry result', async () => {
+  const sdk = makeSdk();
+  let retried = false;
+  const result = await handleUnauthorized(sdk, {
+    status: 401,
+    endpoint: '/objects',
+    originalError: new Error('401'),
+    retry: async () => {
+      retried = true;
+      return { ok: true };
+    },
+  });
+  assert.equal(sdk.token, 'new-token');
+  assert.equal(retried, true);
+  assert.deepEqual(result, { ok: true });
+});
+
+test('handleUnauthorized :: concurrent 401s share one refresh call (single-flight)', async () => {
+  let refreshCalls = 0;
+  const sdk = makeSdk({
+    refreshImpl: async () => {
+      refreshCalls += 1;
+      await new Promise((resolve) => setTimeout(resolve, 10));
+      return { token: 'new-token' };
+    },
+  });
+
+  const run = () =>
+    handleUnauthorized(sdk, {
+      status: 401,
+      endpoint: '/objects',
+      originalError: new Error('401'),
+      retry: async () => 'ok',
+    });
+
+  await Promise.all([run(), run(), run()]);
+  assert.equal(refreshCalls, 1);
+});
+
+test('handleUnauthorized :: refresh itself fails :: calls onUnauthorized, rethrows original error', async () => {
+  let notified;
+  const originalError = new Error('401');
+  const sdk = makeSdk({
+    refreshImpl: async () => {
+      throw new Error('refresh_expired');
+    },
+    onUnauthorized: (err) => {
+      notified = err;
+    },
+  });
+  await assert.rejects(
+    () =>
+      handleUnauthorized(sdk, {
+        status: 401,
+        endpoint: '/objects',
+        originalError,
+        retry: async () => 'should not run',
+      }),
+    (err) => err === originalError,
+  );
+  assert.equal(notified, originalError);
+});
+
+test('handleUnauthorized :: bearer client :: sends the stored refresh token and stores the rotated successor', async () => {
+  const sentWith = [];
+  const sdk = makeSdk({
+    refreshImpl: async (refreshToken) => {
+      sentWith.push(refreshToken);
+      return { token: 'new-token', refreshToken: 'rotated-refresh-token' };
+    },
+  });
+  sdk._refreshToken = 'initial-refresh-token';
+
+  await handleUnauthorized(sdk, {
+    status: 401,
+    endpoint: '/objects',
+    originalError: new Error('401'),
+    retry: async () => 'ok',
+  });
+
+  assert.deepEqual(sentWith, ['initial-refresh-token']);
+  assert.equal(sdk._refreshToken, 'rotated-refresh-token');
+});
+
+test('handleUnauthorized :: two different SDK instances refresh independently (no shared single-flight)', async () => {
+  const calls = [];
+  const makeRefreshing = (label) =>
+    makeSdk({
+      refreshImpl: async () => {
+        calls.push(label);
+        await new Promise((resolve) => setTimeout(resolve, 10));
+        return { token: `${label}-new-token` };
+      },
+    });
+  const sdkA = makeRefreshing('a');
+  const sdkB = makeRefreshing('b');
+
+  const run = (sdk) =>
+    handleUnauthorized(sdk, {
+      status: 401,
+      endpoint: '/objects',
+      originalError: new Error('401'),
+      retry: async () => 'ok',
+    });
+
+  await Promise.all([run(sdkA), run(sdkB)]);
+  assert.equal(sdkA.token, 'a-new-token');
+  assert.equal(sdkB.token, 'b-new-token');
+  assert.deepEqual(calls.sort(), ['a', 'b']);
+});
+
+test('handleUnauthorized :: cookie-mode refresh (no token in response) clears the stale in-memory access token', async () => {
+  const sdk = makeSdk({
+    refreshImpl: async () => ({}), // cookie clients: no token string, Set-Cookie already rotated
+  });
+  sdk.token = 'stale-bearer-token';
+
+  const result = await handleUnauthorized(sdk, {
+    status: 401,
+    endpoint: '/objects',
+    originalError: new Error('401'),
+    retry: async () => 'ok',
+  });
+
+  assert.equal(sdk.token, null);
+  assert.equal(result, 'ok');
+});
+
+test('handleUnauthorized :: retry itself comes back 401 :: calls onUnauthorized with the retry error, rethrows it', async () => {
+  let notified;
+  const retryError = Object.assign(new Error('still 401'), { status: 401 });
+  const sdk = makeSdk({
+    onUnauthorized: (err) => {
+      notified = err;
+    },
+  });
+  await assert.rejects(
+    () =>
+      handleUnauthorized(sdk, {
+        status: 401,
+        endpoint: '/objects',
+        originalError: new Error('401'),
+        retry: async () => {
+          throw retryError;
+        },
+      }),
+    (err) => err === retryError,
+  );
+  assert.equal(notified, retryError);
+});
