@@ -219,12 +219,20 @@ export class ReportingService {
   }
 
   /**
+   * @param {Object} [params] - { reportKey?: string } -- analytics-expansion
+   *   A0b: omit for Explore views only (unchanged default); pass
+   *   'callLog' for that report's saved views instead.
    * @returns {Promise<Object>} { results: [...] }
    * @example
    * const { results } = await sdk.reporting.views.list();
+   * const { results } = await sdk.reporting.views.list({ reportKey: 'callLog' });
    */
-  async listViews() {
-    return internalRequest(this.sdk, '/reporting/views', 'GET');
+  async listViews({ reportKey } = {}) {
+    return internalRequest(
+      this.sdk,
+      `/reporting/views${queryString({ reportKey })}`,
+      'GET',
+    );
   }
 
   /**

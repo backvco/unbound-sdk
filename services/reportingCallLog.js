@@ -111,4 +111,54 @@ export class ReportingCallLogService {
       { httpOnly: true },
     );
   }
+
+  /**
+   * Same filters as list() (no cursor/limit -- a series call always covers
+   * the whole window), bucketed answered/missed/voicemail/total over time.
+   * Bucket grain (hour vs day) and timezone are server-resolved, not
+   * caller-chosen (an explicit `tz` overrides the account default).
+   * @param {Object} params - { from, to, direction?: 'inbound'|'outbound',
+   *   answered?: boolean, queueIds?: string[], ringGroupIds?: string[],
+   *   userIds?: string[], phoneNumber?: string, recordingOnly?: boolean,
+   *   tz?: string }
+   * @returns {Promise<Object>} { bucket: 'hour'|'day', timezone, series: [{ start, end, answered, missed, voicemail, total }] }
+   * @example
+   * await sdk.reporting.callLog.series({ from, to });
+   */
+  async series({
+    from,
+    to,
+    direction,
+    answered,
+    queueIds,
+    ringGroupIds,
+    userIds,
+    phoneNumber,
+    recordingOnly,
+    tz,
+  } = {}) {
+    this.sdk.validateParams(
+      { from, to },
+      {
+        from: { type: 'string', required: true },
+        to: { type: 'string', required: true },
+      },
+    );
+    return internalRequest(
+      this.sdk,
+      `/reporting/callLog/series${queryString({
+        from,
+        to,
+        direction,
+        answered,
+        queueIds,
+        ringGroupIds,
+        userIds,
+        phoneNumber,
+        recordingOnly,
+        tz,
+      })}`,
+      'GET',
+    );
+  }
 }
