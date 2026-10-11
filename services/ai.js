@@ -86,6 +86,7 @@ export class GenerativeService {
     qualityCheck,
     isPublic,
     usageContext,
+    reportContext,
   }) {
     this.sdk.validateParams(
       {
@@ -114,6 +115,7 @@ export class GenerativeService {
         qualityCheck,
         isPublic,
         usageContext,
+        reportContext,
       },
       {
         prompt: { type: 'string', required: false },
@@ -143,6 +145,11 @@ export class GenerativeService {
         // Telemetry-only (contracts §9): { feature?, taskId?, sipCallId?,
         // queueId?, cdrId? } -- never affects the prompt/session/cache/response.
         usageContext: { type: 'object', required: false },
+        // Ask panel (ask-panel.md §B): { reportKey, title, state, allowed }
+        // for the server to ground the system prompt and build the
+        // proposeReportChange tool schema's enums. Optional -- omitted for
+        // every non-reporting chat surface.
+        reportContext: { type: 'object', required: false },
       },
     );
 
@@ -176,6 +183,7 @@ export class GenerativeService {
         // Only included when the caller actually passed one -- keeps the
         // wire payload identical to today for every existing caller.
         ...(usageContext !== undefined ? { usageContext } : {}),
+        ...(reportContext !== undefined ? { reportContext } : {}),
       },
       // Return raw response for streaming to allow client-side stream handling
       returnRawResponse: stream === true,
