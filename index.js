@@ -63,6 +63,8 @@ import {
   DataExportService,
 } from './services/dataImport.js';
 import { VoicemailDropsService } from './services/voicemailDrops.js';
+import { InternalService } from './services/internal/index.js';
+import { simRules } from './lib/simRules.js';
 
 class UnboundSDK extends BaseSDK {
   constructor(options = {}) {
@@ -172,6 +174,8 @@ class UnboundSDK extends BaseSDK {
     this.dataImport = new DataImportService(this);
     this.dataExport = new DataExportService(this);
     this.voicemailDrops = new VoicemailDropsService(this);
+    this.internal = new InternalService(this);
+    this.simRules = simRules;
 
     // Add additional services that might be missing
     this._initializeAdditionalServices();
@@ -401,3 +405,13 @@ export {
 } from './services/voicemailDrops.js';
 export { BaseSDK } from './base.js';
 export { layoutJourney, MAX_LANES as JOURNEY_LAYOUT_MAX_LANES } from './lib/journeyLayout.js';
+export { InternalService } from './services/internal/index.js';
+export { InternalSimService } from './services/internal/SimService.js';
+export {
+  simRules,
+  SIM_NUMBER_RE,
+  SIM_EMAIL_DOMAIN,
+  isSimNumber,
+  isSimEmail,
+  simModeKey,
+} from './lib/simRules.js';

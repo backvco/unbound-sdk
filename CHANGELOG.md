@@ -1,3 +1,8 @@
+## 4.13.151
+
+- feat: `simRules` (root export + `sdk.simRules`) — `SIM_NUMBER_RE`, `SIM_EMAIL_DOMAIN`, `isSimNumber(e164)`, `isSimEmail(addr)`, `simModeKey(accountId)`; pure, dependency-free, shared by api/queue-messaging/app1-simulator
+- feat: `sdk.internal.sim` service (internal-API-key auth) — `mode.set/clear/get`, `dids.create/list`, `purge`, `userToken`, `smsInbound`, `emailInbound`; contract in `services/internal/SIM_CONTRACT.md` (simulator-plan.md §14 routes B, C, G)
+
 ## 4.13.145
 
 - docs: journeyTypes/journeys ownership settings (poolClaimMode, syncPersonOwner, ownerScope, ownerMissingPolicy, maxActiveMembersPerOwner) on `sdk.journeys.types.create/update` + `sdk.journeys.create/update`; member status `waiting` (statusReason `ownerCapacity`); `members.enroll` accepts `ownerMode` ('journeyDefault'|'recordOwner'|'user'|'pool') and `ownerFallback` ({mode:'pool'}|{mode:'user', ownerUserId}); `worklist.takeNext` may 409 `OWNER_AT_CAPACITY` ({cap, active} on err.body)
