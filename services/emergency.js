@@ -77,6 +77,17 @@ export class EmergencyService {
     });
   }
 
+  // A1b #12 (per-report-detail.md #12): account-wide compliance log, same
+  // admin:emergencylocation:manage scope as every other admin route here --
+  // no new scope. query: { from, to } ISO, exclusive-end (same contract as
+  // reporting.getCallLog), optional digits ('911'|'933') (r1 fix: was a
+  // fixed `range` enum that couldn't express ReportShell's picker).
+  async report(query = {}) {
+    return await internalRequest(this.sdk, '/emergency/calls', 'GET', {
+      query,
+    });
+  }
+
   async deleteSite(id) {
     this.sdk.validateParams({ id }, { id: { type: 'string', required: true } });
     return await internalRequest(this.sdk, `/emergency/sites/${id}`, 'DELETE', {});

@@ -745,6 +745,8 @@ export class TaskService {
    *   drop already released the leg; see voicemail-drop-plan.md §4.2.4)
    * @param {string} [options.dispositionId] - Disposition to pre-fill/stamp for this wrap-up
    * @param {Object} [options.metadata] - Extra context to carry into wrap-up (e.g. voicemail drop id/duration)
+   * @param {string} [options.reason] - Why this wrap-up started (e.g. 'draining' -- analytics-expansion
+   *   D14/§4.13 bot containment capture; optional, most callers omit it)
    * @returns {Promise<Object>} Object containing the task ID and new status
    * @returns {string} result.taskId - The task ID that was modified
    * @returns {string} result.status - The new status ('wrapUp')
@@ -769,15 +771,16 @@ export class TaskService {
    * });
    */
   async wrapUp(options = {}) {
-    const { taskId, skipSipHangup, dispositionId, metadata } = options;
+    const { taskId, skipSipHangup, dispositionId, metadata, reason } = options;
 
     this.sdk.validateParams(
-      { taskId, skipSipHangup, dispositionId, metadata },
+      { taskId, skipSipHangup, dispositionId, metadata, reason },
       {
         taskId: { type: 'string', required: true },
         skipSipHangup: { type: 'boolean', required: false },
         dispositionId: { type: 'string', required: false },
         metadata: { type: 'object', required: false },
+        reason: { type: 'string', required: false },
       },
     );
 
@@ -785,6 +788,7 @@ export class TaskService {
     if (skipSipHangup !== undefined) body.skipSipHangup = skipSipHangup;
     if (dispositionId !== undefined) body.dispositionId = dispositionId;
     if (metadata !== undefined) body.metadata = metadata;
+    if (reason !== undefined) body.reason = reason;
 
     const params = { body };
 

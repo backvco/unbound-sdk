@@ -216,11 +216,18 @@ export class JourneysService {
   /**
    * Per-step funnel (journeys-plan.md §9, P6): entered / outcome split /
    * conversions from journeyMemberEvents. Test members are excluded.
+   * **r3 fix (analytics-expansion-plan.md §4.7):** `from`/`to` are now
+   * forwarded as query params -- previously this method always sent `{}`,
+   * so the shared report-shell's date-range controls had no effect on this
+   * screen even once the API side accepted the params.
    *
    * @param {string} journeyId
+   * @param {Object} [opts]
+   * @param {string} [opts.from] ISO date-time
+   * @param {string} [opts.to] ISO date-time
    * @returns {Promise<Object>} { steps: [{ stepKey, type, title, entered, outcomes, conversions }] }
    */
-  async funnel(journeyId) {
+  async funnel(journeyId, opts = {}) {
     this.sdk.validateParams(
       { journeyId },
       { journeyId: { type: 'string', required: true } },
@@ -229,7 +236,7 @@ export class JourneysService {
       this.sdk,
       `/journeys/${journeyId}/funnel`,
       'GET',
-      {},
+      { query: pickDefined(opts) },
     );
   }
 

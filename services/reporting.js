@@ -1,5 +1,14 @@
 import { internalRequest } from '../base.js';
 import { ReportingAgentsService } from './reportingAgents.js';
+import { ReportingCallLogService } from './reportingCallLog.js';
+import { ReportingMissedCallsService } from './reportingMissedCalls.js';
+import { ReportingNumberHealthService } from './reportingNumberHealth.js';
+import { ReportingBotContainmentService } from './reportingBotContainment.js';
+import { ReportingCallQualityService } from './reportingCallQuality.js';
+import { ReportingAiAdoptionService } from './reportingAiAdoption.js';
+import { ReportingRingGroupsService } from './reportingRingGroups.js';
+import { ReportingIvrMenusService } from './reportingIvrMenus.js';
+import { ReportingConversationInsightsService } from './reportingConversationInsights.js';
 
 // Q2: same queryString helper as reportingAgents.js (kept local -- no
 // shared util module between the two files today).
@@ -35,6 +44,43 @@ export class ReportingService {
     // registry above -- /reporting/agents/*. Split into its own file/class
     // (house 400-line limit) since this file was already at 215 lines.
     this.agents = new ReportingAgentsService(sdk);
+    // #14 analytics-expansion A0b: account-wide CDR browse -- own file/class
+    // (same reason as .agents above).
+    this.callLog = new ReportingCallLogService(sdk);
+    // A1b #11 (per-report-detail.md #11): dedicated endpoint, NOT a generic
+    // metric -- kept as a small namespace (not its own file) since it's one
+    // method.
+    this.licenses = {
+      utilization: (...args) => this.seatUtilization(...args),
+    };
+    // #3 analytics-expansion A1a (§4.9): missed-call -> callback funnel --
+    // own file/class (same reason as .agents above).
+    this.missedCalls = new ReportingMissedCallsService(sdk);
+    // analytics-expansion A1a (§4.6): number/10DLC connect-rate health --
+    // own file/class (same reason as .agents above).
+    this.numberHealth = new ReportingNumberHealthService(sdk);
+    // analytics-expansion D14/§4.13 (r17-r22): bot containment dedicated
+    // endpoint -- own file/class (same reason as .agents above).
+    this.botContainment = new ReportingBotContainmentService(sdk);
+    // #2 analytics-expansion B0 (§4.1): voice MOS/jitter/loss -- own
+    // file/class (same reason as .agents above).
+    this.callQuality = new ReportingCallQualityService(sdk);
+    // Work Package E analytics-expansion (§4.12): customer-facing AI
+    // feature adoption summarization -- own file/class (same reason as
+    // .agents above).
+    this.aiAdoption = new ReportingAiAdoptionService(sdk);
+    // #1a analytics-expansion A2 (per-report-detail.md #1a): ring group
+    // volume/answered/handle + per-member offers -- own file/class (same
+    // reason as .agents above).
+    this.ringGroups = new ReportingRingGroupsService(sdk);
+    // #1b analytics-expansion A2 (per-report-detail.md #1b): account-wide
+    // IVR/voice-workflow-menu analytics -- own file/class (same reason as
+    // .agents above).
+    this.ivrMenus = new ReportingIvrMenusService(sdk);
+    // #13 analytics-expansion B1 (per-report-detail.md #13, atlas §C.2):
+    // tracked phrases + talk ratio, admin tracker/topic CRUD -- own
+    // file/class (same reason as .agents above).
+    this.conversationInsights = new ReportingConversationInsightsService(sdk);
   }
 
   /**
@@ -148,6 +194,23 @@ export class ReportingService {
     return internalRequest(
       this.sdk,
       `/reporting/fcr${queryString({ from, to, queueIds })}`,
+      'GET',
+    );
+  }
+
+  /**
+   * A1b #11: idle-seat snapshot (userLicenses joined to last-activity
+   * signals) -- gated on the EXISTING admin:license:manage scope, no new
+   * scope (security.md §B.1).
+   * @param {Object} params - { licenseTypeCode? }
+   * @returns {Promise<Object>} { generatedAt, licenseTypes: [{code,label,audience,seatCount,used,needsSeat}], seats: [{userId,userName,isRemoved,licenseTypeCode,licenseLabel,source,assignedAt,lastActiveAt,idleDays,seatCostEstimate}] }
+   * @example
+   * await sdk.reporting.licenses.utilization({ licenseTypeCode: 'license.support' });
+   */
+  async seatUtilization({ licenseTypeCode } = {}) {
+    return internalRequest(
+      this.sdk,
+      `/reporting/seatUtilization${queryString({ licenseTypeCode })}`,
       'GET',
     );
   }

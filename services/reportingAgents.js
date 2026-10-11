@@ -198,4 +198,96 @@ export class ReportingAgentsService {
       'GET',
     );
   }
+
+  /**
+   * analytics-expansion Phase D: QA/coaching rollup-grain scorecard, one
+   * row per agent (or queue/team) across the whole team in range --
+   * unlike qualityTrend/topTasks, no single userId is required.
+   * @param {Object} params - { from, to, userIds, queueIds, teamIds, groupBy, agentKind }
+   * @returns {Promise<Object>} { columns, rows, definitions, meta }
+   * @example
+   * await sdk.reporting.agents.qualityScorecards({ from, to, groupBy: 'agent' });
+   */
+  async qualityScorecards({ from, to, userIds, queueIds, teamIds, groupBy, agentKind } = {}) {
+    this.sdk.validateParams(
+      { from, to },
+      { from: { type: 'string', required: true }, to: { type: 'string', required: true } },
+    );
+    return internalRequest(
+      this.sdk,
+      `/reporting/agents/qualityScorecards${queryString({ from, to, userIds, queueIds, teamIds, groupBy, agentKind })}`,
+      'GET',
+    );
+  }
+
+  /**
+   * analytics-expansion Phase D: coaching-suggestion panel rows for one
+   * agent -- not-achieved/missed goals in range, each with a
+   * `coachingSuggestion` (nullable until generated). userId 'me' resolves
+   * to the caller.
+   * @param {string} userId
+   * @param {Object} params - { from, to, limit }
+   * @returns {Promise<Object>} { rows }
+   * @example
+   * await sdk.reporting.agents.coachingSuggestions('me', { from, to });
+   */
+  async coachingSuggestions(userId, { from, to, limit } = {}) {
+    userId = String(userId);
+    this.sdk.validateParams(
+      { userId, from, to },
+      {
+        userId: { type: 'string', required: true },
+        from: { type: 'string', required: true },
+        to: { type: 'string', required: true },
+      },
+    );
+    return internalRequest(
+      this.sdk,
+      `/reporting/agents/${userId}/coachingSuggestions${queryString({ from, to, limit })}`,
+      'GET',
+    );
+  }
+
+  /**
+   * analytics-expansion Phase D fix: per-goal pass-rate rubric breakdown,
+   * aggregated across the current filter set (agent-role goals only) --
+   * same multi-agent shape as qualityScorecards, no single userId required.
+   * @param {Object} params - { from, to, userIds, queueIds, teamIds, agentKind }
+   * @returns {Promise<Object>} { rows: [{ playbookGoalId, goalName, achievedCount, totalCount, passRate }] }
+   * @example
+   * await sdk.reporting.agents.qualityRubricBreakdown({ from, to });
+   */
+  async qualityRubricBreakdown({ from, to, userIds, queueIds, teamIds, agentKind } = {}) {
+    this.sdk.validateParams(
+      { from, to },
+      { from: { type: 'string', required: true }, to: { type: 'string', required: true } },
+    );
+    return internalRequest(
+      this.sdk,
+      `/reporting/agents/qualityRubricBreakdown${queryString({ from, to, userIds, queueIds, teamIds, agentKind })}`,
+      'GET',
+    );
+  }
+
+  /**
+   * analytics-expansion Phase D fix: AI+human score trend (two series,
+   * never averaged) aggregated across the current filter set -- unlike
+   * qualityTrend, no single userId is required, for the report-level
+   * trend chart alongside the team/queue-wide scorecard.
+   * @param {Object} params - { from, to, grain, userIds, queueIds, teamIds, agentKind }
+   * @returns {Promise<Object>} { columns, rows, definitions, meta }
+   * @example
+   * await sdk.reporting.agents.qualityTrendRollup({ from, to, grain: 'day' });
+   */
+  async qualityTrendRollup({ from, to, grain, userIds, queueIds, teamIds, agentKind } = {}) {
+    this.sdk.validateParams(
+      { from, to },
+      { from: { type: 'string', required: true }, to: { type: 'string', required: true } },
+    );
+    return internalRequest(
+      this.sdk,
+      `/reporting/agents/qualityTrendRollup${queryString({ from, to, grain, userIds, queueIds, teamIds, agentKind })}`,
+      'GET',
+    );
+  }
 }
