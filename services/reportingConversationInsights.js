@@ -139,7 +139,7 @@ export class ReportingConversationInsightsService {
       this.sdk,
       '/reporting/conversationInsights/trackers',
       'POST',
-      { phraseText, isRegex, topicId, isActive },
+      { body: { phraseText, isRegex, topicId, isActive } },
     );
   }
 
@@ -156,7 +156,7 @@ export class ReportingConversationInsightsService {
       this.sdk,
       `/reporting/conversationInsights/trackers/${encodeURIComponent(id)}`,
       'PUT',
-      params,
+      { body: params },
     );
   }
 
@@ -197,7 +197,7 @@ export class ReportingConversationInsightsService {
       this.sdk,
       '/reporting/conversationInsights/topics',
       'POST',
-      { name },
+      { body: { name } },
     );
   }
 }

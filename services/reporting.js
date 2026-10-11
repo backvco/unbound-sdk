@@ -9,6 +9,8 @@ import { ReportingAiAdoptionService } from './reportingAiAdoption.js';
 import { ReportingRingGroupsService } from './reportingRingGroups.js';
 import { ReportingIvrMenusService } from './reportingIvrMenus.js';
 import { ReportingConversationInsightsService } from './reportingConversationInsights.js';
+import { ReportingSurveysService } from './reportingSurveys.js';
+import { ReportingSalesService } from './reportingSales.js';
 
 // Q2: same queryString helper as reportingAgents.js (kept local -- no
 // shared util module between the two files today).
@@ -40,12 +42,11 @@ export class ReportingService {
       runs: (...args) => this.listScheduleRuns(...args),
       runNow: (...args) => this.runScheduleNow(...args),
     };
-    // P3 (agent-reporting-plan.md §7 + §8.1): thin presets over the same
-    // registry above -- /reporting/agents/*. Split into its own file/class
-    // (house 400-line limit) since this file was already at 215 lines.
+    // Each namespace below is its own file/class to keep this file under
+    // the repo's 400-line limit (house convention, see .agents below).
+    // P3 (agent-reporting-plan.md §7 + §8.1): thin presets over the registry above -- /reporting/agents/*.
     this.agents = new ReportingAgentsService(sdk);
-    // #14 analytics-expansion A0b: account-wide CDR browse -- own file/class
-    // (same reason as .agents above).
+    // #14 analytics-expansion A0b: account-wide CDR browse.
     this.callLog = new ReportingCallLogService(sdk);
     // A1b #11 (per-report-detail.md #11): dedicated endpoint, NOT a generic
     // metric -- kept as a small namespace (not its own file) since it's one
@@ -53,34 +54,26 @@ export class ReportingService {
     this.licenses = {
       utilization: (...args) => this.seatUtilization(...args),
     };
-    // #3 analytics-expansion A1a (§4.9): missed-call -> callback funnel --
-    // own file/class (same reason as .agents above).
+    // #3 analytics-expansion A1a (§4.9): missed-call -> callback funnel.
     this.missedCalls = new ReportingMissedCallsService(sdk);
-    // analytics-expansion A1a (§4.6): number/10DLC connect-rate health --
-    // own file/class (same reason as .agents above).
+    // analytics-expansion A1a (§4.6): number/10DLC connect-rate health.
     this.numberHealth = new ReportingNumberHealthService(sdk);
-    // analytics-expansion D14/§4.13 (r17-r22): bot containment dedicated
-    // endpoint -- own file/class (same reason as .agents above).
+    // analytics-expansion D14/§4.13 (r17-r22): bot containment dedicated endpoint.
     this.botContainment = new ReportingBotContainmentService(sdk);
-    // #2 analytics-expansion B0 (§4.1): voice MOS/jitter/loss -- own
-    // file/class (same reason as .agents above).
+    // #2 analytics-expansion B0 (§4.1): voice MOS/jitter/loss.
     this.callQuality = new ReportingCallQualityService(sdk);
-    // Work Package E analytics-expansion (§4.12): customer-facing AI
-    // feature adoption summarization -- own file/class (same reason as
-    // .agents above).
+    // Work Package E analytics-expansion (§4.12): customer-facing AI feature adoption summarization.
     this.aiAdoption = new ReportingAiAdoptionService(sdk);
-    // #1a analytics-expansion A2 (per-report-detail.md #1a): ring group
-    // volume/answered/handle + per-member offers -- own file/class (same
-    // reason as .agents above).
+    // #1a analytics-expansion A2 (per-report-detail.md #1a): ring group volume/answered/handle + per-member offers.
     this.ringGroups = new ReportingRingGroupsService(sdk);
-    // #1b analytics-expansion A2 (per-report-detail.md #1b): account-wide
-    // IVR/voice-workflow-menu analytics -- own file/class (same reason as
-    // .agents above).
+    // #1b analytics-expansion A2 (per-report-detail.md #1b): account-wide IVR/voice-workflow-menu analytics.
     this.ivrMenus = new ReportingIvrMenusService(sdk);
-    // #13 analytics-expansion B1 (per-report-detail.md #13, atlas §C.2):
-    // tracked phrases + talk ratio, admin tracker/topic CRUD -- own
-    // file/class (same reason as .agents above).
+    // #13 analytics-expansion B1 (per-report-detail.md #13, atlas §C.2): tracked phrases + talk ratio, admin tracker/topic CRUD.
     this.conversationInsights = new ReportingConversationInsightsService(sdk);
+    // Work Package B2 analytics-expansion (§4.4, security.md "Surveys / NPS" row): survey/NPS summary.
+    this.surveys = new ReportingSurveysService(sdk);
+    // Work Package C analytics-expansion (§4.5, §7 C row): Rep activity-to-revenue + Pipeline/deal-risk.
+    this.sales = new ReportingSalesService(sdk);
   }
 
   /**
