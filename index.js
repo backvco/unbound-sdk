@@ -20,6 +20,7 @@ import { ContentService } from './services/content.js';
 import { VerificationService } from './services/verification.js';
 import { PortalsService } from './services/portals.js';
 import { DealRegistrationsService } from './services/dealRegistrations.js';
+import { DiscountApprovalsService } from './services/discountApprovals.js';
 import { SipEndpointsService } from './services/sipEndpoints.js';
 import { RingGroupsService } from './services/ringGroups.js';
 import { LineGroupsService } from './services/lineGroups.js';
@@ -133,6 +134,7 @@ class UnboundSDK extends BaseSDK {
     this.verification = new VerificationService(this);
     this.portals = new PortalsService(this);
     this.dealRegistrations = new DealRegistrationsService(this);
+    this.discountApprovals = new DiscountApprovalsService(this);
     this.sipEndpoints = new SipEndpointsService(this);
     this.ringGroups = new RingGroupsService(this);
     this.lineGroups = new LineGroupsService(this);
@@ -347,6 +349,7 @@ export {
 export { VerificationService } from './services/verification.js';
 export { PortalsService } from './services/portals.js';
 export { DealRegistrationsService } from './services/dealRegistrations.js';
+export { DiscountApprovalsService } from './services/discountApprovals.js';
 export { SipEndpointsService } from './services/sipEndpoints.js';
 export { RingGroupsService } from './services/ringGroups.js';
 export { LineGroupsService } from './services/lineGroups.js';
