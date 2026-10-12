@@ -24,6 +24,7 @@ export class ReportingCallLogService {
    * @param {Object} params - { from, to, direction?: 'inbound'|'outbound',
    *   answered?: boolean, queueIds?: string[], ringGroupIds?: string[],
    *   userIds?: string[], phoneNumber?: string, recordingOnly?: boolean,
+   *   lowMos?: boolean (any measured leg MOS below the low-quality threshold),
    *   cursor?: string, limit?: number }
    * @returns {Promise<Object>} { rows, cursor, hasMore, summary: { totalCalls, answeredCalls, missedCalls, answeredPct, avgBillDurationSec } }
    * @example
@@ -39,6 +40,7 @@ export class ReportingCallLogService {
     userIds,
     phoneNumber,
     recordingOnly,
+    lowMos,
     cursor,
     limit,
   } = {}) {
@@ -61,6 +63,8 @@ export class ReportingCallLogService {
         userIds,
         phoneNumber,
         recordingOnly,
+        lowMos,
+    lowMos,
         cursor,
         limit,
       })}`,
@@ -85,6 +89,7 @@ export class ReportingCallLogService {
     userIds,
     phoneNumber,
     recordingOnly,
+    lowMos,
   } = {}) {
     this.sdk.validateParams(
       { from, to },
@@ -105,6 +110,8 @@ export class ReportingCallLogService {
         userIds,
         phoneNumber,
         recordingOnly,
+        lowMos,
+    lowMos,
         format: 'csv',
       })}`,
       'GET',
@@ -120,7 +127,7 @@ export class ReportingCallLogService {
    * @param {Object} params - { from, to, direction?: 'inbound'|'outbound',
    *   answered?: boolean, queueIds?: string[], ringGroupIds?: string[],
    *   userIds?: string[], phoneNumber?: string, recordingOnly?: boolean,
-   *   tz?: string }
+   *   lowMos?: boolean, tz?: string }
    * @returns {Promise<Object>} { bucket: 'hour'|'day', timezone, series: [{ start, end, answered, missed, voicemail, total }] }
    * @example
    * await sdk.reporting.callLog.series({ from, to });
@@ -135,6 +142,7 @@ export class ReportingCallLogService {
     userIds,
     phoneNumber,
     recordingOnly,
+    lowMos,
     tz,
   } = {}) {
     this.sdk.validateParams(
@@ -156,6 +164,8 @@ export class ReportingCallLogService {
         userIds,
         phoneNumber,
         recordingOnly,
+        lowMos,
+    lowMos,
         tz,
       })}`,
       'GET',
