@@ -100,9 +100,10 @@ class UnboundSDK extends BaseSDK {
         url,
         socketStore,
         baseURL,
+        tokenDelivery,
       } = options;
 
-      super({ namespace, callId, token, fwRequestId, baseURL });
+      super({ namespace, callId, token, fwRequestId, baseURL, tokenDelivery });
 
       // Handle client-side specific parameters
       if (url) {

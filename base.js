@@ -41,6 +41,29 @@ export function internalRequest(sdk, endpoint, method, params = {}, forceFetch) 
 }
 
 export class BaseSDK {
+  /**
+   * @param {object|string} options Object-based options (recommended), or a
+   *   legacy positional `namespace` string (see constructor body).
+   * @param {string} [options.namespace]
+   * @param {string} [options.callId]
+   * @param {string} [options.token] Auth token; sent per `tokenDelivery`.
+   * @param {string} [options.fwRequestId]
+   * @param {string} [options.baseURL]
+   * @param {boolean} [options.autoRefresh=false] Opt-in 401 refresh+retry.
+   * @param {(err: Error) => void} [options.onUnauthorized]
+   * @param {string} [options.refreshToken] Bearer-delivery clients only.
+   * @param {'bearer'|'cookie'} [options.tokenDelivery='bearer'] How `token`
+   *   is attached to outgoing requests. 'bearer' (default, unchanged
+   *   behavior) sends `Authorization: Bearer <token>`. 'cookie' sends
+   *   `Cookie: authToken=<token>` instead (merged with any caller-supplied
+   *   Cookie header) -- required for cookie-type tokens, which app1-api's
+   *   auth_v3 middleware rejects with "Invalid token, authentication
+   *   method mismatch" when they arrive as a Bearer header. Applies to the
+   *   built-in HTTP transport and is passed through to transport plugins'
+   *   options object as `tokenDelivery`. `setToken` keeps working in both
+   *   modes; `autoRefresh` is unaffected (cookie clients never need
+   *   `refreshToken`).
+   */
   constructor(options = {}) {
     // Support both object and legacy positional parameters for backwards compatibility
     if (typeof options === 'string') {
@@ -49,6 +72,8 @@ export class BaseSDK {
       this.callId = arguments[1];
       this.token = arguments[2];
       this.fwRequestId = arguments[3];
+      // Legacy positional constructor has no slot for this; always bearer.
+      this._tokenDelivery = 'bearer';
     } else {
       // New object-based parameters
       const {
@@ -60,6 +85,7 @@ export class BaseSDK {
         autoRefresh,
         onUnauthorized,
         refreshToken,
+        tokenDelivery,
       } = options;
       this.namespace = namespace || process?.env?.namespace;
       this.callId = callId;
@@ -78,6 +104,15 @@ export class BaseSDK {
       // Seeded via this option or setRefreshToken(); updated in place on
       // every rotation by lib/refreshInterceptor.js.
       this._refreshToken = refreshToken;
+      // Additive, opt-in (default 'bearer' -- unchanged behavior: the token
+      // goes out as `Authorization: Bearer <token>`). 'cookie' sends it as
+      // `Cookie: authToken=<token>` instead -- app1-api auth_v3 rejects a
+      // cookie-type token carried as a Bearer header with "Invalid token,
+      // authentication method mismatch" (cookie-type tokens must arrive as
+      // a cookie). Applies to the built-in HTTP transport and is also
+      // passed through to transport plugins' options object. autoRefresh
+      // is unaffected: cookie clients never carry a refreshToken.
+      this._tokenDelivery = tokenDelivery === 'cookie' ? 'cookie' : 'bearer';
     }
     this.baseURL;
     this.transports = new Map();
@@ -262,7 +297,20 @@ export class BaseSDK {
 
     // Add auth headers
     if (this.token) {
-      headers.Authorization = `Bearer ${this.token}`;
+      if (this._tokenDelivery === 'cookie') {
+        // Cookie-type tokens must arrive as a cookie, never Authorization
+        // (see constructor doc above). Merge with any caller-supplied
+        // Cookie header rather than clobbering it.
+        const existingCookie = headers.Cookie ?? headers.cookie;
+        if (headers.cookie !== undefined && headers.Cookie === undefined) {
+          delete headers.cookie;
+        }
+        headers.Cookie = existingCookie
+          ? `${existingCookie}; authToken=${this.token}`
+          : `authToken=${this.token}`;
+      } else {
+        headers.Authorization = `Bearer ${this.token}`;
+      }
     }
     if (this.fwRequestId) {
       headers['x-request-id-fw'] = this.fwRequestId;
@@ -284,6 +332,7 @@ export class BaseSDK {
           callId: this.callId,
           fwRequestId: this.fwRequestId,
           baseURL: this.baseURL || this.fullUrl,
+          tokenDelivery: this._tokenDelivery,
         });
       } catch (err) {
         // IMPORTANT: This catch block should ONLY handle transport-level failures

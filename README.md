@@ -125,6 +125,25 @@ const api = new SDK({
 });
 ```
 
+`tokenDelivery` controls how `token` is attached to outgoing requests:
+`'bearer'` (default, unchanged behavior) sends `Authorization: Bearer
+<token>`; `'cookie'` sends `Cookie: authToken=<token>` instead, merging with
+any `Cookie` header you already pass in `headers`. Use `'cookie'` when
+`token` is a cookie-type token (e.g. forwarded from a browser session) --
+app1-api's auth_v3 middleware rejects those over `Authorization` with
+"Invalid token, authentication method mismatch". `setToken()` works the same
+in either mode, the option is passed through to transport plugins, and
+`autoRefresh`/`refreshToken` are unaffected (cookie clients never need a
+refresh token):
+
+```javascript
+const api = new SDK({
+  namespace: 'your-namespace',
+  token: cookieAuthToken,
+  tokenDelivery: 'cookie', // sends `Cookie: authToken=<token>`
+});
+```
+
 ### Legacy Positional Constructor (Backwards Compatible)
 
 ```javascript
