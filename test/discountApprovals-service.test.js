@@ -48,3 +48,54 @@ describe('DiscountApprovalsService.decide', () => {
     assert.equal(calls.length, 0);
   });
 });
+
+describe('DiscountApprovalsService.marginPreview', () => {
+  test('POSTs /discount-approvals/margin-preview with {opportunityId, lines}', async () => {
+    const { fakeSdk, calls } = buildFakeSdk();
+    const lines = [{ lineId: 'line-1', discountType: 'percent', discountValue: 25 }];
+    await new DiscountApprovalsService(fakeSdk).marginPreview('opp-1', lines);
+    assert.equal(calls[0].endpoint, '/discount-approvals/margin-preview');
+    assert.equal(calls[0].method, 'POST');
+    assert.equal(calls[0].params.body.opportunityId, 'opp-1');
+    assert.deepEqual(calls[0].params.body.lines, lines);
+  });
+});
+
+describe('DiscountApprovalsService.bulkDiscount', () => {
+  test('POSTs /discount-approvals/bulk-discount with {opportunityId, lineIds, discountType, discountValue}', async () => {
+    const { fakeSdk, calls } = buildFakeSdk();
+    await new DiscountApprovalsService(fakeSdk).bulkDiscount(
+      'opp-1',
+      ['line-1', 'line-2'],
+      { discountType: 'percent', discountValue: 15 },
+    );
+    assert.equal(calls[0].endpoint, '/discount-approvals/bulk-discount');
+    assert.equal(calls[0].method, 'POST');
+    assert.equal(calls[0].params.body.opportunityId, 'opp-1');
+    assert.deepEqual(calls[0].params.body.lineIds, ['line-1', 'line-2']);
+    assert.equal(calls[0].params.body.discountType, 'percent');
+    assert.equal(calls[0].params.body.discountValue, 15);
+    assert.equal('reason' in calls[0].params.body, false);
+  });
+
+  test('reason is optional but passed through when given', async () => {
+    const { fakeSdk, calls } = buildFakeSdk();
+    await new DiscountApprovalsService(fakeSdk).bulkDiscount('opp-1', ['line-1'], {
+      discountType: 'amount',
+      discountValue: 10,
+      reason: 'holiday promo',
+    });
+    assert.equal(calls[0].params.body.reason, 'holiday promo');
+  });
+
+  test('rejects an unknown discountType client-side, before ever calling the transport', async () => {
+    const { fakeSdk, calls } = buildFakeSdk();
+    await assert.rejects(() =>
+      new DiscountApprovalsService(fakeSdk).bulkDiscount('opp-1', ['line-1'], {
+        discountType: 'bogus',
+        discountValue: 10,
+      }),
+    );
+    assert.equal(calls.length, 0);
+  });
+});

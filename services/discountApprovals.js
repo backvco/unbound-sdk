@@ -46,6 +46,75 @@ export class DiscountApprovalsService {
       body,
     });
   }
+
+  /**
+   * Round-2 fix 1 (margin-in-discount-popover) -- numbers-free D9 dry-run
+   * for one or more lines on an opportunity. Never locks or writes
+   * anything server-side. `marginPercent` is included on each returned
+   * line ONLY when the calling session holds `crm:margin:view` -- this
+   * method never asks for it and can't force it; everyone else gets
+   * `belowMarginFloor` only.
+   * @param {string} opportunityId
+   * @param {Array<{lineId: string, price?: number, discountType?: 'percent'|'amount', discountValue?: number}>} lines
+   * @returns {Promise<{lines: Array<{lineId: string, belowMarginFloor: boolean, marginPercent?: number}>}>}
+   */
+  async marginPreview(opportunityId, lines) {
+    this.sdk.validateParams(
+      { opportunityId, lines },
+      {
+        opportunityId: { type: 'string', required: true },
+        lines: { type: 'array', required: true },
+      },
+    );
+    return internalRequest(
+      this.sdk,
+      '/discount-approvals/margin-preview',
+      'POST',
+      { body: { opportunityId, lines } },
+    );
+  }
+
+  /**
+   * Round-2 fix 3 (bulk discount) -- one `discountType`/`discountValue`
+   * applied to every line in `lineIds`, through ONE `evaluateLineWrite`
+   * call -> at most one `discountApprovals` row for the whole selection,
+   * never one request per line. `discountValue` with
+   * `discountType='amount'` is a PER-UNIT amount off each selected
+   * line's own listPrice (the same semantics a single-line
+   * `discountType='amount'` edit already has) -- never prorated across
+   * the selection. Lines that are closed/locked, already have a pending
+   * discount request, or aren't found are skipped server-side and
+   * reported back in `skipped`, never merged or silently dropped.
+   * @param {string} opportunityId
+   * @param {string[]} lineIds
+   * @param {Object} options
+   * @param {'percent'|'amount'} options.discountType
+   * @param {number} options.discountValue
+   * @param {string} [options.reason]
+   * @returns {Promise<{opportunityId: string, committed: string[], held: string[], skipped: Array<{lineId: string, reason: string}>, skippedCount: number, rollup: Object}>}
+   */
+  async bulkDiscount(opportunityId, lineIds, { discountType, discountValue, reason } = {}) {
+    this.sdk.validateParams(
+      { opportunityId, lineIds, discountType, discountValue },
+      {
+        opportunityId: { type: 'string', required: true },
+        lineIds: { type: 'array', required: true },
+        discountType: { type: 'string', required: true },
+        discountValue: { type: 'number', required: true },
+      },
+    );
+    if (!['percent', 'amount'].includes(discountType)) {
+      throw new Error("discountType must be one of 'percent', 'amount'");
+    }
+    const body = { opportunityId, lineIds, discountType, discountValue };
+    if (reason !== undefined) body.reason = reason;
+    return internalRequest(
+      this.sdk,
+      '/discount-approvals/bulk-discount',
+      'POST',
+      { body },
+    );
+  }
 }
 
 export default DiscountApprovalsService;
