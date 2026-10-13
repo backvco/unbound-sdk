@@ -204,6 +204,7 @@ export class PlaybooksService {
    * @param {boolean} [options.requiredForPass=false] - Whether required for pass
    * @param {string} [options.visibility] - 'live' or 'reviewOnly'
    * @param {string} [options.recordTypeId] - Record type ID
+   * @param {string} [options.criteriaMode] - How multiple criteria combine: 'all' or 'any'
    * @returns {Promise<Object>} Created goal with id
    *
    * @example
@@ -212,7 +213,8 @@ export class PlaybooksService {
    *   goal: 'Identify customer pain points',
    *   description: 'Agent should discover at least 2 pain points',
    *   scoreType: 'scale',
-   *   weight: 25
+   *   weight: 25,
+   *   criteriaMode: 'any'
    * });
    */
   async createPlaybookGoal({
@@ -231,6 +233,7 @@ export class PlaybooksService {
     windowTurns,
     visibility,
     recordTypeId,
+    criteriaMode,
   }) {
     this.sdk.validateParams(
       {
@@ -246,6 +249,7 @@ export class PlaybooksService {
         role,
         signal,
         recordTypeId,
+        criteriaMode,
       },
       {
         playbookId: { type: "string", required: true },
@@ -263,6 +267,7 @@ export class PlaybooksService {
         windowTurns: { type: "number", required: false },
         visibility: { type: "string", required: false },
         recordTypeId: { type: "string", required: false },
+        criteriaMode: { type: "string", required: false },
       },
     );
 
@@ -282,6 +287,7 @@ export class PlaybooksService {
         windowTurns,
         visibility,
         recordTypeId,
+        ...(criteriaMode !== undefined ? { criteriaMode } : {}),
       },
     };
 
@@ -366,13 +372,15 @@ export class PlaybooksService {
    * @param {boolean} [options.requiredForPass] - Whether required for pass
    * @param {string} [options.visibility] - 'live' or 'reviewOnly'
    * @param {string} [options.recordTypeId] - Record type ID
+   * @param {string} [options.criteriaMode] - How multiple criteria combine: 'all' or 'any'
    * @returns {Promise<Object>} Updated goal object
    *
    * @example
    * const updated = await sdk.ai.playbooks.updatePlaybookGoal({
    *   goalId: 'goal_789',
    *   weight: 30,
-   *   description: 'Updated description'
+   *   description: 'Updated description',
+   *   criteriaMode: 'all'
    * });
    */
   async updatePlaybookGoal({
@@ -390,6 +398,7 @@ export class PlaybooksService {
     windowTurns,
     visibility,
     recordTypeId,
+    criteriaMode,
   }) {
     this.sdk.validateParams(
       {
@@ -404,6 +413,7 @@ export class PlaybooksService {
         role,
         signal,
         recordTypeId,
+        criteriaMode,
       },
       {
         goalId: { type: "string", required: true },
@@ -420,6 +430,7 @@ export class PlaybooksService {
         windowTurns: { type: "number", required: false },
         visibility: { type: "string", required: false },
         recordTypeId: { type: "string", required: false },
+        criteriaMode: { type: "string", required: false },
       },
     );
 
@@ -438,6 +449,7 @@ export class PlaybooksService {
         windowTurns,
         visibility,
         recordTypeId,
+        ...(criteriaMode !== undefined ? { criteriaMode } : {}),
       },
     };
 

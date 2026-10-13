@@ -159,3 +159,53 @@ describe('PlaybooksService.closeParticipant', () => {
     });
   });
 });
+
+describe('PlaybooksService.createPlaybookGoal', () => {
+  test('passes criteriaMode through in the body when provided', async () => {
+    const { fakeSdk, calls } = buildFakeSdk({ id: 'goal_1' });
+    await new PlaybooksService(fakeSdk).createPlaybookGoal({
+      playbookId: 'pb_1',
+      playbookGoalTypeId: 'gt_1',
+      playbookVersionId: 'pbv_1',
+      goal: 'Identify pain points',
+      criteriaMode: 'any',
+    });
+    assert.equal(calls[0].endpoint, '/ai/playbooks/pb_1/goals');
+    assert.equal(calls[0].method, 'POST');
+    assert.equal(calls[0].params.body.criteriaMode, 'any');
+  });
+
+  test('omits criteriaMode from the body when not given', async () => {
+    const { fakeSdk, calls } = buildFakeSdk({ id: 'goal_1' });
+    await new PlaybooksService(fakeSdk).createPlaybookGoal({
+      playbookId: 'pb_1',
+      playbookGoalTypeId: 'gt_1',
+      playbookVersionId: 'pbv_1',
+      goal: 'Identify pain points',
+    });
+    assert.ok(!('criteriaMode' in calls[0].params.body));
+  });
+});
+
+describe('PlaybooksService.updatePlaybookGoal', () => {
+  test('passes criteriaMode through in the body when provided', async () => {
+    const { fakeSdk, calls } = buildFakeSdk({ id: 'goal_1' });
+    await new PlaybooksService(fakeSdk).updatePlaybookGoal({
+      goalId: 'goal_1',
+      playbookGoalTypeId: 'gt_1',
+      criteriaMode: 'all',
+    });
+    assert.equal(calls[0].endpoint, '/ai/playbooks/goals/goal_1');
+    assert.equal(calls[0].method, 'PUT');
+    assert.equal(calls[0].params.body.criteriaMode, 'all');
+  });
+
+  test('omits criteriaMode from the body when not given', async () => {
+    const { fakeSdk, calls } = buildFakeSdk({ id: 'goal_1' });
+    await new PlaybooksService(fakeSdk).updatePlaybookGoal({
+      goalId: 'goal_1',
+      playbookGoalTypeId: 'gt_1',
+    });
+    assert.ok(!('criteriaMode' in calls[0].params.body));
+  });
+});
