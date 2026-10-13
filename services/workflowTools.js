@@ -31,6 +31,25 @@ export class WorkflowToolsService {
     );
     return result;
   }
+
+  // P1 D8/§4 "Export routes" (Download tool JSON):
+  //   no slug -> GET /workflows/tools/export?format=  (the whole catalog)
+  //   slug    -> GET /workflows/tools/:slug/export?format=  (one tool)
+  // format is one of 'mcp' | 'anthropic' | 'openai'.
+  async export({ slug, format } = {}) {
+    this.sdk.validateParams(
+      { format },
+      { format: { type: 'string', required: true } },
+    );
+
+    const path = slug
+      ? `/workflows/tools/${slug}/export`
+      : '/workflows/tools/export';
+    const result = await internalRequest(this.sdk, path, 'GET', {
+      query: { format },
+    });
+    return result;
+  }
 }
 
 export class WorkflowMcpTokensService {

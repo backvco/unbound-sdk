@@ -419,3 +419,4 @@ export {
   isSimEmail,
   simModeKey,
 } from './lib/simRules.js';
+export { buildMcpConnectSnippets } from './lib/mcpConnectSnippets.js';

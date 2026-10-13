@@ -41,6 +41,30 @@ describe('WorkflowToolsService.call', () => {
   });
 });
 
+describe('WorkflowToolsService.export', () => {
+  test('no slug -> GETs the catalog route /workflows/tools/export?format=', async () => {
+    const { fakeSdk, calls } = buildFakeSdk({ tools: [] });
+    const result = await new WorkflowToolsService(fakeSdk).export({
+      format: 'mcp',
+    });
+    assert.equal(calls[0].endpoint, '/workflows/tools/export');
+    assert.equal(calls[0].method, 'GET');
+    assert.deepEqual(calls[0].params.query, { format: 'mcp' });
+    assert.deepEqual(result, { tools: [] });
+  });
+
+  test('with slug -> GETs /workflows/tools/:slug/export?format=', async () => {
+    const { fakeSdk, calls } = buildFakeSdk({ name: 'get-weather' });
+    await new WorkflowToolsService(fakeSdk).export({
+      slug: 'get-weather',
+      format: 'anthropic',
+    });
+    assert.equal(calls[0].endpoint, '/workflows/tools/get-weather/export');
+    assert.equal(calls[0].method, 'GET');
+    assert.deepEqual(calls[0].params.query, { format: 'anthropic' });
+  });
+});
+
 describe('WorkflowMcpTokensService.create', () => {
   test('POSTs /workflows/mcp/tokens with an optional name', async () => {
     const { fakeSdk, calls } = buildFakeSdk({ id: 'tok1', token: 'raw', name: 'CI' });

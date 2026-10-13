@@ -600,6 +600,7 @@ export class WorkflowSessionsService {
     limit,
     before,
     activeOnly,
+    source,
   } = {}) {
     this.sdk.validateParams(
       { workflowId, workflowVersionId },
@@ -624,6 +625,7 @@ export class WorkflowSessionsService {
     if (limit) query.limit = limit;
     if (before) query.before = before;
     if (activeOnly) query.activeOnly = true;
+    if (source) query.source = source;
 
     const result = await internalRequest(this.sdk, '/workflows/sessions/list', 'GET', {
       query,
