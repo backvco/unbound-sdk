@@ -1,3 +1,7 @@
+## 4.13.159
+
+- feat: `sdk.video.regenerateSummary(roomId)` — `POST /video/:roomId/summary/regenerate`, host-only; (re)generates the post-meeting AI summary from the saved transcript (transcript-but-no-summary case). Returns the `getSummary()` shape; `summary: null` + `reason` ('too_short' | 'no_transcript') when there is nothing to summarize
+
 ## 4.13.151
 
 - feat: `simRules` (root export + `sdk.simRules`) — `SIM_NUMBER_RE`, `SIM_EMAIL_DOMAIN`, `isSimNumber(e164)`, `isSimEmail(addr)`, `simModeKey(accountId)`; pure, dependency-free, shared by api/queue-messaging/app1-simulator

@@ -1136,6 +1136,32 @@ export class VideoService {
   }
 
   /**
+   * Host-only: (re)generate the post-meeting AI summary from the saved
+   * transcript. Use when a meeting has a transcript but no summary (the
+   * post-close job failed), or to refresh a stale one. Creates a new
+   * summary; prior host edits are superseded.
+   * @param {string} roomId - The video room ID
+   * @returns {Promise<{summary: Object|null, reason?: 'too_short'|'no_transcript', wordCount?: number}>}
+   *   Same shape as getSummary(); `summary` is null with a `reason` when
+   *   there was nothing to summarize.
+   */
+  async regenerateSummary(roomId) {
+    this.sdk.validateParams(
+      { roomId },
+      {
+        roomId: { type: 'string', required: true },
+      },
+    );
+
+    const result = await internalRequest(
+      this.sdk,
+      `/video/${roomId}/summary/regenerate`,
+      'POST',
+    );
+    return result;
+  }
+
+  /**
    * Host-only edit of a video room's post-meeting AI summary
    * @param {string} roomId - The video room ID
    * @param {Object} update
