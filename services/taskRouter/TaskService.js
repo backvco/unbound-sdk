@@ -1373,6 +1373,40 @@ export class TaskService {
   }
 
   /**
+   * Get the attributed, cross-channel utterance list for a task (voice, SMS,
+   * webchat, email, workflow), used by the playbook live-scoring engine.
+   * Each row is shaped by `collectUtterances()`: `{ index, channel, role,
+   * text, at, id, speakerUserId, speakerCdrId, participantId, kind }` where
+   * `kind` is `'human' | 'bot' | 'workflow' | 'customer'`.
+   *
+   * @param {string} taskId - The task ID (required)
+   * @param {Object} [options={}] - Query options
+   * @param {string} [options.before] - Cursor (an `at` timestamp) to page
+   *   back past the newest-400 window a loader keeps by default.
+   * @returns {Promise<Array>} Utterance rows, oldest first.
+   */
+  async getUtterances(taskId, options = {}) {
+    const { before } = options;
+    this.sdk.validateParams(
+      { taskId, before },
+      {
+        taskId: { type: 'string', required: true },
+        before: { type: 'string', required: false },
+      },
+    );
+
+    const query = {};
+    if (before) query.before = before;
+
+    return await internalRequest(
+      this.sdk,
+      `/taskRouter/tasks/${taskId}/utterances`,
+      'GET',
+      { query },
+    );
+  }
+
+  /**
    * Broadcast a typing indicator to the other participants (owner + joined
    * helpers) on a task's channel. Fire-and-forget signal, not persisted;
    * app1-socket forwards it to each participant as a `task_typing` event.

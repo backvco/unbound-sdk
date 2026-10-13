@@ -1098,6 +1098,302 @@ export class PlaybooksService {
   }
 
   /**
+   * Resolve a playbook session by task only (no workerId/userId needed).
+   * Thin wrapper over `getSession({ taskId })` for callers that only ever
+   * look up by task, such as the live-scoring engine.
+   *
+   * @param {Object} options - Options
+   * @param {string} options.taskId - The task ID
+   * @param {boolean} [options.includeQa] - Include review-only goals and qaReview
+   * @returns {Promise<Object>} Session object with playbookName, goals[] and participants[]
+   *
+   * @example
+   * const session = await sdk.ai.playbooks.getSessionByTask({ taskId: 'task_123' });
+   */
+  async getSessionByTask({ taskId, includeQa }) {
+    this.sdk.validateParams(
+      { taskId },
+      {
+        taskId: { type: "string", required: true },
+        includeQa: { type: "boolean", required: false },
+      },
+    );
+
+    return this.getSession({ taskId, includeQa });
+  }
+
+  /**
+   * Batch-upsert goal rows for a playbook session (replaces per-goal
+   * `logGoal` for the live-scoring engine).
+   *
+   * @param {Object} options - Options
+   * @param {string} options.sessionId - The ID of the session
+   * @param {Array<Object>} options.goals - Goal rows: `[{ goalId, achieved,
+   *   missed, score, reason, confidence, evidence, coachingSuggestion }]`
+   * @returns {Promise<Object>} Result with playbookSessionId
+   *
+   * @example
+   * await sdk.ai.playbooks.logGoals({
+   *   sessionId: 'pbs_abc123',
+   *   goals: [
+   *     { goalId: 'goal_456', achieved: true, score: 10, reason: '...', confidence: 0.95 },
+   *     { goalId: 'goal_789', achieved: false, missed: true, score: 0 },
+   *   ],
+   * });
+   */
+  async logGoals({ sessionId, goals }) {
+    this.sdk.validateParams(
+      { sessionId, goals },
+      {
+        sessionId: { type: "string", required: true },
+        goals: { type: "array", required: true },
+      },
+    );
+
+    const params = {
+      body: { goals },
+    };
+
+    const result = await internalRequest(
+      this.sdk,
+      `/ai/playbooks/sessions/${sessionId}/goals`,
+      "POST",
+      params,
+    );
+    return result;
+  }
+
+  /**
+   * Set (reassign) the owner of a playbook session, e.g. on a task
+   * transfer.
+   *
+   * @param {Object} options - Options
+   * @param {string} options.sessionId - The ID of the session
+   * @param {string} options.workerId - The new owning worker's ID
+   * @param {string} options.userId - The new owning user's ID
+   * @returns {Promise<Object>} Result with playbookSessionId
+   *
+   * @example
+   * await sdk.ai.playbooks.setOwner({
+   *   sessionId: 'pbs_abc123',
+   *   workerId: 'worker_456',
+   *   userId: 'user_789',
+   * });
+   */
+  async setOwner({ sessionId, workerId, userId }) {
+    this.sdk.validateParams(
+      { sessionId, workerId, userId },
+      {
+        sessionId: { type: "string", required: true },
+        workerId: { type: "string", required: true },
+        userId: { type: "string", required: true },
+      },
+    );
+
+    const params = {
+      body: { workerId, userId },
+    };
+
+    const result = await internalRequest(
+      this.sdk,
+      `/ai/playbooks/sessions/${sessionId}/owner`,
+      "PUT",
+      params,
+    );
+    return result;
+  }
+
+  /**
+   * Join or leave a playbook session participant (§7.2.4 / §7.4).
+   *
+   * No `participantId` → join: `POST .../participants` with
+   * `{ workerId, userId, kind, joinedAt }`.
+   * With `participantId` → leave + segment result: `PUT
+   * .../participants/:pid` with `{ leftAt, endReason, segmentTotalScore,
+   * segmentAchievedGoals, segmentTotalGoals, segmentGoals }`.
+   *
+   * @param {Object} options - Options
+   * @param {string} options.sessionId - The ID of the session
+   * @param {string} [options.participantId] - The ID of an existing
+   *   participant row to close (leave); omit to join
+   * @param {string} [options.workerId] - The joining worker's ID (join only)
+   * @param {string} [options.userId] - The joining user's ID (join only)
+   * @param {string} [options.kind] - 'human' | 'bot' (join only)
+   * @param {string} [options.joinedAt] - ISO timestamp the participant joined (join only)
+   * @param {string} [options.leftAt] - ISO timestamp the participant left (leave only)
+   * @param {string} [options.endReason] - 'transferred' | 'released' | 'unassigned' | 'completed' (leave only)
+   * @param {number} [options.segmentTotalScore] - Score achieved during this participant's slice
+   * @param {number} [options.segmentAchievedGoals] - Goals achieved during this slice
+   * @param {number} [options.segmentTotalGoals] - Total goals scoped to this slice
+   * @param {Array} [options.segmentGoals] - Per-goal detail for this slice
+   * @returns {Promise<Object>} The created/updated participant row
+   *
+   * @example
+   * // Join
+   * await sdk.ai.playbooks.upsertParticipant({
+   *   sessionId: 'pbs_abc123',
+   *   workerId: 'worker_456',
+   *   userId: 'user_789',
+   *   kind: 'human',
+   *   joinedAt: new Date().toISOString(),
+   * });
+   *
+   * @example
+   * // Leave
+   * await sdk.ai.playbooks.upsertParticipant({
+   *   sessionId: 'pbs_abc123',
+   *   participantId: 'pbp_456',
+   *   leftAt: new Date().toISOString(),
+   *   endReason: 'transferred',
+   *   segmentTotalScore: 30,
+   *   segmentAchievedGoals: 3,
+   *   segmentTotalGoals: 5,
+   * });
+   */
+  async upsertParticipant({
+    sessionId,
+    participantId,
+    workerId,
+    userId,
+    kind,
+    joinedAt,
+    leftAt,
+    endReason,
+    segmentTotalScore,
+    segmentAchievedGoals,
+    segmentTotalGoals,
+    segmentGoals,
+  }) {
+    if (!participantId) {
+      this.sdk.validateParams(
+        { sessionId, workerId, userId, kind, joinedAt },
+        {
+          sessionId: { type: "string", required: true },
+          workerId: { type: "string", required: true },
+          userId: { type: "string", required: true },
+          kind: { type: "string", required: true },
+          joinedAt: { type: "string", required: true },
+        },
+      );
+
+      const result = await internalRequest(
+        this.sdk,
+        `/ai/playbooks/sessions/${sessionId}/participants`,
+        "POST",
+        { body: { workerId, userId, kind, joinedAt } },
+      );
+      return result;
+    }
+
+    this.sdk.validateParams(
+      { sessionId, participantId, leftAt, endReason },
+      {
+        sessionId: { type: "string", required: true },
+        participantId: { type: "string", required: true },
+        leftAt: { type: "string", required: true },
+        endReason: { type: "string", required: false },
+        segmentTotalScore: { type: "number", required: false },
+        segmentAchievedGoals: { type: "number", required: false },
+        segmentTotalGoals: { type: "number", required: false },
+        segmentGoals: { type: "array", required: false },
+      },
+    );
+
+    const result = await internalRequest(
+      this.sdk,
+      `/ai/playbooks/sessions/${sessionId}/participants/${participantId}`,
+      "PUT",
+      {
+        body: {
+          leftAt,
+          endReason,
+          segmentTotalScore,
+          segmentAchievedGoals,
+          segmentTotalGoals,
+          segmentGoals,
+        },
+      },
+    );
+    return result;
+  }
+
+  /**
+   * Join a playbook session participant (§7.2.4 / §7.4). Thin wrapper over
+   * `upsertParticipant` for callers that only ever join, named to match
+   * the API route (`POST /ai/playbooks/sessions/:id/participants`).
+   *
+   * @param {Object} options - Options
+   * @param {string} options.sessionId - The ID of the session
+   * @param {string} options.workerId - The joining worker's ID
+   * @param {string} options.userId - The joining user's ID
+   * @param {string} options.kind - 'human' | 'bot'
+   * @param {string} options.joinedAt - ISO timestamp the participant joined
+   * @returns {Promise<Object>} The created participant row
+   *
+   * @example
+   * await sdk.ai.playbooks.addParticipant({
+   *   sessionId: 'pbs_abc123',
+   *   workerId: 'worker_456',
+   *   userId: 'user_789',
+   *   kind: 'human',
+   *   joinedAt: new Date().toISOString(),
+   * });
+   */
+  async addParticipant({ sessionId, workerId, userId, kind, joinedAt }) {
+    return this.upsertParticipant({ sessionId, workerId, userId, kind, joinedAt });
+  }
+
+  /**
+   * Close a playbook session participant on leave/transfer/complete
+   * (§7.2.4 / §7.4). Thin wrapper over `upsertParticipant` for callers
+   * that only ever close a slice, named to match the API route
+   * (`PUT /ai/playbooks/sessions/:id/participants/:pid`).
+   *
+   * @param {Object} options - Options
+   * @param {string} options.sessionId - The ID of the session
+   * @param {string} options.participantId - The ID of the participant row to close
+   * @param {string} options.leftAt - ISO timestamp the participant left
+   * @param {string} [options.endReason] - 'transferred' | 'released' | 'unassigned' | 'completed'
+   * @param {number} [options.segmentTotalScore] - Score achieved during this participant's slice
+   * @param {number} [options.segmentAchievedGoals] - Goals achieved during this slice
+   * @param {number} [options.segmentTotalGoals] - Total goals scoped to this slice
+   * @param {Array} [options.segmentGoals] - Per-goal detail for this slice
+   * @returns {Promise<Object>} The updated participant row
+   *
+   * @example
+   * await sdk.ai.playbooks.closeParticipant({
+   *   sessionId: 'pbs_abc123',
+   *   participantId: 'pbp_456',
+   *   leftAt: new Date().toISOString(),
+   *   endReason: 'transferred',
+   *   segmentTotalScore: 30,
+   *   segmentAchievedGoals: 3,
+   *   segmentTotalGoals: 5,
+   * });
+   */
+  async closeParticipant({
+    sessionId,
+    participantId,
+    leftAt,
+    endReason,
+    segmentTotalScore,
+    segmentAchievedGoals,
+    segmentTotalGoals,
+    segmentGoals,
+  }) {
+    return this.upsertParticipant({
+      sessionId,
+      participantId,
+      leftAt,
+      endReason,
+      segmentTotalScore,
+      segmentAchievedGoals,
+      segmentTotalGoals,
+      segmentGoals,
+    });
+  }
+
+  /**
    * Submit a human QA review for an AI playbook session (replace-semantics).
    *
    * @param {Object} options
