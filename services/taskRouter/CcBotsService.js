@@ -101,6 +101,7 @@ export class CcBotsService {
       'paused',
       'acceptChannels',
       'useChannels',
+      'defaultTools',
       'groupId',
       'groupOverrides',
       'inherit',

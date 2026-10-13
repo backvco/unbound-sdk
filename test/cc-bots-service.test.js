@@ -106,6 +106,17 @@ describe('CcBotsService', () => {
     assert.equal(calls[0].params.body.profilePhoto, 'graham-v2-f');
   });
 
+  test('update PATCHes defaultTools', async () => {
+    const { fakeSdk, calls } = buildFakeSdk();
+    await new CcBotsService(fakeSdk).update('bot-1', {
+      defaultTools: ['knowledgeBase', 'queryData'],
+    });
+    assert.deepEqual(calls[0].params.body.defaultTools, [
+      'knowledgeBase',
+      'queryData',
+    ]);
+  });
+
   test('update PATCHes acceptChannels and useChannels', async () => {
     const { fakeSdk, calls } = buildFakeSdk();
     await new CcBotsService(fakeSdk).update('bot-1', {
