@@ -250,4 +250,26 @@ export class CcBotsService {
       { body: { queueId } },
     );
   }
+
+  /**
+   * Log a CC bot out of a queue (soft-deletes queueUsers + worker removeQueues).
+   * @param {string} id
+   * @param {Object} params
+   * @param {string} params.queueId
+   * @returns {Promise<Object>}
+   */
+  async removeFromQueue(id, { queueId } = {}) {
+    this.sdk.validateParams(
+      { id, queueId },
+      {
+        id: { type: 'string', required: true },
+        queueId: { type: 'string', required: true },
+      },
+    );
+    return internalRequest(
+      this.sdk,
+      `/taskRouter/ccBots/${id}/queues/${queueId}`,
+      'DELETE',
+    );
+  }
 }

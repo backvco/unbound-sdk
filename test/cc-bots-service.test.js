@@ -172,4 +172,11 @@ describe('CcBotsService', () => {
     assert.equal(calls[0].endpoint, '/taskRouter/ccBots/bot-1/queues');
     assert.equal(calls[0].params.body.queueId, 'q1');
   });
+
+  test('removeFromQueue DELETEs /queues/:queueId', async () => {
+    const { fakeSdk, calls } = buildFakeSdk();
+    await new CcBotsService(fakeSdk).removeFromQueue('bot-1', { queueId: 'q1' });
+    assert.equal(calls[0].endpoint, '/taskRouter/ccBots/bot-1/queues/q1');
+    assert.equal(calls[0].method, 'DELETE');
+  });
 });
