@@ -1,3 +1,7 @@
+## 4.13.164
+
+- feat: `sdk.reporting.marketing` (`ReportingMarketingService`) — `website()`, `websiteGeo()`, `websiteSessions()`, `sessionEvents(id)`, `forms()`, `formSubmissions()`, `attribution()`, `scoring()`, `engagement()` over `GET /reporting/marketing/*` (scope `reporting:marketing:read`; marketing-reports-plan.md §5/§6). All take ISO `from`/`to` + optional `timeZone` and filters; responses never include raw IPs
+
 ## 4.13.160
 
 - feat: `sdk.video.regenerateSummary(roomId)` — `POST /video/:roomId/summary/regenerate`, host-only; (re)generates the post-meeting AI summary from the saved transcript (transcript-but-no-summary case). Returns the `getSummary()` shape; `summary: null` + `reason` ('too_short' | 'no_transcript') when there is nothing to summarize

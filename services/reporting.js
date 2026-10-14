@@ -11,6 +11,7 @@ import { ReportingIvrMenusService } from './reportingIvrMenus.js';
 import { ReportingConversationInsightsService } from './reportingConversationInsights.js';
 import { ReportingSurveysService } from './reportingSurveys.js';
 import { ReportingSalesService } from './reportingSales.js';
+import { ReportingMarketingService } from './reportingMarketing.js';
 import { ReportingUsersService } from './reportingUsers.js';
 import { ReportingViewsService } from './reportingViews.js';
 
@@ -67,6 +68,8 @@ export class ReportingService {
     this.surveys = new ReportingSurveysService(sdk);
     // Work Package C analytics-expansion (§4.5, §7 C row): Rep activity-to-revenue + Pipeline/deal-risk.
     this.sales = new ReportingSalesService(sdk);
+    // marketing-reports-plan.md §6: website traffic / forms / attribution / scoring / engagement.
+    this.marketing = new ReportingMarketingService(sdk);
     // analytics-expansion live-testing fix: report-scoped users list
     // beyond team members (Call log's Users filter) -- own file to keep
     // this file under the 400-line limit.
