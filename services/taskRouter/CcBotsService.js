@@ -102,6 +102,7 @@ export class CcBotsService {
       'acceptChannels',
       'useChannels',
       'defaultTools',
+      'toolWorkflowIds',
       'groupId',
       'groupOverrides',
       'inherit',
