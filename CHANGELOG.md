@@ -1,3 +1,7 @@
+## 4.13.165
+
+- feat: `sdk.licenses.setBrandAccountTrial(accountId, { isTrial, accountExpiresAt })` — `PUT /permissions/brand/accounts/:accountId/trial`. Brand owner turns a tenant trial off or sets when it expires. Passing the date does not lock the account.
+
 ## 4.13.164
 
 - feat: `sdk.reporting.marketing` (`ReportingMarketingService`) — `website()`, `websiteGeo()`, `websiteSessions()`, `sessionEvents(id)`, `forms()`, `formSubmissions()`, `attribution()`, `scoring()`, `engagement()` over `GET /reporting/marketing/*` (scope `reporting:marketing:read`; marketing-reports-plan.md §5/§6). All take ISO `from`/`to` + optional `timeZone` and filters; responses never include raw IPs

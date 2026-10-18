@@ -348,4 +348,31 @@ export class LicensesService {
       { body: { enabled } },
     );
   }
+
+  /**
+   * Brand owner: turn a tenant's trial flag off or change when it expires.
+   * Passing the date does not lock the account.
+   * @param {string} accountId
+   * @param {Object} trial
+   * @param {boolean} [trial.isTrial]
+   * @param {string|null} [trial.accountExpiresAt] ISO timestamp, or null to clear
+   * @returns {Promise<Object>} `{ accountId, isTrial, accountExpiresAt }`
+   * @example
+   * await sdk.licenses.setBrandAccountTrial('acct-123', { isTrial: false });
+   */
+  async setBrandAccountTrial(accountId, { isTrial, accountExpiresAt } = {}) {
+    this.sdk.validateParams(
+      { accountId },
+      { accountId: { type: 'string', required: true } },
+    );
+    const body = {};
+    if (isTrial !== undefined) body.isTrial = isTrial;
+    if (accountExpiresAt !== undefined) body.accountExpiresAt = accountExpiresAt;
+    return internalRequest(
+      this.sdk,
+      `/permissions/brand/accounts/${accountId}/trial`,
+      'PUT',
+      { body },
+    );
+  }
 }
