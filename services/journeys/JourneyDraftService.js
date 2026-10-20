@@ -34,6 +34,14 @@ export class JourneyDraftService {
    * Compile the simple-builder step doc into workflowItems/ports/
    * connections/positions in one transaction. 409s if the journey's
    * `builderMode` is `'advanced'` (doc is ignored once converted).
+   * `get` reads the same draft back (`version`, `doc`, `builderMode`).
+   *
+   * doc is `{ version: 1, steps }`. Each step has `stepKey`, `type`
+   * (`journeyEmail`, `journeySms`, `journeyWait`, `journeyCall`,
+   * `journeyTask`, `journeyGoal`, `end`), `settings`, and `outcomes`.
+   * An email step sets `settings.journeyEmail.templateId`. A wait sets
+   * `settings.journeyWait` (`{ mode, value, unit }`). An outcome is
+   * `{ port, target: { kind: 'next'|'step'|'end', stepKey } }`.
    *
    * @param {string} journeyId
    * @param {Object} doc - journeyDoc shape (journeys-plan.md §7.2)

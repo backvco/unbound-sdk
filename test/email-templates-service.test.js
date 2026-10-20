@@ -202,6 +202,7 @@ describe('EmailTemplatesService.update', () => {
 			brandKitId: 'kit-1',
 			category: 'welcome',
 		});
+		assert.equal('preheader' in calls[0].params.body, false);
 		assert.equal('appearance' in calls[0].params.body, false);
 	});
 
@@ -212,6 +213,15 @@ describe('EmailTemplatesService.update', () => {
 		await svc.update('tpl-1', { appearance: 'client' });
 
 		assert.deepEqual(calls[0].params.body, { appearance: 'client' });
+	});
+
+	test('sends preheader, including an empty string that clears it', async () => {
+		const { fakeSdk, calls } = buildFakeSdk();
+		const svc = new EmailTemplatesService(fakeSdk);
+
+		await svc.update('tpl-1', { preheader: '' });
+
+		assert.deepEqual(calls[0].params.body, { preheader: '' });
 	});
 });
 
@@ -230,6 +240,7 @@ describe('EmailTemplatesService.create', () => {
 			design,
 			html: '<p>Hi</p>',
 			text: 'Hi',
+			preheader: 'Preview line',
 		});
 
 		assert.equal(calls[0].endpoint, '/messaging/email/template');
@@ -239,11 +250,59 @@ describe('EmailTemplatesService.create', () => {
 			subject: 'Hi {{firstName}}',
 			html: '<p>Hi</p>',
 			text: 'Hi',
+			preheader: 'Preview line',
 			design,
 			appearance: 'marketing',
 			allowOneOff: true,
 			allowCampaign: false,
 		});
+	});
+});
+
+describe('EmailTemplatesService.uploadImage', () => {
+	test('uploads a public image and returns the https URL', async () => {
+		const { fakeSdk } = buildFakeSdk();
+		const file = { name: 'logo.png' };
+		fakeSdk.storage = {
+			upload: async (opts) => {
+				assert.equal(opts.file, file);
+				assert.equal(opts.fileName, 'logo.png');
+				assert.equal(opts.isPublic, true);
+				assert.equal(opts.classification, 'generic');
+				assert.equal(opts.folder, 'email-images');
+				return {
+					uploaded: [
+						{
+							id: 'img-1',
+							url: 'https://masterc.api.example/storage/img-1.png',
+							fileName: 'logo.png',
+						},
+					],
+				};
+			},
+		};
+		const svc = new EmailTemplatesService(fakeSdk);
+
+		const saved = await svc.uploadImage({ file });
+
+		assert.deepEqual(saved, {
+			id: 'img-1',
+			url: 'https://masterc.api.example/storage/img-1.png',
+			fileName: 'logo.png',
+		});
+	});
+
+	test('errors when the upload has no public https URL', async () => {
+		const { fakeSdk } = buildFakeSdk();
+		fakeSdk.storage = {
+			upload: async () => ({ uploaded: [{ id: 'img-1', url: '' }], errors: [] }),
+		};
+		const svc = new EmailTemplatesService(fakeSdk);
+
+		await assert.rejects(
+			() => svc.uploadImage({ file: { name: 'logo.png' } }),
+			/public https URL/,
+		);
 	});
 });
 

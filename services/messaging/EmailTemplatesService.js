@@ -14,13 +14,17 @@ export class EmailTemplatesService {
   }
 
   /**
-   * Create email template
+   * Create email template.
+   * Merge fields are Liquid: {{people.firstName}}, {{company.name}}, {{agent.firstName}}, {{journey.name}}.
+   * A fallback is {{people.firstName | default: "there"}}.
+   * Unsubscribe and email preferences: {{unsubscribeUrl}}. Company mailing address: {{companyAddress}}.
    * @param {Object} params - Template parameters
    * @param {string} params.name - Template name (required)
    * @param {string} params.subject - Template subject (required)
-   * @param {string} [params.html] - HTML template body
+   * @param {string} [params.html] - HTML template body. Saved as a template version and the design file the editor opens.
    * @param {string} [params.text] - Plain text template body
-   * @param {Object} [params.design] - Block-tree design JSON (compiled server-side)
+   * @param {string} [params.preheader] - Inbox preview text (max 250). Empty string clears it. Client appearance rejects a non-empty preheader.
+   * @param {Object} [params.design] - Block-tree design JSON (compiled server-side). With html, html blocks are replaced and other blocks kept.
    * @param {string} [params.appearance] - `client` or `marketing` (immutable after create)
    * @param {string} [params.emailType] - `marketing` | `sales` | `transactional` (defaults to `marketing`; separate from `appearance`)
    * @param {boolean} [params.allowOneOff] - Usable as a one-off / compose send
@@ -55,6 +59,7 @@ export class EmailTemplatesService {
     subject,
     html,
     text,
+    preheader,
     variables,
     design,
     appearance,
@@ -65,12 +70,13 @@ export class EmailTemplatesService {
     category,
   }) {
     this.sdk.validateParams(
-      { name, subject },
+      { name, subject, preheader },
       {
         name: { type: 'string', required: true },
         subject: { type: 'string', required: true },
         html: { type: 'string', required: false },
         text: { type: 'string', required: false },
+        preheader: { type: 'string', required: false },
         variables: { type: 'array', required: false },
         design: { type: 'object', required: false },
         appearance: { type: 'string', required: false },
@@ -88,6 +94,7 @@ export class EmailTemplatesService {
         subject,
         html,
         text,
+        preheader,
         variables,
         design,
         appearance,
@@ -110,12 +117,16 @@ export class EmailTemplatesService {
   /**
    * Update email template. Only defined fields are sent. Appearance is
    * immutable after create and should usually be omitted.
+   * Merge fields are Liquid: {{people.firstName}}, {{company.name}}, {{agent.firstName}}, {{journey.name}}.
+   * A fallback is {{people.firstName | default: "there"}}.
+   * Unsubscribe and email preferences: {{unsubscribeUrl}}. Company mailing address: {{companyAddress}}.
    * @param {string} id - Template ID (required)
    * @param {Object} params - Update parameters
    * @param {string} [params.name] - Template name
    * @param {string} [params.subject] - Template subject
-   * @param {string} [params.html] - HTML template body
+   * @param {string} [params.html] - HTML template body. Replaces the template version and the stored design the editor opens.
    * @param {string} [params.text] - Plain text template body
+   * @param {string} [params.preheader] - Inbox preview text (max 250). Empty string clears it.
    * @param {Object} [params.design] - Block-tree design JSON (compiled server-side)
    * @param {string} [params.appearance] - Usually omit; immutable after create
    * @param {string} [params.emailType] - `marketing` | `sales` | `transactional` (not immutable)
@@ -149,6 +160,7 @@ export class EmailTemplatesService {
       subject,
       html,
       text,
+      preheader,
       variables,
       design,
       appearance,
@@ -160,13 +172,14 @@ export class EmailTemplatesService {
     },
   ) {
     this.sdk.validateParams(
-      { id },
+      { id, preheader },
       {
         id: { type: 'string', required: true },
         name: { type: 'string', required: false },
         subject: { type: 'string', required: false },
         html: { type: 'string', required: false },
         text: { type: 'string', required: false },
+        preheader: { type: 'string', required: false },
         variables: { type: 'array', required: false },
         design: { type: 'object', required: false },
         appearance: { type: 'string', required: false },
@@ -184,6 +197,7 @@ export class EmailTemplatesService {
         subject,
         html,
         text,
+        preheader,
         variables,
         design,
         appearance,
@@ -201,6 +215,49 @@ export class EmailTemplatesService {
       options,
     );
     return result;
+  }
+
+  /**
+   * Upload an image for email HTML. Stored public in the email-images folder.
+   * Put the returned https URL in the template html.
+   * @param {Object} params
+   * @param {Object} params.file - File, Buffer, or stream
+   * @param {string} [params.fileName] - Original file name
+   * @returns {Promise<{id: string, url: string, fileName: string}>}
+   */
+  async uploadImage({ file, fileName } = {}) {
+    this.sdk.validateParams(
+      { file, fileName },
+      {
+        file: { type: 'object', required: true },
+        fileName: { type: 'string', required: false },
+      },
+    );
+    if (!this.sdk.storage?.upload) {
+      throw new Error('sdk.storage.upload is not available');
+    }
+    const result = await this.sdk.storage.upload({
+      file,
+      fileName: fileName || file?.name,
+      isPublic: true,
+      classification: 'generic',
+      folder: 'email-images',
+    });
+    const uploaded = result?.uploaded?.[0];
+    const url = uploaded?.url || '';
+    if (!uploaded?.id || !url.startsWith('https://')) {
+      const reason = result?.errors?.[0];
+      const message =
+        (typeof reason === 'string' && reason) ||
+        reason?.message ||
+        'Image upload did not return a public https URL. It was not saved.';
+      throw new Error(message);
+    }
+    return {
+      id: uploaded.id,
+      url,
+      fileName: uploaded.fileName || fileName || '',
+    };
   }
 
   /**
@@ -241,7 +298,7 @@ export class EmailTemplatesService {
   }
 
   /**
-   * Get email template by ID
+   * Get email template by ID, including html, text, preheader, subject, and name from the stored file the editor uses.
    * @param {string} id - Template ID (required)
    * @returns {Promise<Object>} Template details
    */
