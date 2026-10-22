@@ -21,6 +21,25 @@ export class WorkflowsService {
     return result;
   }
 
+  // Places every module on a version. Main path goes down, branches sit
+  // beside the module they leave. Published versions are rejected.
+  async layoutVersion(workflowVersionId) {
+    this.sdk.validateParams(
+      { workflowVersionId },
+      {
+        workflowVersionId: { type: 'string', required: true },
+      },
+    );
+
+    const result = await internalRequest(
+      this.sdk,
+      `/workflows/${workflowVersionId}/layout`,
+      'POST',
+      { body: {} },
+    );
+    return result;
+  }
+
   async listFormulaFunctions() {
     const result = await internalRequest(this.sdk, 
       '/workflows/formula-functions',
