@@ -91,7 +91,7 @@ const KanbanSection = BaseSection.extend({
 // the feed requests; default is every kind the API can produce.
 export const TIMELINE_SOURCES = [
   'web', 'ads', 'form', 'webchat', 'email', 'sms', 'call', 'ticket', 'note',
-  'score', 'program', 'file',
+  'score', 'program', 'file', 'calendar',
 ];
 
 const TimelineSection = BaseSection.extend({

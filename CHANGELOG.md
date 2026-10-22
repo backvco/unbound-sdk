@@ -1,3 +1,7 @@
+## 4.13.168
+
+- feat: `sdk.calendar` (`CalendarService`) — native calendar calendars, events, RSVP, free/busy, ICS import/export, settings, app passwords, Google sync links, and resources. `deleteEvent(id, scope, { occurrenceStart, recurrenceId })` sends those on the query. Timeline sections accept source `calendar`.
+
 ## 4.13.167
 
 - feat: `sdk.journeys.worklist.release({ taskId })` — `POST /journeys/worklist/release`. Puts a worklist touch back to pending when the rep closes it without sending or calling. Keeps the owner.
