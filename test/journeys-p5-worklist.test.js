@@ -45,6 +45,20 @@ describe('JourneyWorklistService.list', () => {
     assert.deepEqual(calls[0].params.query, { bucket: 'due', page: 2 });
   });
 
+  test('forwards workerId for a manager read-only list', async () => {
+    const { fakeSdk, calls } = buildFakeSdk();
+
+    await new JourneyWorklistService(fakeSdk).list({
+      bucket: 'overdue',
+      workerId: 'worker-2',
+    });
+
+    assert.deepEqual(calls[0].params.query, {
+      bucket: 'overdue',
+      workerId: 'worker-2',
+    });
+  });
+
   test('defaults to an empty query', async () => {
     const { fakeSdk, calls } = buildFakeSdk();
 
@@ -77,6 +91,18 @@ describe('JourneyWorklistService.takeNext', () => {
     await new JourneyWorklistService(fakeSdk).takeNext();
 
     assert.deepEqual(calls[0].params.body, {});
+  });
+});
+
+describe('JourneyWorklistService.release', () => {
+  test('POSTs /journeys/worklist/release with taskId', async () => {
+    const { fakeSdk, calls } = buildFakeSdk();
+
+    await new JourneyWorklistService(fakeSdk).release({ taskId: 'task-1' });
+
+    assert.equal(calls[0].endpoint, '/journeys/worklist/release');
+    assert.equal(calls[0].method, 'POST');
+    assert.deepEqual(calls[0].params.body, { taskId: 'task-1' });
   });
 });
 

@@ -1,3 +1,7 @@
+## 4.13.167
+
+- feat: `sdk.journeys.worklist.release({ taskId })` — `POST /journeys/worklist/release`. Puts a worklist touch back to pending when the rep closes it without sending or calling. Keeps the owner.
+
 ## 4.13.165
 
 - feat: `sdk.licenses.setBrandAccountTrial(accountId, { isTrial, accountExpiresAt })` — `PUT /permissions/brand/accounts/:accountId/trial`. Brand owner turns a tenant trial off or sets when it expires. Passing the date does not lock the account.
