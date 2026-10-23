@@ -353,12 +353,14 @@ export class JourneysService {
    * @param {string} id
    * @param {Object} [params]
    * @param {string} [params.name]
+   * @param {boolean} [params.copyRoster] Copy reps and managers when the destination queue differs
+   * @param {boolean} [params.copyMembers] Enrol current members fresh at the first step
    * @returns {Promise<Object>} New journey + workflow + draft version
    */
-  async clone(id, { name } = {}) {
+  async clone(id, { name, copyRoster, copyMembers } = {}) {
     this.sdk.validateParams({ id }, { id: { type: 'string', required: true } });
     return await internalRequest(this.sdk, `/journeys/${id}/clone`, 'POST', {
-      body: pickDefined({ name }),
+      body: pickDefined({ name, copyRoster, copyMembers }),
     });
   }
 

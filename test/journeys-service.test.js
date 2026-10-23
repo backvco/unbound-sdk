@@ -395,6 +395,22 @@ describe('JourneysService.clone', () => {
     assert.equal(calls[0].method, 'POST');
     assert.deepEqual(calls[0].params.body, { name: 'Copy' });
   });
+
+  test('sends roster and member flags when set', async () => {
+    const { fakeSdk, calls } = buildFakeSdk();
+
+    await journeys(fakeSdk).clone('jny-1', {
+      name: 'Copy',
+      copyRoster: true,
+      copyMembers: false,
+    });
+
+    assert.deepEqual(calls[0].params.body, {
+      name: 'Copy',
+      copyRoster: true,
+      copyMembers: false,
+    });
+  });
 });
 
 describe('JourneysService.saveAsTemplate', () => {
