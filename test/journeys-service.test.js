@@ -477,6 +477,17 @@ describe('JourneyDraftService.publishCheck', () => {
   });
 });
 
+describe('JourneyDraftService.archiveVersion', () => {
+  test('POSTs /journeys/:id/versions/:versionId/archive', async () => {
+    const { fakeSdk, calls } = buildFakeSdk();
+
+    await draft(fakeSdk).archiveVersion('jny-1', 'ver-1');
+
+    assert.equal(calls[0].endpoint, '/journeys/jny-1/versions/ver-1/archive');
+    assert.equal(calls[0].method, 'POST');
+  });
+});
+
 describe('WorkflowTemplatesService.list', () => {
   test('GETs /journeys/templates with workflowType query', async () => {
     const { fakeSdk, calls } = buildFakeSdk();

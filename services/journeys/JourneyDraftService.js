@@ -97,4 +97,27 @@ export class JourneyDraftService {
       'GET',
     );
   }
+
+  /**
+   * Hide a non-current workflow version from the journey step list and
+   * from the step safety check. The current version is refused.
+   *
+   * @param {string} journeyId
+   * @param {string} versionId
+   * @returns {Promise<Object>} { id, name, archived }
+   */
+  async archiveVersion(journeyId, versionId) {
+    this.sdk.validateParams(
+      { journeyId, versionId },
+      {
+        journeyId: { type: 'string', required: true },
+        versionId: { type: 'string', required: true },
+      },
+    );
+    return await internalRequest(
+      this.sdk,
+      `/journeys/${journeyId}/versions/${versionId}/archive`,
+      'POST',
+    );
+  }
 }
