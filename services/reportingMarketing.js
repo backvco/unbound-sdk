@@ -23,7 +23,8 @@ const RANGE_RULES = {
 // task_router (on the Standard User allow list like reporting:surveys:read).
 // Every method takes ISO `from`/`to` plus optional `timeZone` and the
 // website filters (country, utmSource, utmMedium, utmCampaign, landingPage,
-// page, device). Responses never contain raw IPs.
+// page, device). List and summary responses never contain raw IPs.
+// visitorDetail is the exception: the visitor-details modal.
 export class ReportingMarketingService {
   constructor(sdk) {
     this.sdk = sdk;
@@ -65,6 +66,16 @@ export class ReportingMarketingService {
    */
   async websiteSessions(params = {}) {
     return this._get('website/sessions', params);
+  }
+
+  /**
+   * One visitor in the report range: identity, each session (IP, provider,
+   * geo), and the events under those sessions.
+   * @param {Object} params - { from, to, visitor, timeZone? }
+   * @returns {Promise<Object>} { visitorKey, person, company, sessions, truncated }
+   */
+  async visitorDetail(params = {}) {
+    return this._get('website/visitors', params);
   }
 
   /**

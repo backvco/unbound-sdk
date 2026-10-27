@@ -49,6 +49,18 @@ describe('ReportingMarketingService', () => {
     assert.match(calls[4].endpoint, /model=last&dimension=campaign/);
   });
 
+  test('visitorDetail GETs the visitor path with the visitor key', async () => {
+    const { fakeSdk, calls } = buildFakeSdk();
+    await new ReportingMarketingService(fakeSdk).visitorDetail({
+      ...range,
+      visitor: 'abc1234567',
+    });
+    assert.equal(
+      calls[0].endpoint,
+      '/reporting/marketing/website/visitors?from=2026-10-01&to=2026-10-14&visitor=abc1234567',
+    );
+  });
+
   test('sessionEvents GETs the per-session events path', async () => {
     const { fakeSdk, calls } = buildFakeSdk();
     await new ReportingMarketingService(fakeSdk).sessionEvents('s 1');
