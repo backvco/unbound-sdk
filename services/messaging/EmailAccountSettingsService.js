@@ -36,13 +36,20 @@ export class EmailAccountSettingsService {
     autoCreateUserMailbox,
     userMailboxAddressTemplate,
     defaultEmailDomainId,
+    imapSmtpEnabled,
   } = {}) {
     this.sdk.validateParams(
-      { autoCreateUserMailbox, userMailboxAddressTemplate, defaultEmailDomainId },
+      {
+        autoCreateUserMailbox,
+        userMailboxAddressTemplate,
+        defaultEmailDomainId,
+        imapSmtpEnabled,
+      },
       {
         autoCreateUserMailbox: { type: 'boolean', required: false },
         userMailboxAddressTemplate: { type: 'string', required: false },
         defaultEmailDomainId: { type: 'string', required: false },
+        imapSmtpEnabled: { type: 'boolean', required: false },
       },
     );
     const body = {};
@@ -52,6 +59,7 @@ export class EmailAccountSettingsService {
       body.userMailboxAddressTemplate = userMailboxAddressTemplate;
     if (defaultEmailDomainId !== undefined)
       body.defaultEmailDomainId = defaultEmailDomainId;
+    if (imapSmtpEnabled !== undefined) body.imapSmtpEnabled = imapSmtpEnabled;
 
     return internalRequest(this.sdk, '/messaging/email/settings', 'PUT', {
       body,

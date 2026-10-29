@@ -3,6 +3,7 @@ import { EmailMailboxAccessService } from './EmailMailboxAccessService.js';
 import { EmailMailboxUserService } from './EmailMailboxUserService.js';
 import { EmailMailboxGroupAccessService } from './EmailMailboxGroupAccessService.js';
 import { EmailAliasSuggestService } from './EmailAliasSuggestService.js';
+import { EmailMailboxAppPasswordsService } from './EmailMailboxAppPasswordsService.js';
 
 export class EmailMailboxesService {
   constructor(sdk) {
@@ -14,6 +15,7 @@ export class EmailMailboxesService {
     // Shared mailboxes granted to a group — plan §3.2/§4/§6.
     this.groupAccess = new EmailMailboxGroupAccessService(sdk);
     this._aliasSuggestService = new EmailAliasSuggestService(sdk);
+    this.appPasswords = new EmailMailboxAppPasswordsService(sdk);
   }
 
   /**
