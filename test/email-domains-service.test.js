@@ -32,6 +32,42 @@ function buildFakeSdk() {
   return { fakeSdk, calls };
 }
 
+describe('EmailDomainsService.updateSettings', () => {
+  test('puts catch-all and portal settings', async () => {
+    const { fakeSdk, calls } = buildFakeSdk();
+    const svc = new EmailDomainsService(fakeSdk);
+
+    await svc.updateSettings({
+      domain: 'customer.com',
+      catchAllMailboxId: null,
+    });
+
+    assert.equal(calls.length, 1);
+    assert.equal(calls[0].method, 'PUT');
+    assert.equal(
+      calls[0].endpoint,
+      '/messaging/email/validate/domain?domain=customer.com',
+    );
+    assert.deepEqual(calls[0].params.body, { catchAllMailboxId: null });
+  });
+});
+
+describe('EmailDomainsService.enableSending', () => {
+  test('posts the domain sending link', async () => {
+    const { fakeSdk, calls } = buildFakeSdk();
+    const svc = new EmailDomainsService(fakeSdk);
+
+    await svc.enableSending('dom-1');
+
+    assert.equal(calls.length, 1);
+    assert.equal(calls[0].method, 'POST');
+    assert.equal(
+      calls[0].endpoint,
+      '/messaging/email/validate/domain/dom-1/sending',
+    );
+  });
+});
+
 describe('EmailDomainsService.verify', () => {
   test('domain id loads the domain then checks status + dns', async () => {
     const { fakeSdk, calls } = buildFakeSdk();

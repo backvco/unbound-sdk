@@ -280,4 +280,56 @@ export class EmailDomainsService {
     );
     return result;
   }
+
+  /**
+   * Update account settings for a verified domain.
+   * Pass catchAllMailboxId null or '' to clear the catch-all.
+   * @param {Object} params
+   * @param {string} params.domain - Domain name (required)
+   * @param {string} [params.portalId]
+   * @param {string|null} [params.catchAllMailboxId]
+   */
+  async updateSettings({ domain, portalId, catchAllMailboxId } = {}) {
+    this.sdk.validateParams(
+      { domain, portalId, catchAllMailboxId },
+      {
+        domain: { type: 'string', required: true },
+        portalId: { type: 'string', required: false },
+        catchAllMailboxId: { type: 'string', required: false },
+      },
+    );
+
+    const body = {};
+    if (portalId) body.portalId = portalId;
+    if (catchAllMailboxId !== undefined) {
+      body.catchAllMailboxId = catchAllMailboxId || null;
+    }
+
+    return internalRequest(
+      this.sdk,
+      `/messaging/email/validate/domain?domain=${encodeURIComponent(domain)}`,
+      'PUT',
+      { body },
+    );
+  }
+
+  /**
+   * Re-save the account sending link for a verified domain.
+   * @param {string} domainId
+   * @returns {Promise<{id: string, domain: string, sendingStatus: string}>}
+   */
+  async enableSending(domainId) {
+    this.sdk.validateParams(
+      { domainId },
+      {
+        domainId: { type: 'string', required: true },
+      },
+    );
+
+    return internalRequest(
+      this.sdk,
+      `/messaging/email/validate/domain/${encodeURIComponent(domainId)}/sending`,
+      'POST',
+    );
+  }
 }
