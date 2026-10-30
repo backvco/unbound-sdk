@@ -156,13 +156,15 @@ export class LicensesService {
   }
 
   /**
-   * Set a user's active/disabled status (W1-3). Disabling bumps the
-   * user's token_version and logs them out of every queue.
+   * Set a user's account-link status. `suspended` blocks sign-in and
+   * keeps the seat and assignments. `active` resumes a suspension or
+   * enables an offboarded user (sign-in only). `disabled` is the legacy
+   * thin disable; a real offboard is `offboardUser`, not this method.
    * @param {string} userId
-   * @param {'active'|'disabled'} status
+   * @param {'active'|'suspended'|'disabled'} status
    * @returns {Promise<Object>}
    * @example
-   * await sdk.licenses.setUserStatus('user-123', 'disabled');
+   * await sdk.licenses.setUserStatus('user-123', 'suspended');
    */
   async setUserStatus(userId, status) {
     this.sdk.validateParams(
@@ -185,7 +187,7 @@ export class LicensesService {
    * W1-3). Allowed for the caller's own userId with no scope, or for any
    * userId in the account when holding admin:user:manage.
    * @param {string} userId
-   * @returns {Promise<Object>} `{ userId, status, updatedAt? }`
+   * @returns {Promise<Object>} `{ userId, status, updatedAt?, offboarded? }`
    * @example
    * await sdk.licenses.getUserStatus('user-123');
    */
@@ -198,6 +200,55 @@ export class LicensesService {
       this.sdk,
       `/permissions/users/${userId}/status`,
       'GET',
+    );
+  }
+
+  /**
+   * Preview what Disable would detach. Empty classes are omitted.
+   * Phone numbers and mailboxes include `items` when the count is 10
+   * or fewer.
+   * @param {string} userId
+   * @returns {Promise<Object>} `{ userId, status, offboarded, licenseSeatHeld, sections[] }`
+   * @example
+   * const { sections } = await sdk.licenses.previewUserOffboard('user-123');
+   */
+  async previewUserOffboard(userId) {
+    this.sdk.validateParams(
+      { userId },
+      { userId: { type: 'string', required: true } },
+    );
+    return internalRequest(
+      this.sdk,
+      `/permissions/users/${userId}/offboard/preview`,
+      'GET',
+    );
+  }
+
+  /**
+   * Offboard a user in one call. Each assignment is
+   * `{ mode: 'unassign' }` or `{ mode: 'reassign', userId }`.
+   * @param {string} userId
+   * @param {Object} assignments
+   * @returns {Promise<Object>} `{ status: 'disabled', warnings?: [], idempotent?: true }`
+   * @example
+   * await sdk.licenses.offboardUser('user-123', {
+   *   people: { mode: 'unassign' },
+   *   mailboxes: { mode: 'reassign', userId: 'user-456' },
+   * });
+   */
+  async offboardUser(userId, assignments) {
+    this.sdk.validateParams(
+      { userId, assignments },
+      {
+        userId: { type: 'string', required: true },
+        assignments: { type: 'object', required: true },
+      },
+    );
+    return internalRequest(
+      this.sdk,
+      `/permissions/users/${userId}/offboard`,
+      'POST',
+      { body: { assignments } },
     );
   }
 
