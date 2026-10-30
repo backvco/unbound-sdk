@@ -1,3 +1,7 @@
+## 4.13.175
+
+- feat: `sdk.video.getBoardState(roomId, boardId, { full: true })` sends `full=1` so history can rebuild the whole board.
+
 ## 4.13.174
 
 - feat: `sdk.video` board methods — `listBoards`, `createBoard`, `getBoardState`, `postBoardOp`, `createBoardLink`, `redeemBoardLink`, `postBoardStage`, `createMeetRoom`, `listMeetRooms`.

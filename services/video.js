@@ -1701,7 +1701,7 @@ export class VideoService {
    * Current board document. Pass afterSeq to take the ops since a snapshot.
    * @param {string} roomId
    * @param {string} boardId
-   * @param {{afterSeq?: number}} [options]
+   * @param {{afterSeq?: number, full?: boolean}} [options]
    */
   async getBoardState(roomId, boardId, options = {}) {
     this.sdk.validateParams(
@@ -1713,6 +1713,7 @@ export class VideoService {
     );
     const query = {};
     if (options.afterSeq != null) query.afterSeq = options.afterSeq;
+    if (options.full) query.full = '1';
     return internalRequest(
       this.sdk,
       `/video/${roomId}/boards/${boardId}`,
