@@ -1667,4 +1667,145 @@ export class VideoService {
     );
     return result;
   }
+
+  /**
+   * List the shared boards for a meeting.
+   * @param {string} roomId
+   * @returns {Promise<{boards: Array}>}
+   */
+  async listBoards(roomId) {
+    this.sdk.validateParams(
+      { roomId },
+      { roomId: { type: 'string', required: true } },
+    );
+    return internalRequest(this.sdk, `/video/${roomId}/boards`, 'GET');
+  }
+
+  /**
+   * Create a board in a meeting. The first board is also created on demand
+   * when the board is opened.
+   * @param {string} roomId
+   * @param {{name?: string}} [body]
+   */
+  async createBoard(roomId, body = {}) {
+    this.sdk.validateParams(
+      { roomId },
+      { roomId: { type: 'string', required: true } },
+    );
+    return internalRequest(this.sdk, `/video/${roomId}/boards`, 'POST', {
+      body,
+    });
+  }
+
+  /**
+   * Current board document. Pass afterSeq to take the ops since a snapshot.
+   * @param {string} roomId
+   * @param {string} boardId
+   * @param {{afterSeq?: number}} [options]
+   */
+  async getBoardState(roomId, boardId, options = {}) {
+    this.sdk.validateParams(
+      { roomId, boardId },
+      {
+        roomId: { type: 'string', required: true },
+        boardId: { type: 'string', required: true },
+      },
+    );
+    const query = {};
+    if (options.afterSeq != null) query.afterSeq = options.afterSeq;
+    return internalRequest(
+      this.sdk,
+      `/video/${roomId}/boards/${boardId}`,
+      'GET',
+      { query },
+    );
+  }
+
+  /**
+   * Append one board op (stroke, object, undo, lock, video transport).
+   * @param {string} roomId
+   * @param {string} boardId
+   * @param {{clientOpId: string, opType: string, payload: object}} op
+   */
+  async postBoardOp(roomId, boardId, op) {
+    this.sdk.validateParams(
+      { roomId, boardId, clientOpId: op?.clientOpId, opType: op?.opType },
+      {
+        roomId: { type: 'string', required: true },
+        boardId: { type: 'string', required: true },
+        clientOpId: { type: 'string', required: true },
+        opType: { type: 'string', required: true },
+      },
+    );
+    return internalRequest(
+      this.sdk,
+      `/video/${roomId}/boards/${boardId}/ops`,
+      'POST',
+      { body: op },
+    );
+  }
+
+  /**
+   * Short code another screen types to become this person's board.
+   * @param {string} roomId
+   * @returns {Promise<{code: string, expiresAt: string}>}
+   */
+  async createBoardLink(roomId) {
+    this.sdk.validateParams(
+      { roomId },
+      { roomId: { type: 'string', required: true } },
+    );
+    return internalRequest(this.sdk, `/video/${roomId}/board-link`, 'POST', {
+      body: {},
+    });
+  }
+
+  /**
+   * Claim a link code from the room screen.
+   * @param {string} code
+   */
+  async redeemBoardLink(code) {
+    this.sdk.validateParams(
+      { code },
+      { code: { type: 'string', required: true } },
+    );
+    return internalRequest(this.sdk, '/video/board-link/redeem', 'POST', {
+      body: { code },
+    });
+  }
+
+  /**
+   * Ask everyone to switch stage, or move them once.
+   * @param {string} roomId
+   * @param {{action: 'ask'|'force', target: {type: string, id?: string, name?: string}}} body
+   */
+  async postBoardStage(roomId, body) {
+    this.sdk.validateParams(
+      { roomId, action: body?.action },
+      {
+        roomId: { type: 'string', required: true },
+        action: { type: 'string', required: true },
+      },
+    );
+    return internalRequest(this.sdk, `/video/${roomId}/board-stage`, 'POST', {
+      body,
+    });
+  }
+
+  /**
+   * Name this always-on room screen.
+   * @param {{name: string}} body
+   */
+  async createMeetRoom(body) {
+    this.sdk.validateParams(
+      { name: body?.name },
+      { name: { type: 'string', required: true } },
+    );
+    return internalRequest(this.sdk, '/video/meet-rooms', 'POST', { body });
+  }
+
+  /** @returns {Promise<{rooms: Array}>} */
+  async listMeetRooms() {
+    return internalRequest(this.sdk, '/video/meet-rooms', 'GET');
+  }
 }
