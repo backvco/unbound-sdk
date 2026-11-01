@@ -1,3 +1,9 @@
+## 4.13.176
+
+- feat: `sdk.licenses.previewUserOffboard(userId)` — `GET /permissions/users/:userId/offboard/preview`.
+- feat: `sdk.licenses.offboardUser(userId, assignments)` — `POST /permissions/users/:userId/offboard`. Each assignment is `{ mode: 'unassign' }` or `{ mode: 'reassign', userId }`.
+- feat: `sdk.licenses.setUserStatus` accepts `suspended`. `getUserStatus` can include `offboarded`.
+
 ## 4.13.175
 
 - feat: `sdk.video.getBoardState(roomId, boardId, { full: true })` sends `full=1` so history can rebuild the whole board.
