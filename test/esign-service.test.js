@@ -72,6 +72,30 @@ describe('EsignService.listPackages', () => {
       limit: 1,
     });
   });
+
+  test('sends inbox filters and includeSigners', async () => {
+    const { fakeSdk, calls } = buildFakeSdk();
+
+    await esign(fakeSdk).listPackages({
+      statusGroup: 'open',
+      createdBy: 'user1',
+      sentFrom: '2026-11-01T00:00:00.000Z',
+      sentTo: '2026-11-05T23:59:59.000Z',
+      q: 'NDA',
+      includeSigners: true,
+      limit: 100,
+    });
+
+    assert.deepEqual(calls[0].params.query, {
+      statusGroup: 'open',
+      createdBy: 'user1',
+      sentFrom: '2026-11-01T00:00:00.000Z',
+      sentTo: '2026-11-05T23:59:59.000Z',
+      q: 'NDA',
+      includeSigners: '1',
+      limit: 100,
+    });
+  });
 });
 
 describe('EsignService.getPackage', () => {
@@ -94,6 +118,14 @@ describe('EsignService.updatePackage', () => {
     assert.equal(calls[0].endpoint, '/esign/packages/pkg-1');
     assert.equal(calls[0].method, 'PATCH');
     assert.deepEqual(calls[0].params.body, { name: 'Updated' });
+  });
+
+  test('sends reminderIntervalHours when set', async () => {
+    const { fakeSdk, calls } = buildFakeSdk();
+
+    await esign(fakeSdk).updatePackage('pkg-1', { reminderIntervalHours: 72 });
+
+    assert.deepEqual(calls[0].params.body, { reminderIntervalHours: 72 });
   });
 });
 
@@ -289,5 +321,18 @@ describe('EsignPublicService.decline', () => {
     assert.equal(calls[0].endpoint, '/esign/public/tok/decline');
     assert.equal(calls[0].forceFetch, true);
     assert.deepEqual(calls[0].params.body, { reason: 'no' });
+  });
+});
+
+describe('EsignPublicService.activity', () => {
+  test('POSTs /esign/public/:token/activity', async () => {
+    const { fakeSdk, calls } = buildFakeSdk();
+
+    await esign(fakeSdk).public.activity({ token: 'tok', action: 'printed' });
+
+    assert.equal(calls[0].endpoint, '/esign/public/tok/activity');
+    assert.equal(calls[0].method, 'POST');
+    assert.equal(calls[0].forceFetch, true);
+    assert.deepEqual(calls[0].params.body, { action: 'printed' });
   });
 });

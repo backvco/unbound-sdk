@@ -165,6 +165,30 @@ export class EsignPublicService {
       true,
     );
   }
+
+  /**
+   * Record that this signer downloaded or printed the document.
+   * @param {Object} params
+   * @param {string} params.token
+   * @param {string} params.action downloaded or printed
+   * @returns {Promise<Object>}
+   */
+  async activity({ token, action }) {
+    this.sdk.validateParams(
+      { token, action },
+      {
+        token: { type: 'string', required: true },
+        action: { type: 'string', required: true },
+      },
+    );
+    return internalRequest(
+      this.sdk,
+      `/esign/public/${token}/activity`,
+      'POST',
+      { body: { action } },
+      true,
+    );
+  }
 }
 
 /**
@@ -189,6 +213,7 @@ export class EsignService {
    * @param {boolean} [body.allowDrawn]
    * @param {string} [body.postSignRedirectUrl]
    * @param {string[]} [body.feedNotifyEvents] - Subset of `sent`|`opened`|`signed`; auto-posts a chat card to every linked record's feed on each selected event.
+   * @param {number} [body.reminderIntervalHours] - `0` off. Any whole number of hours. The first reminder must land before `expiresAt`. Stored only; no sender yet.
    * @returns {Promise<Object>}
    */
   async createPackage({
@@ -201,6 +226,7 @@ export class EsignService {
     allowDrawn,
     postSignRedirectUrl,
     feedNotifyEvents,
+    reminderIntervalHours,
   } = {}) {
     this.sdk.validateParams(
       { generatedDocumentId, name, recipients },
@@ -214,6 +240,7 @@ export class EsignService {
         allowDrawn: { type: 'boolean', required: false },
         postSignRedirectUrl: { type: 'string', required: false },
         feedNotifyEvents: { type: 'array', required: false },
+        reminderIntervalHours: { type: 'number', required: false },
       },
     );
 
@@ -228,6 +255,9 @@ export class EsignService {
     if (feedNotifyEvents !== undefined) {
       body.feedNotifyEvents = feedNotifyEvents;
     }
+    if (reminderIntervalHours !== undefined) {
+      body.reminderIntervalHours = reminderIntervalHours;
+    }
 
     return internalRequest(this.sdk, '/esign/packages', 'POST', { body });
   }
@@ -239,14 +269,37 @@ export class EsignService {
    * @param {string} [query.recordId] - Requires `objectName`
    * @param {string} [query.objectName] - Requires `recordId`
    * @param {string} [query.status]
+   * @param {string} [query.statusGroup] - `open` is sent + in_progress
+   * @param {string} [query.createdBy]
+   * @param {string} [query.sentFrom]
+   * @param {string} [query.sentTo]
+   * @param {string} [query.q] - agreement name contains
+   * @param {boolean} [query.includeSigners] - explicit; omit on the limit:1 probe
    * @param {number} [query.limit]
    * @returns {Promise<{results: Object[]}>}
    */
-  async listPackages({ recordId, objectName, status, limit } = {}) {
+  async listPackages({
+    recordId,
+    objectName,
+    status,
+    statusGroup,
+    createdBy,
+    sentFrom,
+    sentTo,
+    q,
+    includeSigners,
+    limit,
+  } = {}) {
     const query = {};
     if (recordId) query.recordId = recordId;
     if (objectName) query.objectName = objectName;
     if (status) query.status = status;
+    if (statusGroup) query.statusGroup = statusGroup;
+    if (createdBy) query.createdBy = createdBy;
+    if (sentFrom) query.sentFrom = sentFrom;
+    if (sentTo) query.sentTo = sentTo;
+    if (q) query.q = q;
+    if (includeSigners) query.includeSigners = '1';
     if (limit) query.limit = limit;
     return internalRequest(this.sdk, '/esign/packages', 'GET', { query });
   }
@@ -273,6 +326,7 @@ export class EsignService {
    * @param {boolean} [body.allowDrawn]
    * @param {string} [body.postSignRedirectUrl]
    * @param {string[]} [body.feedNotifyEvents] - Subset of `sent`|`opened`|`signed`; auto-posts a chat card to every linked record's feed on each selected event.
+   * @param {number} [body.reminderIntervalHours] - `0` off. Any whole number of hours. The first reminder must land before `expiresAt`. Stored only; no sender yet.
    * @returns {Promise<Object>}
    */
   async updatePackage(
@@ -286,6 +340,7 @@ export class EsignService {
       allowDrawn,
       postSignRedirectUrl,
       feedNotifyEvents,
+      reminderIntervalHours,
     } = {},
   ) {
     this.sdk.validateParams(
@@ -300,6 +355,7 @@ export class EsignService {
         allowDrawn: { type: 'boolean', required: false },
         postSignRedirectUrl: { type: 'string', required: false },
         feedNotifyEvents: { type: 'array', required: false },
+        reminderIntervalHours: { type: 'number', required: false },
       },
     );
 
@@ -315,6 +371,9 @@ export class EsignService {
     }
     if (feedNotifyEvents !== undefined) {
       body.feedNotifyEvents = feedNotifyEvents;
+    }
+    if (reminderIntervalHours !== undefined) {
+      body.reminderIntervalHours = reminderIntervalHours;
     }
 
     return internalRequest(this.sdk, `/esign/packages/${id}`, 'PATCH', {

@@ -1,3 +1,9 @@
+## 4.13.177
+
+- feat: `sdk.esign.listPackages` accepts `statusGroup`, `createdBy`, `sentFrom`, `sentTo`, `q`, and `includeSigners`.
+- feat: `sdk.esign.createPackage` and `updatePackage` send `reminderIntervalHours`. Stored only; no sender yet.
+- feat: `sdk.esign.public.activity({ token, action })` — `POST /esign/public/:token/activity` for downloaded or printed.
+
 ## 4.13.176
 
 - feat: `sdk.licenses.previewUserOffboard(userId)` — `GET /permissions/users/:userId/offboard/preview`.
