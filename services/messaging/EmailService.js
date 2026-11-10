@@ -6,6 +6,7 @@ import { EmailAnalyticsService } from './EmailAnalyticsService.js';
 import { EmailQueueService } from './EmailQueueService.js';
 import { EmailSuppressionService } from './EmailSuppressionService.js';
 import { EmailAccountSettingsService } from './EmailAccountSettingsService.js';
+import { EmailSignaturesService } from './EmailSignaturesService.js';
 
 import { internalRequest } from '../../base.js';
 export class EmailService {
@@ -20,6 +21,7 @@ export class EmailService {
     this.suppression = new EmailSuppressionService(sdk);
     // Account-level email settings (plan §3.3).
     this.settings = new EmailAccountSettingsService(sdk);
+    this.signatures = new EmailSignaturesService(sdk);
   }
 
   /**
