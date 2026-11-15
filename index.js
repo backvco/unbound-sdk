@@ -102,9 +102,24 @@ class UnboundSDK extends BaseSDK {
         socketStore,
         baseURL,
         tokenDelivery,
+        autoRefresh,
+        onUnauthorized,
+        refreshToken,
       } = options;
 
-      super({ namespace, callId, token, fwRequestId, baseURL, tokenDelivery });
+      // autoRefresh / onUnauthorized / refreshToken must reach BaseSDK or the
+      // 401 refresh-and-retry (lib/refreshInterceptor.js) never runs.
+      super({
+        namespace,
+        callId,
+        token,
+        fwRequestId,
+        baseURL,
+        tokenDelivery,
+        autoRefresh,
+        onUnauthorized,
+        refreshToken,
+      });
 
       // Handle client-side specific parameters
       if (url) {
