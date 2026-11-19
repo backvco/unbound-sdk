@@ -58,6 +58,7 @@ export class EmailService {
    * @param {Array} [params.storageId] - Array of storage IDs for attachments
    * @param {string} [params.replyTo] - Reply-to email address
    * @param {string} [params.replyToEmailId] - ID of email this is replying to
+   * @param {string} [params.replyType] - Reply type: 'reply', 'replyAll', or 'forward' (flags the parent message: \Answered, or $Forwarded for 'forward')
    * @param {string} [params.relatedId] - Related record ID (e.g. opportunity)
    * @param {string} [params.peopleId] - Person record ID to link the email to
    * @param {string} [params.companyId] - Company record ID to link the email to
@@ -82,6 +83,7 @@ export class EmailService {
     storageId,
     replyTo,
     replyToEmailId,
+    replyType,
     relatedId,
     peopleId,
     companyId,
@@ -115,6 +117,7 @@ export class EmailService {
         storageId,
         replyTo,
         replyToEmailId,
+        replyType,
         relatedId,
         peopleId,
         companyId,
@@ -133,6 +136,7 @@ export class EmailService {
         storageId: { type: 'array', required: false },
         replyTo: { type: 'string', required: false },
         replyToEmailId: { type: 'string', required: false },
+        replyType: { type: 'string', required: false },
         relatedId: { type: 'string', required: false },
         peopleId: { type: 'string', required: false },
         companyId: { type: 'string', required: false },
@@ -159,6 +163,7 @@ export class EmailService {
     if (storageId) emailData.storageId = storageId;
     if (replyTo) emailData.replyTo = replyTo;
     if (replyToEmailId) emailData.replyToEmailId = replyToEmailId;
+    if (replyType) emailData.replyType = replyType;
     if (relatedId) emailData.relatedId = relatedId;
     if (peopleId) emailData.peopleId = peopleId;
     if (companyId) emailData.companyId = companyId;

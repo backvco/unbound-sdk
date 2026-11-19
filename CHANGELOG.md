@@ -1,3 +1,7 @@
+## 4.13.181
+
+- feat: `sdk.messaging.email.send` accepts `replyType` ('reply' | 'replyAll' | 'forward') and forwards it in the request body, matching `createDraft`. API flags the parent message (\Answered, or $Forwarded for 'forward').
+
 ## 4.13.177
 
 - feat: `sdk.esign.listPackages` accepts `statusGroup`, `createdBy`, `sentFrom`, `sentTo`, `q`, and `includeSigners`.
